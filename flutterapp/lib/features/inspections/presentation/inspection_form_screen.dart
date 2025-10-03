@@ -39,6 +39,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
   final Map<int, List<String>> _photoPaths = <int, List<String>>{};
   final Map<String, List<String>> _stepPhotos = <String, List<String>>{};
   final Map<String, TextEditingController> _stepNotesControllers = <String, TextEditingController>{};
+  final Map<String, Set<int>> _instructionCompletion = <String, Set<int>>{};
   final Map<String, bool> _operationalChecks = <String, bool>{
     'brake_test': false,
     'steering_check': false,
@@ -81,6 +82,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     }
     for (final step in _steps) {
       _stepNotesControllers[step.definition.code] = TextEditingController();
+      _instructionCompletion[step.definition.code] = <int>{};
     }
   }
 
@@ -180,11 +182,17 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
         )
         .toList();
     final theme = Theme.of(context);
+    final instructionState = _instructionStateFor(step);
     return Scrollbar(
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
-          _StepIntroCard(step: step),
+          _StepIntroCard(
+            step: step,
+            completedIndices: instructionState,
+            enabled: true,
+            onToggle: (index, value) => _onInstructionToggle(step, index, value),
+          ),
           const SizedBox(height: 20),
           Card(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -319,25 +327,22 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     final isTrailerStep = step.definition.code == 'coupling_connections';
     final stepSkipped = isTrailerStep && _trailerNotApplicable;
     final items = step.items;
+    final instructionState = _instructionStateFor(step);
     return Scrollbar(
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
-          _StepIntroCard(step: step),
+          _StepIntroCard(
+            step: step,
+            completedIndices: instructionState,
+            enabled: !stepSkipped,
+            onToggle: (index, value) => _onInstructionToggle(step, index, value),
+          ),
           if (isTrailerStep) ...[
             const SizedBox(height: 16),
             SwitchListTile.adaptive(
               value: _trailerNotApplicable,
-              onChanged: (value) {
-                setState(() {
-                  _trailerNotApplicable = value;
-                  if (value) {
-                    _skippedSteps.add(step.definition.code);
-                  } else {
-                    _skippedSteps.remove(step.definition.code);
-                  }
-                });
-              },
+              onChanged: (value) => _handleTrailerSkipToggle(step, value),
               title: const Text('Trailer not attached'),
               subtitle: const Text('Skip this step if the power unit is inspected without a trailer.'),
             ),
@@ -390,11 +395,17 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
 
   Widget _buildOperationalStep(_GuidedStep step) {
     final theme = Theme.of(context);
+    final instructionState = _instructionStateFor(step);
     return Scrollbar(
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
-          _StepIntroCard(step: step),
+          _StepIntroCard(
+            step: step,
+            completedIndices: instructionState,
+            enabled: true,
+            onToggle: (index, value) => _onInstructionToggle(step, index, value),
+          ),
           const SizedBox(height: 16),
           Card(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
@@ -471,11 +482,12 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
 
   Widget _buildChecklistPhotoSummary(_GuidedStep step) {
     final theme = Theme.of(context);
+    final generalPhotos = _stepPhotos[step.definition.code] ?? const <String>[];
     final photoEntries = step.items
         .map((item) => MapEntry(item, _photoPaths[item.id] ?? const <String>[]))
         .where((entry) => entry.value.isNotEmpty)
         .toList();
-    if (photoEntries.isEmpty) {
+    if (generalPhotos.isEmpty && photoEntries.isEmpty) {
       return const SizedBox.shrink();
     }
     return Card(
@@ -485,8 +497,19 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Checklist photo log', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+            Text('Photo evidence log', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
+            if (generalPhotos.isNotEmpty) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: Text('Step evidence', style: theme.textTheme.bodyLarge)),
+                  const SizedBox(width: 12),
+                  Chip(label: Text('${generalPhotos.length} photo${generalPhotos.length == 1 ? '' : 's'}')),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
             ...photoEntries.map(
               (entry) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -633,6 +656,10 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     if (step.definition.requiresTrailer && _trailerNotApplicable) {
       return true;
     }
+    if (!_areInstructionsComplete(step)) {
+      _showError('Complete the guided actions for ${step.definition.title} before continuing.');
+      return false;
+    }
     return true;
   }
 
@@ -680,10 +707,23 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     _vinController.text = vehicle.vin;
     final isTrailer = _isTrailerVehicle(vehicle);
     _trailerNotApplicable = !isTrailer;
+    _GuidedStep? couplingStep;
+    for (final step in _steps) {
+      if (step.definition.code == 'coupling_connections') {
+        couplingStep = step;
+        break;
+      }
+    }
     if (_trailerNotApplicable) {
       _skippedSteps.add('coupling_connections');
+      if (couplingStep != null) {
+        _setInstructionCompletion(couplingStep, true);
+      }
     } else {
       _skippedSteps.remove('coupling_connections');
+      if (couplingStep != null) {
+        _setInstructionCompletion(couplingStep, false);
+      }
     }
   }
 
@@ -761,6 +801,55 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     });
   }
 
+  Set<int> _instructionStateFor(_GuidedStep step) {
+    final completion = _instructionCompletion[step.definition.code];
+    return completion == null ? <int>{} : Set<int>.from(completion);
+  }
+
+  void _onInstructionToggle(_GuidedStep step, int index, bool value) {
+    setState(() {
+      final completion = _instructionCompletion.putIfAbsent(step.definition.code, () => <int>{});
+      if (value) {
+        completion.add(index);
+      } else {
+        completion.remove(index);
+      }
+    });
+  }
+
+  void _setInstructionCompletion(_GuidedStep step, bool completed) {
+    final completion = _instructionCompletion.putIfAbsent(step.definition.code, () => <int>{});
+    completion.clear();
+    if (completed) {
+      for (var i = 0; i < step.definition.instructions.length; i += 1) {
+        completion.add(i);
+      }
+    }
+  }
+
+  bool _shouldEnforceInstructions(_GuidedStep step) =>
+      step.definition.enforceInstructionCompletion && step.definition.instructions.isNotEmpty;
+
+  bool _areInstructionsComplete(_GuidedStep step) {
+    if (!_shouldEnforceInstructions(step)) {
+      return true;
+    }
+    final completion = _instructionCompletion[step.definition.code];
+    return completion != null && completion.length == step.definition.instructions.length;
+  }
+
+  void _handleTrailerSkipToggle(_GuidedStep step, bool skip) {
+    setState(() {
+      _trailerNotApplicable = skip;
+      if (skip) {
+        _skippedSteps.add(step.definition.code);
+      } else {
+        _skippedSteps.remove(step.definition.code);
+      }
+      _setInstructionCompletion(step, skip);
+    });
+  }
+
   Future<String?> _pickAnnotatedPhoto(String contextTitle) async {
     final source = await showModalBottomSheet<ImageSource?>(
       context: context,
@@ -814,6 +903,28 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
       buffer.writeln('\nIdentification notes:\n${_identificationNotesController.text.trim()}');
     }
     for (final step in _steps) {
+      if (step.definition.instructions.isNotEmpty) {
+        buffer.writeln('\n${step.definition.title} guided actions:');
+        final completion = _instructionCompletion[step.definition.code] ?? const <int>{};
+        for (var i = 0; i < step.definition.instructions.length; i += 1) {
+          final indicator = completion.contains(i) ? '✓' : '○';
+          buffer.writeln('$indicator ${step.definition.instructions[i]}');
+        }
+      }
+      final generalStepPhotos = _stepPhotos[step.definition.code] ?? const <String>[];
+      if (generalStepPhotos.isNotEmpty) {
+        buffer.writeln('Step evidence photos: ${generalStepPhotos.length}');
+      }
+      final checklistPhotoEntries = step.items
+          .map((item) => MapEntry(item.title, _photoPaths[item.id] ?? const <String>[]))
+          .where((entry) => entry.value.isNotEmpty)
+          .toList();
+      if (checklistPhotoEntries.isNotEmpty) {
+        buffer.writeln('Checklist item photos:');
+        for (final entry in checklistPhotoEntries) {
+          buffer.writeln('• ${entry.key}: ${entry.value.length}');
+        }
+      }
       final note = _stepNotesControllers[step.definition.code]?.text.trim();
       if (note == null || note.isEmpty) {
         continue;
@@ -845,13 +956,23 @@ class _GuidedStep {
 }
 
 class _StepIntroCard extends StatelessWidget {
-  const _StepIntroCard({required this.step});
+  const _StepIntroCard({
+    required this.step,
+    required this.completedIndices,
+    required this.onToggle,
+    this.enabled = true,
+  });
 
   final _GuidedStep step;
+  final Set<int> completedIndices;
+  final void Function(int index, bool value) onToggle;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final instructions = step.definition.instructions;
+    final completedCount = completedIndices.length.clamp(0, instructions.length).toInt();
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       color: theme.colorScheme.surfaceVariant,
@@ -861,24 +982,37 @@ class _StepIntroCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(step.definition.title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 12),
-            ...step.definition.instructions.map(
-              (instruction) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('• '),
-                    Expanded(
-                      child: Text(
-                        instruction,
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ),
-                  ],
+            const SizedBox(height: 8),
+            Text(step.definition.summary, style: theme.textTheme.bodyMedium),
+            if (instructions.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Text('Guided actions', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+                  const Spacer(),
+                  Text('$completedCount of ${instructions.length} completed', style: theme.textTheme.labelMedium),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ...List.generate(
+                instructions.length,
+                (index) => CheckboxListTile(
+                  value: completedIndices.contains(index),
+                  onChanged: enabled
+                      ? (value) => onToggle(index, value ?? false)
+                      : null,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(instructions[index], style: theme.textTheme.bodyMedium),
                 ),
               ),
-            ),
+            ],
+            if (!enabled) ...[
+              const SizedBox(height: 12),
+              Text('Step marked as not applicable for this inspection.',
+                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            ],
           ],
         ),
       ),

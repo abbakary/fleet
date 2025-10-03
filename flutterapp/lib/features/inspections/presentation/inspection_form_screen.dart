@@ -878,6 +878,14 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
       buffer.writeln('\nIdentification notes:\n${_identificationNotesController.text.trim()}');
     }
     for (final step in _steps) {
+      if (step.definition.instructions.isNotEmpty) {
+        buffer.writeln('\n${step.definition.title} guided actions:');
+        final completion = _instructionCompletion[step.definition.code] ?? const <int>{};
+        for (var i = 0; i < step.definition.instructions.length; i += 1) {
+          final indicator = completion.contains(i) ? '✓' : '○';
+          buffer.writeln('$indicator ${step.definition.instructions[i]}');
+        }
+      }
       final note = _stepNotesControllers[step.definition.code]?.text.trim();
       if (note == null || note.isEmpty) {
         continue;

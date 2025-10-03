@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/ui/animated_background.dart';
 import '../../auth/presentation/session_controller.dart';
+import '../data/checklist_blueprint.dart';
 import '../data/inspections_repository.dart';
 import '../data/models.dart';
 import 'controllers/inspector_dashboard_controller.dart';

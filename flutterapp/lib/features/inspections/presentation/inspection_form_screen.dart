@@ -925,7 +925,7 @@ class _StepIntroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final instructions = step.definition.instructions;
-    final completedCount = completedIndices.length.clamp(0, instructions.length);
+    final completedCount = completedIndices.length.clamp(0, instructions.length).toInt();
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       color: theme.colorScheme.surfaceVariant,

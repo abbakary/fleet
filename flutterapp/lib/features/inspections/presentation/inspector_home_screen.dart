@@ -622,17 +622,23 @@ class _AssignmentCard extends StatelessWidget {
     required this.vehicle,
     required this.onStart,
     this.onAddVehicle,
+    this.categoryLabel,
+    this.accentColor,
   });
 
   final VehicleAssignmentModel assignment;
   final VehicleModel? vehicle;
   final VoidCallback onStart;
   final VoidCallback? onAddVehicle;
+  final String? categoryLabel;
+  final Color? accentColor;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheduled = DateFormat.yMMMMd().format(assignment.scheduledFor);
+    final highlight = accentColor ?? theme.colorScheme.primary;
+    final showCategory = categoryLabel != null && categoryLabel!.isNotEmpty;
     final vehicleLabel = vehicle != null
         ? '${vehicle!.licensePlate} • ${vehicle!.make} ${vehicle!.model}'
         : 'Vehicle #${assignment.vehicleId}';
@@ -644,6 +650,23 @@ class _AssignmentCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (showCategory) ...[
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: highlight.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  child: Text(
+                    categoryLabel!,
+                    style: theme.textTheme.labelMedium?.copyWith(color: highlight),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
             Text(vehicleLabel, style: theme.textTheme.titleMedium),
             const SizedBox(height: 4),
             Text('Scheduled for $scheduled'),

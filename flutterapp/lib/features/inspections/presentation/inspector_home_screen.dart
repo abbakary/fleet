@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/ui/animated_background.dart';
 import '../../auth/presentation/session_controller.dart';
+import '../data/checklist_blueprint.dart';
 import '../data/inspections_repository.dart';
 import '../data/models.dart';
 import 'controllers/inspector_dashboard_controller.dart';
@@ -115,31 +116,17 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                                   ],
                                 ),
                               ),
-                            Text(
-                              'Today\'s assignments',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 12),
-                            if (controller.assignments.isEmpty)
-                              const Card(
-                                child: Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Text('No assignments scheduled.'),
-                                ),
-                              )
-                            else
-                              ...controller.assignments.map((assignment) {
-                                final vehicle = controller.vehicleById(assignment.vehicleId);
-                                return _AssignmentCard(
-                                  assignment: assignment,
-                                  vehicle: vehicle,
-                                  onStart: () => _startAssignmentInspection(context, controller, assignment),
-                                  onAddVehicle: vehicle?.customerId != null
-                                      ? () => _openAddVehicleDialog(context, controller, vehicle!.customerId!)
-                                      : null,
-                                );
-                              }),
-                            const SizedBox(height: 32),
+                            ..._buildAssignmentSections(context, controller),
+                            if (controller.checklistGuide.isNotEmpty) ...[
+                              Text(
+                                'Fleet inspection playbook',
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              const SizedBox(height: 12),
+                              _ChecklistGuide(entries: controller.checklistGuide),
+                              const SizedBox(height: 32),
+                            ] else
+                              const SizedBox(height: 24),
                             Text(
                               'Recent inspections',
                               style: Theme.of(context).textTheme.titleLarge,
@@ -169,6 +156,110 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
         );
       },
     );
+  }
+
+  List<Widget> _buildAssignmentSections(
+    BuildContext context,
+    InspectorDashboardController controller,
+  ) {
+    final List<Widget> sections = <Widget>[];
+    final theme = Theme.of(context);
+
+    if (controller.overdueAssignments.isNotEmpty) {
+      sections.addAll(
+        _buildAssignmentBucket(
+          context: context,
+          controller: controller,
+          title: 'Overdue assignments',
+          assignments: controller.overdueAssignments,
+          emptyMessage: 'No overdue assignments.',
+          accentColor: theme.colorScheme.error,
+          categoryLabel: 'Overdue',
+          showEmptyState: false,
+        ),
+      );
+    }
+
+    sections.addAll(
+      _buildAssignmentBucket(
+        context: context,
+        controller: controller,
+        title: 'Today\'s assignments',
+        assignments: controller.assignmentsToday,
+        emptyMessage: 'No assignments scheduled for today.',
+        accentColor: theme.colorScheme.primary,
+        categoryLabel: 'Today',
+        showEmptyState: true,
+      ),
+    );
+
+    if (controller.upcomingAssignments.isNotEmpty) {
+      sections.addAll(
+        _buildAssignmentBucket(
+          context: context,
+          controller: controller,
+          title: 'Upcoming assignments',
+          assignments: controller.upcomingAssignments,
+          emptyMessage: 'No upcoming assignments.',
+          accentColor: theme.colorScheme.secondary,
+          categoryLabel: 'Upcoming',
+          showEmptyState: false,
+        ),
+      );
+    }
+
+    return sections;
+  }
+
+  List<Widget> _buildAssignmentBucket({
+    required BuildContext context,
+    required InspectorDashboardController controller,
+    required String title,
+    required List<VehicleAssignmentModel> assignments,
+    required String emptyMessage,
+    required Color accentColor,
+    required String categoryLabel,
+    required bool showEmptyState,
+  }) {
+    if (assignments.isEmpty && !showEmptyState) {
+      return const <Widget>[];
+    }
+
+    final theme = Theme.of(context);
+    final List<Widget> widgets = <Widget>[
+      Text(title, style: theme.textTheme.titleLarge),
+      const SizedBox(height: 12),
+    ];
+
+    if (assignments.isEmpty) {
+      widgets.add(
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(emptyMessage),
+          ),
+        ),
+      );
+    } else {
+      widgets.addAll(
+        assignments.map((assignment) {
+          final vehicle = controller.vehicleById(assignment.vehicleId);
+          return _AssignmentCard(
+            assignment: assignment,
+            vehicle: vehicle,
+            onStart: () => _startAssignmentInspection(context, controller, assignment),
+            onAddVehicle: vehicle?.customerId != null
+                ? () => _openAddVehicleDialog(context, controller, vehicle!.customerId!)
+                : null,
+            categoryLabel: categoryLabel,
+            accentColor: accentColor,
+          );
+        }),
+      );
+    }
+
+    widgets.add(const SizedBox(height: 24));
+    return widgets;
   }
 
   Widget _buildFab(BuildContext context, InspectorDashboardController controller) {
@@ -525,23 +616,171 @@ class _MiniFab extends StatelessWidget {
   }
 }
 
+class _ChecklistGuide extends StatelessWidget {
+  const _ChecklistGuide({required this.entries});
+
+  final List<ChecklistGuideEntry> entries;
+
+  @override
+  Widget build(BuildContext context) {
+    if (entries.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      children: entries.map((entry) => _ChecklistGuideTile(entry: entry)).toList(),
+    );
+  }
+}
+
+class _ChecklistGuideTile extends StatelessWidget {
+  const _ChecklistGuideTile({required this.entry});
+
+  final ChecklistGuideEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final subtitle = entry.summary.trim();
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ExpansionTile(
+        title: Text(entry.title, style: theme.textTheme.titleMedium),
+        subtitle: subtitle.isEmpty ? null : Text(subtitle),
+        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        children: [
+          if (entry.steps.isNotEmpty)
+            _GuideSection(
+              title: 'Key steps',
+              children: entry.steps.map((step) => _GuideBullet(text: step)).toList(),
+            ),
+          if (entry.points.isNotEmpty)
+            _GuideSection(
+              title: 'Inspection points',
+              children: entry.points.map((point) => _GuidePointRow(point: point)).toList(),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GuideSection extends StatelessWidget {
+  const _GuideSection({required this.title, required this.children});
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 12, bottom: 8),
+          child: Text(title, style: theme.textTheme.titleSmall),
+        ),
+        ...children,
+      ],
+    );
+  }
+}
+
+class _GuideBullet extends StatelessWidget {
+  const _GuideBullet({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('• '),
+          Expanded(
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GuidePointRow extends StatelessWidget {
+  const _GuidePointRow({required this.point});
+
+  final ChecklistGuidePoint point;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final icon = point.requiresPhoto ? Icons.camera_alt_outlined : Icons.check_circle_outline;
+    final iconColor = point.requiresPhoto ? theme.colorScheme.primary : theme.colorScheme.secondary;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: iconColor),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(point.label, style: theme.textTheme.bodyMedium),
+                if (point.description.trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      point.description,
+                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                  ),
+                if (point.requiresPhoto)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      'Photo evidence required',
+                      style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.primary),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _AssignmentCard extends StatelessWidget {
   const _AssignmentCard({
     required this.assignment,
     required this.vehicle,
     required this.onStart,
     this.onAddVehicle,
+    this.categoryLabel,
+    this.accentColor,
   });
 
   final VehicleAssignmentModel assignment;
   final VehicleModel? vehicle;
   final VoidCallback onStart;
   final VoidCallback? onAddVehicle;
+  final String? categoryLabel;
+  final Color? accentColor;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheduled = DateFormat.yMMMMd().format(assignment.scheduledFor);
+    final highlight = accentColor ?? theme.colorScheme.primary;
+    final showCategory = categoryLabel != null && categoryLabel!.isNotEmpty;
     final vehicleLabel = vehicle != null
         ? '${vehicle!.licensePlate} • ${vehicle!.make} ${vehicle!.model}'
         : 'Vehicle #${assignment.vehicleId}';
@@ -553,6 +792,23 @@ class _AssignmentCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (showCategory) ...[
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: highlight.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  child: Text(
+                    categoryLabel!,
+                    style: theme.textTheme.labelMedium?.copyWith(color: highlight),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
             Text(vehicleLabel, style: theme.textTheme.titleMedium),
             const SizedBox(height: 4),
             Text('Scheduled for $scheduled'),

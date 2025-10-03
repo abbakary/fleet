@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../core/exceptions/app_exception.dart';
 import '../../../auth/presentation/session_controller.dart';
+import '../../data/checklist_blueprint.dart';
 import '../../data/inspections_repository.dart';
 import '../../data/models.dart';
 
@@ -19,18 +20,27 @@ class InspectorDashboardController extends ChangeNotifier {
   bool _isLoading = false;
   bool _isSyncing = false;
   String? _error;
-  List<VehicleAssignmentModel> _assignments = <VehicleAssignmentModel>[];
+  List<VehicleAssignmentModel> _allAssignments = <VehicleAssignmentModel>[];
+  List<VehicleAssignmentModel> _assignmentsToday = <VehicleAssignmentModel>[];
+  List<VehicleAssignmentModel> _upcomingAssignments = <VehicleAssignmentModel>[];
+  List<VehicleAssignmentModel> _overdueAssignments = <VehicleAssignmentModel>[];
   List<VehicleModel> _vehicles = <VehicleModel>[];
   List<InspectionCategoryModel> _categories = <InspectionCategoryModel>[];
+  List<ChecklistGuideEntry> _checklistGuide = <ChecklistGuideEntry>[];
   List<InspectionSummaryModel> _recentInspections = <InspectionSummaryModel>[];
   int? _inspectorProfileId;
 
   bool get isLoading => _isLoading;
   bool get isSyncing => _isSyncing;
   String? get error => _error;
-  List<VehicleAssignmentModel> get assignments => _assignments;
+  List<VehicleAssignmentModel> get assignmentsToday => _assignmentsToday;
+  List<VehicleAssignmentModel> get upcomingAssignments => _upcomingAssignments;
+  List<VehicleAssignmentModel> get overdueAssignments => _overdueAssignments;
+  List<VehicleAssignmentModel> get allAssignments => _allAssignments;
+  bool get hasAssignments => _assignmentsToday.isNotEmpty || _upcomingAssignments.isNotEmpty || _overdueAssignments.isNotEmpty;
   List<VehicleModel> get vehicles => _vehicles;
   List<InspectionCategoryModel> get categories => _categories;
+  List<ChecklistGuideEntry> get checklistGuide => _checklistGuide;
   List<InspectionSummaryModel> get recentInspections => _recentInspections;
   int? get inspectorProfileId => _inspectorProfileId;
 
@@ -45,9 +55,23 @@ class InspectorDashboardController extends ChangeNotifier {
       final categories = await repository.fetchCategories();
       final inspections = await repository.fetchInspections();
       final today = DateTime.now();
-      _assignments = assignments.where((a) => _isSameDate(a.scheduledFor, today)).toList();
+      final todayDate = _stripDate(today);
+      _allAssignments = assignments;
+      _assignmentsToday = assignments
+          .where((assignment) => _isSameDate(assignment.scheduledFor, todayDate))
+          .toList()
+        ..sort(_compareAssignments);
+      _upcomingAssignments = assignments
+          .where((assignment) => _stripDate(assignment.scheduledFor).isAfter(todayDate))
+          .toList()
+        ..sort(_compareAssignments);
+      _overdueAssignments = assignments
+          .where((assignment) => _stripDate(assignment.scheduledFor).isBefore(todayDate))
+          .toList()
+        ..sort((a, b) => _compareAssignments(b, a));
       _vehicles = vehicles;
       _categories = categories;
+      _checklistGuide = buildChecklistGuide(categories);
       _recentInspections = inspections;
       _inspectorProfileId = _resolveInspectorId(assignments, inspections);
     } on AppException catch (exception) {
@@ -144,5 +168,13 @@ class InspectorDashboardController extends ChangeNotifier {
 
   bool _isSameDate(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  DateTime _stripDate(DateTime value) {
+    return DateTime(value.year, value.month, value.day);
+  }
+
+  int _compareAssignments(VehicleAssignmentModel a, VehicleAssignmentModel b) {
+    return _stripDate(a.scheduledFor).compareTo(_stripDate(b.scheduledFor));
   }
 }

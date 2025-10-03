@@ -1,0 +1,263 @@
+{% extends "portal/base.html" %}
+{% block title %}Fleet Manager Dashboard{% endblock %}
+{% block content %}
+<div class="page-title">
+  <div class="row">
+    <div class="col-6">
+      <h3 class="mb-2">Operations Overview</h3>
+      <p class="f-light">Stay ahead of inspections, vehicles, and assignments.</p>
+    </div>
+    <div class="col-6 text-end">
+      <a class="btn btn-primary" href="{% url 'portal-assignments-new' %}" data-portal-tab-target="assignments" data-portal-tab="assignments" data-portal-url="{% url 'portal-assignments-new' %}" hx-get="{% url 'portal-assignments-new' %}" hx-target="#portalContent" hx-swap="innerHTML">Create Assignment</a>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xl-2 col-sm-4 col-6">
+    <div class="card income-card overflow-hidden">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="income-icon primary"><i class="fa fa-users"></i></div>
+        <div>
+          <p class="mb-1 f-light">Customers</p>
+          <h4 class="f-24 mb-0">{{ kpi_customers }}</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-sm-4 col-6">
+    <div class="card income-card overflow-hidden">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="income-icon secondary"><i class="fa fa-truck"></i></div>
+        <div>
+          <p class="mb-1 f-light">Vehicles</p>
+          <h4 class="f-24 mb-0">{{ kpi_vehicles }}</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-sm-4 col-6">
+    <div class="card income-card overflow-hidden">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="income-icon warning"><i class="fa fa-clipboard-check"></i></div>
+        <div>
+          <p class="mb-1 f-light">Inspections</p>
+          <h4 class="f-24 mb-0">{{ kpi_inspections }}</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-sm-4 col-6">
+    <div class="card income-card overflow-hidden">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="income-icon success"><i class="fa fa-user-tie"></i></div>
+        <div>
+          <p class="mb-1 f-light">Inspectors</p>
+          <h4 class="f-24 mb-0">{{ kpi_inspectors }}</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-sm-4 col-6">
+    <div class="card income-card overflow-hidden">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="income-icon danger"><i class="fa fa-tasks"></i></div>
+        <div>
+          <p class="mb-1 f-light">Assignments Pending</p>
+          <h4 class="f-24 mb-0">{{ kpi_pending_assignments }}</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-sm-4 col-6">
+    <div class="card income-card overflow-hidden">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="income-icon info"><i class="fa fa-hourglass-half"></i></div>
+        <div>
+          <p class="mb-1 f-light">Inspections In Progress</p>
+          <h4 class="f-24 mb-0">{{ kpi_in_progress_inspections }}</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xl-6">
+    <div class="card height-equal">
+      <div class="card-header pb-0">
+        <div class="d-flex align-items-center justify-content-between">
+          <h5>Inspection Status</h5>
+          <a class="btn btn-link p-0" href="?tab=inspections" data-portal-tab="inspections" data-portal-url="{% url 'portal-inspections' %}">View detail</a>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul class="list-unstyled mb-0">
+          {% for status in inspection_status_cards %}
+            <li class="mb-3">
+              <div class="d-flex align-items-center justify-content-between">
+                <span class="f-light">{{ status.label }}</span>
+                <span class="badge rounded-pill badge-light-primary">{{ status.count }}</span>
+              </div>
+              <div class="progress value-progress">
+                <div
+                  class="progress-bar bg-primary"
+                  role="progressbar"
+                  style="width: {{ status.percent }}%"
+                  aria-valuenow="{{ status.count }}"
+                  aria-valuemin="0"
+                  aria-valuemax="{{ kpi_inspections|default:0 }}"
+                ></div>
+              </div>
+            </li>
+          {% empty %}
+            <li>No inspection data yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-6">
+    <div class="card height-equal">
+      <div class="card-header pb-0">
+        <div class="d-flex align-items-center justify-content-between">
+          <h5>Assignment Status</h5>
+          <a class="btn btn-link p-0" href="?tab=assignments" data-portal-tab="assignments" data-portal-url="{% url 'portal-assignments' %}">View detail</a>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul class="list-unstyled mb-0">
+          {% for status in assignment_status_cards %}
+            <li class="mb-3">
+              <div class="d-flex align-items-center justify-content-between">
+                <span class="f-light">{{ status.label }}</span>
+                <span class="badge rounded-pill badge-light-secondary">{{ status.count }}</span>
+              </div>
+              <div class="progress value-progress">
+                <div
+                  class="progress-bar bg-secondary"
+                  role="progressbar"
+                  style="width: {{ status.percent }}%"
+                  aria-valuenow="{{ status.count }}"
+                  aria-valuemin="0"
+                  aria-valuemax="{{ kpi_assignments|default:0 }}"
+                ></div>
+              </div>
+            </li>
+          {% empty %}
+            <li>No assignment data yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xl-6">
+    <div class="card">
+      <div class="card-header pb-0">
+        <h5>Recent Inspections</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Reference</th>
+                <th>Vehicle</th>
+                <th>Status</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for inspection in recent_inspections %}
+                <tr>
+                  <td class="text-nowrap">{{ inspection.reference }}</td>
+                  <td>{{ inspection.vehicle.license_plate }} · {{ inspection.vehicle.customer.legal_name }}</td>
+                  <td><span class="badge badge-light-primary text-uppercase">{{ inspection.get_status_display }}</span></td>
+                  <td>{{ inspection.updated_at|timesince }} ago</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center p-4">No inspections recorded yet.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-6">
+    <div class="card">
+      <div class="card-header pb-0">
+        <h5>Upcoming Assignments</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Vehicle</th>
+                <th>Inspector</th>
+                <th>Scheduled</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for assignment in upcoming_assignments %}
+                <tr>
+                  <td>{{ assignment.vehicle.license_plate }} · {{ assignment.vehicle.customer.legal_name }}</td>
+                  <td>{{ assignment.inspector.profile.user.get_full_name|default:assignment.inspector.profile.user.username }}</td>
+                  <td>{{ assignment.scheduled_for|date:"M d, Y" }}</td>
+                  <td><span class="badge badge-light-info text-uppercase">{{ assignment.get_status_display }}</span></td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center p-4">No scheduled assignments.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xl-6">
+    <div class="card">
+      <div class="card-header pb-0">
+        <h5>New Customers</h5>
+      </div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          {% for customer in recent_customers %}
+            <li class="list-group-item d-flex align-items-center justify-content-between">
+              <div>
+                <h6 class="mb-0">{{ customer.legal_name }}</h6>
+                <small class="text-muted">{{ customer.contact_email }}</small>
+              </div>
+              <span class="badge badge-light-primary">Joined {{ customer.created_at|timesince }} ago</span>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-center">No customers yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="portalContent" class="mt-4">
+  <div class="card">
+    <div class="card-body text-center p-5">
+      <img class="img-80 mb-3" src="{% static 'assets/images/dashboard/monitor.png' %}" alt="monitor" />
+      <h5 class="mb-2">Choose a section from the navigation</h5>
+      <p class="f-light mb-0">Customers, vehicles, assignments, inspections, and configuration are one click away.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

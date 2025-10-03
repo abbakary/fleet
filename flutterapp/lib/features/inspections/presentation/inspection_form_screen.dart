@@ -899,6 +899,20 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
           buffer.writeln('$indicator ${step.definition.instructions[i]}');
         }
       }
+      final generalStepPhotos = _stepPhotos[step.definition.code] ?? const <String>[];
+      if (generalStepPhotos.isNotEmpty) {
+        buffer.writeln('Step evidence photos: ${generalStepPhotos.length}');
+      }
+      final checklistPhotoEntries = step.items
+          .map((item) => MapEntry(item.title, _photoPaths[item.id] ?? const <String>[]))
+          .where((entry) => entry.value.isNotEmpty)
+          .toList();
+      if (checklistPhotoEntries.isNotEmpty) {
+        buffer.writeln('Checklist item photos:');
+        for (final entry in checklistPhotoEntries) {
+          buffer.writeln('• ${entry.key}: ${entry.value.length}');
+        }
+      }
       final note = _stepNotesControllers[step.definition.code]?.text.trim();
       if (note == null || note.isEmpty) {
         continue;

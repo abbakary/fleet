@@ -635,6 +635,10 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     if (step.definition.requiresTrailer && _trailerNotApplicable) {
       return true;
     }
+    if (!_areInstructionsComplete(step)) {
+      _showError('Complete the guided actions for ${step.definition.title} before continuing.');
+      return false;
+    }
     return true;
   }
 

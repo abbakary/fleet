@@ -208,10 +208,29 @@
     <script src="{% static 'assets/js/icons/feather-icon/feather-icon.js' %}"></script>
     <script src="{% static 'assets/js/config.js' %}"></script>
     <script src="{% static 'assets/js/script.js' %}"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         feather.replace();
+
+        const body = document.body;
+        const portalContent = document.getElementById('portalContent');
+        if (portalContent) {
+          document.querySelectorAll('a.sidebar-link.link-nav').forEach(a => {
+            const href = a.getAttribute('href');
+            if (!href) return;
+            a.setAttribute('hx-get', href);
+            a.setAttribute('hx-target', '#portalContent');
+            a.setAttribute('hx-swap', 'innerHTML');
+            a.addEventListener('click', () => {
+              document.querySelectorAll('.sidebar-link.link-nav').forEach(l => l.classList.remove('active'));
+              a.classList.add('active');
+              const label = a.querySelector('span');
+              if (label) body.setAttribute('data-active-tab', label.textContent.trim().toLowerCase());
+            });
+          });
+        }
       });
     </script>
     {% block extra_scripts %}{% endblock %}

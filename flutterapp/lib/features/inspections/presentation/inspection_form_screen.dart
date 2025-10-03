@@ -1,11 +1,12 @@
 import 'dart:io';
 
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
-import '../../auth/presentation/session_controller.dart';
+import '../data/guided_steps.dart';
 import '../data/models.dart';
+import 'widgets/photo_annotation_screen.dart';
 
 class InspectionFormScreen extends StatefulWidget {
   const InspectionFormScreen({
@@ -28,45 +29,84 @@ class InspectionFormScreen extends StatefulWidget {
 }
 
 class _InspectionFormScreenState extends State<InspectionFormScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _odometerController = TextEditingController();
-  final _notesController = TextEditingController();
-  final _picker = ImagePicker();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final PageController _pageController = PageController();
+  final ImagePicker _picker = ImagePicker();
 
-  late VehicleModel? _selectedVehicle = widget.initialVehicle ?? (widget.vehicles.isNotEmpty ? widget.vehicles.first : null);
-  late final Map<int, ChecklistItemModel> _checklistItems = {
-    for (final category in widget.categories) for (final item in category.items) item.id: item,
+  late final List<_GuidedStep> _steps;
+  late final Map<int, ChecklistItemModel> _checklistItems;
+  late final Map<int, InspectionItemModel> _responses;
+  final Map<int, List<String>> _photoPaths = <int, List<String>>{};
+  final Map<String, List<String>> _stepPhotos = <String, List<String>>{};
+  final Map<String, TextEditingController> _stepNotesControllers = <String, TextEditingController>{};
+  final Map<String, bool> _operationalChecks = <String, bool>{
+    'brake_test': false,
+    'steering_check': false,
+    'engine_start': false,
+    'transmission_check': false,
   };
-  late final Map<int, InspectionItemModel> _responses = {
-    for (final entry in _checklistItems.entries)
-      entry.key: InspectionItemModel.initialFromChecklist(entry.value),
-  };
-  final Map<int, List<String>> _photoPaths = {};
+  final Set<String> _skippedSteps = <String>{};
+
+  VehicleModel? _selectedVehicle;
+  int _currentStepIndex = 0;
   bool _isSubmitting = false;
+  bool _identificationVerified = false;
+  bool _trailerNotApplicable = false;
+
+  final TextEditingController _odometerController = TextEditingController();
+  final TextEditingController _generalNotesController = TextEditingController();
+  final TextEditingController _vehicleConditionController = TextEditingController();
+  final TextEditingController _identificationNotesController = TextEditingController();
+  final TextEditingController _vinController = TextEditingController();
+  final TextEditingController _plateController = TextEditingController();
+  final TextEditingController _operationalNotesController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    final odometer = widget.assignment?.remarks.contains('ODO:') == true
-        ? _extractOdometer(widget.assignment!.remarks)
-        : null;
+    _steps = _buildSteps();
+    _checklistItems = {
+      for (final category in widget.categories) for (final item in category.items) item.id: item,
+    };
+    _responses = {
+      for (final entry in _checklistItems.entries) entry.key: InspectionItemModel.initialFromChecklist(entry.value),
+    };
+    _selectedVehicle = widget.initialVehicle ?? (widget.vehicles.isNotEmpty ? widget.vehicles.first : null);
+    if (_selectedVehicle != null) {
+      _applyVehicleDefaults(_selectedVehicle!);
+    }
+    final odometer = widget.assignment?.remarks.contains('ODO:') == true ? _extractOdometer(widget.assignment!.remarks) : null;
     if (odometer != null) {
       _odometerController.text = odometer.toString();
+    }
+    for (final step in _steps) {
+      _stepNotesControllers[step.definition.code] = TextEditingController();
     }
   }
 
   @override
   void dispose() {
+    _pageController.dispose();
     _odometerController.dispose();
-    _notesController.dispose();
+    _generalNotesController.dispose();
+    _vehicleConditionController.dispose();
+    _identificationNotesController.dispose();
+    _vinController.dispose();
+    _plateController.dispose();
+    _operationalNotesController.dispose();
+    for (final controller in _stepNotesControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final step = _steps[_currentStepIndex];
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New Inspection'),
+        title: const Text('Guided Inspection'),
         actions: [
           IconButton(
             tooltip: 'Discard',
@@ -76,237 +116,586 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
         ],
       ),
       body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              Expanded(
-                child: Scrollbar(
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                    children: [
-                      _buildContextCard(context),
-                      const SizedBox(height: 24),
-                      for (final category in widget.categories) ...[
-                        _CategoryHeader(name: category.name, description: category.description),
-                        const SizedBox(height: 16),
-                        ...category.items.map((item) => _ChecklistItemEditor(
-                              item: item,
-                              response: _responses[item.id]!,
-                              photos: _photoPaths[item.id] ?? const <String>[],
-                              onResultChanged: (result) => _updateResponse(item.id, result: result),
-                              onSeverityChanged: (severity) => _updateResponse(item.id, severity: severity.round()),
-                              onNotesChanged: (notes) => _updateResponse(item.id, notes: notes),
-                              onAddPhoto: () => _addPhoto(item.id),
-                              onRemovePhoto: (path) => _removePhoto(item.id, path),
-                            )),
-                        const SizedBox(height: 24),
-                      ],
-                      const SizedBox(height: 120),
-                    ],
-                  ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildProgressHeader(theme, step),
+            const Divider(height: 1),
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: PageView.builder(
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _steps.length,
+                  itemBuilder: (context, index) => _buildStepPage(_steps[index]),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  boxShadow: const [
-                    BoxShadow(color: Color(0x11000000), blurRadius: 12, offset: Offset(0, -4)),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    OutlinedButton(
-                      onPressed: _isSubmitting ? null : () => Navigator.of(context).maybePop(),
-                      child: const Text('Cancel'),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: _isSubmitting ? null : _submit,
-                        icon: _isSubmitting
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                              )
-                            : const Icon(Icons.assignment_turned_in_outlined),
-                        label: const Text('Save inspection draft'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+            const Divider(height: 1),
+            _buildNavigationBar(step),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildContextCard(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF4A90E2), Color(0xFF5AD2F4)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 18, offset: Offset(0, 10))],
+  Widget _buildProgressHeader(ThemeData theme, _GuidedStep step) {
+    final progress = (_currentStepIndex + 1) / _steps.length;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Step ${_currentStepIndex + 1} of ${_steps.length}', style: theme.textTheme.bodyMedium),
+          const SizedBox(height: 4),
+          Text(step.definition.title, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 6),
+          Text(step.definition.summary, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 12),
+          LinearProgressIndicator(value: progress, minHeight: 6, borderRadius: BorderRadius.circular(8)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepPage(_GuidedStep step) {
+    switch (step.definition.code) {
+      case 'pre_trip_documentation':
+        return _buildPreTripStep(step);
+      case 'operational_tests':
+        return _buildOperationalStep(step);
+      default:
+        return _buildChecklistStep(step);
+    }
+  }
+
+  Widget _buildPreTripStep(_GuidedStep step) {
+    final vehicleItems = widget.vehicles
+        .map(
+          (vehicle) => DropdownMenuItem<VehicleModel>(
+            value: vehicle,
+            child: Text('${vehicle.licensePlate} • ${vehicle.make} ${vehicle.model}', overflow: TextOverflow.ellipsis),
           ),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.assignment != null ? 'Assignment inspection' : 'Ad-hoc inspection',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<VehicleModel>(
-                value: _selectedVehicle,
-                decoration: InputDecoration(
-                  labelText: 'Vehicle',
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: Colors.white70),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: Colors.white),
-                  ),
-                ),
-                dropdownColor: const Color(0xFF3069C8),
-                items: widget.vehicles
-                    .map(
-                      (vehicle) => DropdownMenuItem<VehicleModel>(
-                        value: vehicle,
-                        child: Text(
-                          '${vehicle.licensePlate} • ${vehicle.make} ${vehicle.model}',
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) => setState(() => _selectedVehicle = value),
-                validator: (value) => value == null ? 'Select a vehicle' : null,
-              ),
-              const SizedBox(height: 16),
-              Row(
+        )
+        .toList();
+    final theme = Theme.of(context);
+    return Scrollbar(
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        children: [
+          _StepIntroCard(step: step),
+          const SizedBox(height: 20),
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _odometerController,
-                      keyboardType: TextInputType.number,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Odometer',
-                        labelStyle: const TextStyle(color: Colors.white70),
-                        suffixText: 'mi',
-                        suffixStyle: const TextStyle(color: Colors.white70),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Colors.white70),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Colors.white),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Enter odometer';
+                  DropdownButtonFormField<VehicleModel>(
+                    value: _selectedVehicle,
+                    decoration: const InputDecoration(labelText: 'Vehicle'),
+                    items: vehicleItems,
+                    onChanged: (selected) {
+                      setState(() {
+                        _selectedVehicle = selected;
+                        if (selected != null) {
+                          _applyVehicleDefaults(selected);
                         }
-                        final odometer = int.tryParse(value.replaceAll(',', ''));
-                        if (odometer == null || odometer < 0) {
-                          return 'Invalid value';
-                        }
-                        return null;
-                      },
-                    ),
+                      });
+                    },
+                    validator: (value) => value == null ? 'Select a vehicle' : null,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _notesController,
-                      minLines: 1,
-                      maxLines: 3,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'General notes',
-                        labelStyle: const TextStyle(color: Colors.white70),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Colors.white70),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Colors.white),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FilledButton.tonalIcon(
+                          onPressed: () => _startScan(
+                            title: 'Scan VIN',
+                            onValue: (value) => _vinController.text = value,
+                          ),
+                          icon: const Icon(Icons.qr_code_scanner),
+                          label: const Text('Scan VIN'),
                         ),
                       ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton.tonalIcon(
+                          onPressed: () => _startScan(
+                            title: 'Scan License Plate',
+                            onValue: (value) => _plateController.text = value,
+                          ),
+                          icon: const Icon(Icons.directions_car_filled_outlined),
+                          label: const Text('Scan Plate'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _vinController,
+                    decoration: const InputDecoration(labelText: 'VIN'),
+                    textCapitalization: TextCapitalization.characters,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Capture the VIN';
+                      }
+                      if (value.trim().length < 8) {
+                        return 'VIN appears incomplete';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _plateController,
+                    decoration: const InputDecoration(labelText: 'License plate'),
+                    textCapitalization: TextCapitalization.characters,
+                    validator: (value) => value == null || value.trim().isEmpty ? 'Enter license plate' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _odometerController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Odometer (mi)'),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Enter odometer reading';
+                      }
+                      final parsed = int.tryParse(value.replaceAll(',', ''));
+                      if (parsed == null || parsed < 0) {
+                        return 'Invalid odometer value';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _vehicleConditionController,
+                    decoration: const InputDecoration(
+                      labelText: 'General vehicle condition',
+                      hintText: 'Document any pre-existing dents, rust, or cleanliness concerns.',
                     ),
+                    minLines: 3,
+                    maxLines: 6,
+                    validator: (value) => value == null || value.trim().isEmpty ? 'Summarize vehicle condition' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _identificationNotesController,
+                    decoration: const InputDecoration(
+                      labelText: 'Identification notes',
+                      hintText: 'Reference paperwork, assignments, or tag confirmations.',
+                    ),
+                    minLines: 2,
+                    maxLines: 4,
+                  ),
+                  const SizedBox(height: 12),
+                  CheckboxListTile(
+                    value: _identificationVerified,
+                    onChanged: (value) => setState(() => _identificationVerified = value ?? false),
+                    title: const Text('Vehicle identification verified'),
+                    subtitle: const Text('VIN tag, license plate, and paperwork match the assignment.'),
+                    controlAffinity: ListTileControlAffinity.leading,
                   ),
                 ],
               ),
-            ],
+            ),
           ),
+          const SizedBox(height: 24),
+          _buildGeneralPhotoSection(step, requiresPhoto: true, helperText: 'Capture a panoramic photo or supporting exterior images.'),
+          const SizedBox(height: 24),
+          _buildStepNotesField(step, hintText: 'Pre-trip notes, additional reminders, or follow-up tasks.'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChecklistStep(_GuidedStep step) {
+    final theme = Theme.of(context);
+    final isTrailerStep = step.definition.code == 'coupling_connections';
+    final stepSkipped = isTrailerStep && _trailerNotApplicable;
+    final items = step.items;
+    return Scrollbar(
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        children: [
+          _StepIntroCard(step: step),
+          if (isTrailerStep) ...[
+            const SizedBox(height: 16),
+            SwitchListTile.adaptive(
+              value: _trailerNotApplicable,
+              onChanged: (value) {
+                setState(() {
+                  _trailerNotApplicable = value;
+                  if (value) {
+                    _skippedSteps.add(step.definition.code);
+                  } else {
+                    _skippedSteps.remove(step.definition.code);
+                  }
+                });
+              },
+              title: const Text('Trailer not attached'),
+              subtitle: const Text('Skip this step if the power unit is inspected without a trailer.'),
+            ),
+          ],
+          const SizedBox(height: 16),
+          if (stepSkipped)
+            Card(
+              color: theme.colorScheme.surfaceVariant,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Trailer-specific checks are marked as not applicable for this inspection. Re-enable them if a trailer becomes available.',
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
+            )
+          else if (items.isEmpty)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text('No checklist items were provided for this step. Add step notes or photos as needed.'),
+              ),
+            )
+          else
+            ...items.map(
+              (item) => _ChecklistItemEditor(
+                key: ValueKey<int>(item.id),
+                item: item,
+                response: _responses[item.id]!,
+                photos: _photoPaths[item.id] ?? const <String>[],
+                onResultChanged: (result) => _updateResponse(item.id, result: result),
+                onSeverityChanged: (severity) => _updateResponse(item.id, severity: severity.round()),
+                onNotesChanged: (notes) => _updateResponse(item.id, notes: notes),
+                onAddPhoto: () => _addPhotoForItem(step, item),
+                onRemovePhoto: (path) => _removePhotoForItem(step, item, path),
+              ),
+            ),
+          const SizedBox(height: 24),
+          _buildGeneralPhotoSection(step, helperText: 'Add supporting photos that are not tied to a specific checklist item.'),
+          const SizedBox(height: 24),
+          _buildChecklistPhotoSummary(step),
+          if (!stepSkipped) ...[
+            const SizedBox(height: 24),
+            _buildStepNotesField(step, hintText: 'Add reminders or context for this inspection area.'),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOperationalStep(_GuidedStep step) {
+    final theme = Theme.of(context);
+    return Scrollbar(
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        children: [
+          _StepIntroCard(step: step),
+          const SizedBox(height: 16),
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                children: [
+                  _OperationalCheckTile(
+                    title: 'Brake responsiveness test',
+                    subtitle: 'Confirm pedal feel, stopping distance, and ABS indicators.',
+                    value: _operationalChecks['brake_test']!,
+                    onChanged: (value) => setState(() => _operationalChecks['brake_test'] = value ?? false),
+                  ),
+                  _OperationalCheckTile(
+                    title: 'Steering operation check',
+                    subtitle: 'Cycle steering lock-to-lock monitoring for binding or noise.',
+                    value: _operationalChecks['steering_check']!,
+                    onChanged: (value) => setState(() => _operationalChecks['steering_check'] = value ?? false),
+                  ),
+                  _OperationalCheckTile(
+                    title: 'Engine start and idle verification',
+                    subtitle: 'Observe idle RPMs, warning lights, and abnormal vibration.',
+                    value: _operationalChecks['engine_start']!,
+                    onChanged: (value) => setState(() => _operationalChecks['engine_start'] = value ?? false),
+                  ),
+                  _OperationalCheckTile(
+                    title: 'Transmission shifting test',
+                    subtitle: 'Shift through gears verifying engagement and abnormal feedback.',
+                    value: _operationalChecks['transmission_check']!,
+                    onChanged: (value) => setState(() => _operationalChecks['transmission_check'] = value ?? false),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildGeneralPhotoSection(step, helperText: 'Capture videos or photos that demonstrate operational performance.'),
+          const SizedBox(height: 24),
+          TextFormField(
+            controller: _operationalNotesController,
+            minLines: 3,
+            maxLines: 6,
+            decoration: const InputDecoration(
+              labelText: 'Operational notes',
+              hintText: 'Add performance observations or escalation recommendations.',
+            ),
+          ),
+          const SizedBox(height: 24),
+          TextFormField(
+            controller: _generalNotesController,
+            minLines: 3,
+            maxLines: 8,
+            decoration: const InputDecoration(
+              labelText: 'Final summary',
+              hintText: 'Summarize inspection findings, next steps, and customer communication notes.',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGeneralPhotoSection(_GuidedStep step, {bool requiresPhoto = false, String? helperText}) {
+    final photos = _stepPhotos[step.definition.code] ?? const <String>[];
+    return _PhotoGallery(
+      title: 'Step evidence',
+      photos: photos,
+      onAdd: () => _addStepPhoto(step),
+      onRemove: (path) => _removeStepPhoto(step, path),
+      requiresPhoto: requiresPhoto,
+      helperText: helperText,
+    );
+  }
+
+  Widget _buildChecklistPhotoSummary(_GuidedStep step) {
+    final theme = Theme.of(context);
+    final photoEntries = step.items
+        .map((item) => MapEntry(item, _photoPaths[item.id] ?? const <String>[]))
+        .where((entry) => entry.value.isNotEmpty)
+        .toList();
+    if (photoEntries.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Checklist photo log', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 12),
+            ...photoEntries.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        entry.key.title,
+                        style: theme.textTheme.bodyLarge,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Chip(label: Text('${entry.value.length} photo${entry.value.length == 1 ? '' : 's'}')),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
-  Future<void> _addPhoto(int itemId) async {
-    final source = await showModalBottomSheet<ImageSource?>(
-      context: context,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (context) => _PhotoSourceSheet(item: _checklistItems[itemId]!),
+  Widget _buildStepNotesField(_GuidedStep step, {String? hintText}) {
+    final controller = _stepNotesControllers[step.definition.code]!;
+    return TextFormField(
+      controller: controller,
+      minLines: 2,
+      maxLines: 6,
+      decoration: InputDecoration(
+        labelText: 'Notes for ${step.definition.title}',
+        hintText: hintText,
+      ),
     );
-    if (source == null) {
-      return;
-    }
-    final picked = await _picker.pickImage(source: source, imageQuality: 85);
-    if (picked == null) {
-      return;
-    }
-    setState(() {
-      final current = _photoPaths[itemId] ?? <String>[];
-      current.add(picked.path);
-      _photoPaths[itemId] = current;
-      _responses[itemId] = _responses[itemId]!.copyWith(photoUris: current);
-    });
   }
 
-  void _removePhoto(int itemId, String path) {
-    setState(() {
-      final current = _photoPaths[itemId];
-      if (current == null) {
+  Widget _buildNavigationBar(_GuidedStep step) {
+    final theme = Theme.of(context);
+    final isFirst = _currentStepIndex == 0;
+    final isLast = _currentStepIndex == _steps.length - 1;
+    return Container(
+      color: theme.colorScheme.surface,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      child: Row(
+        children: [
+          OutlinedButton(
+            onPressed: isFirst || _isSubmitting ? null : _handlePrevious,
+            child: const Text('Back'),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: FilledButton.icon(
+              onPressed: _isSubmitting ? null : () => _handleNext(step, isLast),
+              icon: _isSubmitting
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : Icon(isLast ? Icons.assignment_turned_in_outlined : Icons.arrow_forward),
+              label: Text(isLast ? 'Submit inspection' : 'Next step'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<_GuidedStep> _buildSteps() {
+    final categoriesByCode = <String, InspectionCategoryModel>{
+      for (final category in widget.categories) category.code: category,
+    };
+    final steps = guidedInspectionSteps
+        .map(
+          (definition) => _GuidedStep(
+            definition: definition,
+            category: definition.categoryCode != null ? categoriesByCode[definition.categoryCode] : null,
+          ),
+        )
+        .toList();
+    steps.sort((a, b) => a.definition.order.compareTo(b.definition.order));
+    return steps;
+  }
+
+  Future<void> _handleNext(_GuidedStep step, bool isLast) async {
+    if (!_validateCurrentStep(step)) {
+      return;
+    }
+    if (isLast) {
+      await _submit();
+      return;
+    }
+    setState(() => _currentStepIndex += 1);
+    await _pageController.animateToPage(
+      _currentStepIndex,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  Future<void> _handlePrevious() async {
+    if (_currentStepIndex == 0) {
+      return;
+    }
+    setState(() => _currentStepIndex -= 1);
+    await _pageController.animateToPage(
+      _currentStepIndex,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  bool _validateCurrentStep(_GuidedStep step) {
+    final formValid = _formKey.currentState?.validate() ?? true;
+    if (!formValid) {
+      return false;
+    }
+    if (step.definition.code == 'pre_trip_documentation') {
+      if (_selectedVehicle == null) {
+        _showError('Select a vehicle before continuing.');
+        return false;
+      }
+      if (_vinController.text.trim().isEmpty) {
+        _showError('Scan or enter the VIN to continue.');
+        return false;
+      }
+      if (_plateController.text.trim().isEmpty) {
+        _showError('Capture the license plate to continue.');
+        return false;
+      }
+      if (!_identificationVerified) {
+        _showError('Confirm that vehicle identification has been verified.');
+        return false;
+      }
+      if ((_stepPhotos[step.definition.code]?.isEmpty ?? true)) {
+        _showError('Capture a baseline photo before proceeding.');
+        return false;
+      }
+    }
+    if (step.definition.code == 'operational_tests') {
+      final incomplete = _operationalChecks.entries.where((entry) => !(entry.value)).map((entry) => entry.key).toList();
+      if (incomplete.isNotEmpty) {
+        _showError('Complete all operational tests before submitting.');
+        return false;
+      }
+    }
+    if (step.definition.requiresTrailer && _trailerNotApplicable) {
+      return true;
+    }
+    return true;
+  }
+
+  Future<void> _submit() async {
+    if (_isSubmitting) {
+      return;
+    }
+    final vehicle = _selectedVehicle;
+    if (vehicle == null) {
+      _showError('Select a vehicle before submitting.');
+      return;
+    }
+    setState(() => _isSubmitting = true);
+    try {
+      final odometer = int.tryParse(_odometerController.text.replaceAll(',', '')) ?? 0;
+      final items = _responses.values
+          .map((response) => response.copyWith(photoUris: _photoPaths[response.checklistItemId]))
+          .toList();
+      final notes = _composeNotes();
+      final draft = InspectionDraftModel(
+        assignmentId: widget.assignment?.id,
+        vehicleId: vehicle.id,
+        inspectorId: widget.inspectorId,
+        odometerReading: odometer,
+        generalNotes: notes,
+        items: items,
+      );
+      if (!mounted) {
         return;
       }
-      current.remove(path);
-      if (current.isEmpty) {
-        _photoPaths.remove(itemId);
+      Navigator.of(context).pop(draft);
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
       }
-      _responses[itemId] = _responses[itemId]!.copyWith(photoUris: current ?? const <String>[]);
-    });
+    }
   }
 
-  void _updateResponse(
-    int itemId, {
-    String? result,
-    int? severity,
-    String? notes,
-  }) {
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _applyVehicleDefaults(VehicleModel vehicle) {
+    _plateController.text = vehicle.licensePlate;
+    _vinController.text = vehicle.vin;
+    final isTrailer = _isTrailerVehicle(vehicle);
+    _trailerNotApplicable = !isTrailer;
+    if (_trailerNotApplicable) {
+      _skippedSteps.add('coupling_connections');
+    } else {
+      _skippedSteps.remove('coupling_connections');
+    }
+  }
+
+  bool _isTrailerVehicle(VehicleModel? vehicle) {
+    if (vehicle == null) {
+      return false;
+    }
+    final type = vehicle.vehicleType.toLowerCase();
+    return type.contains('trailer') || type.contains('semi') || type.contains('tanker') || type.contains('flatbed');
+  }
+
+  void _updateResponse(int itemId, {String? result, int? severity, String? notes}) {
     setState(() {
       final current = _responses[itemId]!;
       _responses[itemId] = current.copyWith(
@@ -318,41 +707,90 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     });
   }
 
-  Future<void> _submit() async {
-    if (_isSubmitting) {
+  Future<void> _addPhotoForItem(_GuidedStep step, ChecklistItemModel item) async {
+    final contextTitle = '${step.definition.title} • ${item.title}';
+    final path = await _pickAnnotatedPhoto(contextTitle);
+    if (path == null) {
       return;
     }
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-    final vehicle = _selectedVehicle;
-    if (vehicle == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select a vehicle before submitting.')),
-      );
-      return;
-    }
-    setState(() => _isSubmitting = true);
-    try {
-      final odometer = int.tryParse(_odometerController.text.replaceAll(',', '')) ?? 0;
-      final items = _responses.values
-          .map((response) => response.copyWith(photoUris: _photoPaths[response.checklistItemId]))
-          .toList();
-      final draft = InspectionDraftModel(
-        assignmentId: widget.assignment?.id,
-        vehicleId: vehicle.id,
-        inspectorId: widget.inspectorId,
-        odometerReading: odometer,
-        generalNotes: _notesController.text.trim(),
-        items: items,
-      );
-      if (!mounted) return;
-      Navigator.of(context).pop(draft);
-    } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
+    setState(() {
+      final photos = List<String>.from(_photoPaths[item.id] ?? const <String>[]);
+      photos.add(path);
+      _photoPaths[item.id] = photos;
+      _responses[item.id] = _responses[item.id]!.copyWith(photoUris: photos);
+    });
+  }
+
+  void _removePhotoForItem(_GuidedStep step, ChecklistItemModel item, String path) {
+    setState(() {
+      final photos = _photoPaths[item.id];
+      if (photos == null) {
+        return;
       }
+      photos.remove(path);
+      if (photos.isEmpty) {
+        _photoPaths.remove(item.id);
+      }
+      _responses[item.id] = _responses[item.id]!.copyWith(photoUris: photos);
+    });
+  }
+
+  Future<void> _addStepPhoto(_GuidedStep step) async {
+    final contextTitle = '${step.definition.title} evidence';
+    final path = await _pickAnnotatedPhoto(contextTitle);
+    if (path == null) {
+      return;
     }
+    setState(() {
+      final photos = List<String>.from(_stepPhotos[step.definition.code] ?? const <String>[]);
+      photos.add(path);
+      _stepPhotos[step.definition.code] = photos;
+    });
+  }
+
+  void _removeStepPhoto(_GuidedStep step, String path) {
+    setState(() {
+      final photos = _stepPhotos[step.definition.code];
+      if (photos == null) {
+        return;
+      }
+      photos.remove(path);
+      if (photos.isEmpty) {
+        _stepPhotos.remove(step.definition.code);
+      }
+    });
+  }
+
+  Future<String?> _pickAnnotatedPhoto(String contextTitle) async {
+    final source = await showModalBottomSheet<ImageSource?>(
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) => _PhotoSourceSheet(contextTitle: contextTitle),
+    );
+    if (source == null) {
+      return null;
+    }
+    final picked = await _picker.pickImage(source: source, imageQuality: 90);
+    if (picked == null) {
+      return null;
+    }
+    final annotated = await PhotoAnnotationScreen.open(
+      context,
+      imageFile: File(picked.path),
+      contextTitle: contextTitle,
+    );
+    return annotated;
+  }
+
+  Future<void> _startScan({required String title, required ValueChanged<String> onValue}) async {
+    final captured = await Navigator.of(context).push<String>(
+      MaterialPageRoute<String>(builder: (_) => _BarcodeScannerScreen(title: title)),
+    );
+    if (captured == null || captured.trim().isEmpty) {
+      return;
+    }
+    onValue(captured.trim().toUpperCase());
   }
 
   int? _extractOdometer(String remarks) {
@@ -363,29 +801,112 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     }
     return int.tryParse(match.group(1) ?? '');
   }
+
+  String _composeNotes() {
+    final buffer = StringBuffer();
+    buffer.writeln('VIN captured: ${_vinController.text.trim()}');
+    buffer.writeln('License plate: ${_plateController.text.trim()}');
+    buffer.writeln('Vehicle identification verified: ${_identificationVerified ? 'Yes' : 'No'}');
+    if (_vehicleConditionController.text.trim().isNotEmpty) {
+      buffer.writeln('\nVehicle condition:\n${_vehicleConditionController.text.trim()}');
+    }
+    if (_identificationNotesController.text.trim().isNotEmpty) {
+      buffer.writeln('\nIdentification notes:\n${_identificationNotesController.text.trim()}');
+    }
+    for (final step in _steps) {
+      final note = _stepNotesControllers[step.definition.code]?.text.trim();
+      if (note == null || note.isEmpty) {
+        continue;
+      }
+      buffer.writeln('\n${step.definition.title} notes:\n$note');
+    }
+    buffer.writeln('\nOperational tests:');
+    buffer.writeln('• Brake test: ${_operationalChecks['brake_test']! ? 'Completed' : 'Not completed'}');
+    buffer.writeln('• Steering check: ${_operationalChecks['steering_check']! ? 'Completed' : 'Not completed'}');
+    buffer.writeln('• Engine start & idle: ${_operationalChecks['engine_start']! ? 'Completed' : 'Not completed'}');
+    buffer.writeln('• Transmission test: ${_operationalChecks['transmission_check']! ? 'Completed' : 'Not completed'}');
+    if (_operationalNotesController.text.trim().isNotEmpty) {
+      buffer.writeln('\nOperational observations:\n${_operationalNotesController.text.trim()}');
+    }
+    if (_generalNotesController.text.trim().isNotEmpty) {
+      buffer.writeln('\nFinal summary:\n${_generalNotesController.text.trim()}');
+    }
+    return buffer.toString().trim();
+  }
 }
 
-class _CategoryHeader extends StatelessWidget {
-  const _CategoryHeader({required this.name, required this.description});
+class _GuidedStep {
+  _GuidedStep({required this.definition, required this.category});
 
-  final String name;
-  final String description;
+  final GuidedInspectionStepDefinition definition;
+  final InspectionCategoryModel? category;
+
+  List<ChecklistItemModel> get items => category?.items ?? const <ChecklistItemModel>[];
+}
+
+class _StepIntroCard extends StatelessWidget {
+  const _StepIntroCard({required this.step});
+
+  final _GuidedStep step;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          name,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+    final theme = Theme.of(context);
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      color: theme.colorScheme.surfaceVariant,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(step.definition.title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 12),
+            ...step.definition.instructions.map(
+              (instruction) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('• '),
+                    Expanded(
+                      child: Text(
+                        instruction,
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 6),
-        Text(
-          description,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-        ),
-      ],
+      ),
+    );
+  }
+}
+
+class _OperationalCheckTile extends StatelessWidget {
+  const _OperationalCheckTile({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return CheckboxListTile(
+      value: value,
+      onChanged: onChanged,
+      title: Text(title, style: Theme.of(context).textTheme.titleSmall),
+      subtitle: Text(subtitle),
+      controlAffinity: ListTileControlAffinity.leading,
     );
   }
 }
@@ -400,6 +921,7 @@ class _ChecklistItemEditor extends StatelessWidget {
     required this.onNotesChanged,
     required this.onAddPhoto,
     required this.onRemovePhoto,
+    super.key,
   });
 
   final ChecklistItemModel item;
@@ -415,10 +937,10 @@ class _ChecklistItemEditor extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final requiresPhoto = item.requiresPhoto;
-    final severityLabel = _severityLabel(response.severity);
     final hasFailure = response.result == InspectionItemResponse.RESULT_FAIL;
+    final severityLabel = _severityLabel(response.severity);
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -455,29 +977,19 @@ class _ChecklistItemEditor extends StatelessWidget {
                     color: theme.colorScheme.errorContainer,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    'Photo required',
-                    style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onErrorContainer),
-                  ),
+                  child: Text('Photo required', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onErrorContainer)),
                 ),
             ],
           ),
           const SizedBox(height: 16),
           SegmentedButton<String>(
             segments: const [
-              const ButtonSegment(value: InspectionItemResponse.RESULT_PASS, label: Text('Pass'), icon: Icon(Icons.check_circle_outline)),
-              const ButtonSegment(value: InspectionItemResponse.RESULT_FAIL, label: Text('Fail'), icon: Icon(Icons.error_outline)),
-              const ButtonSegment(value: InspectionItemResponse.RESULT_NA, label: Text('N/A'), icon: Icon(Icons.help_outline)),
+              ButtonSegment<String>(value: InspectionItemResponse.RESULT_PASS, label: Text('Pass'), icon: Icon(Icons.check_circle_outline)),
+              ButtonSegment<String>(value: InspectionItemResponse.RESULT_FAIL, label: Text('Fail'), icon: Icon(Icons.error_outline)),
+              ButtonSegment<String>(value: InspectionItemResponse.RESULT_NA, label: Text('N/A'), icon: Icon(Icons.help_outline)),
             ],
             selected: <String>{response.result},
             onSelectionChanged: (values) => onResultChanged(values.first),
-            style: ButtonStyle(
-              backgroundColor: WidgetStateProperty.resolveWith(
-                (states) => states.contains(WidgetState.selected)
-                    ? theme.colorScheme.primary.withOpacity(0.1)
-                    : theme.colorScheme.surface,
-              ),
-            ),
           ),
           const SizedBox(height: 16),
           Row(
@@ -504,11 +1016,8 @@ class _ChecklistItemEditor extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
-              Icon(
-                hasFailure ? Icons.warning_rounded : Icons.verified_outlined,
-                color: hasFailure ? theme.colorScheme.error : theme.colorScheme.primary,
-              ),
+              const SizedBox(width: 12),
+              Icon(hasFailure ? Icons.warning_rounded : Icons.verified_outlined, color: hasFailure ? theme.colorScheme.error : theme.colorScheme.primary),
             ],
           ),
           const SizedBox(height: 16),
@@ -516,10 +1025,7 @@ class _ChecklistItemEditor extends StatelessWidget {
             initialValue: response.notes,
             minLines: 2,
             maxLines: 5,
-            decoration: const InputDecoration(
-              labelText: 'Notes',
-              border: OutlineInputBorder(),
-            ),
+            decoration: const InputDecoration(labelText: 'Notes', border: OutlineInputBorder()),
             onChanged: onNotesChanged,
             validator: (value) {
               if (response.result == InspectionItemResponse.RESULT_FAIL && photos.isEmpty) {
@@ -530,10 +1036,14 @@ class _ChecklistItemEditor extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _PhotoGallery(
+            title: 'Photo evidence',
             photos: photos,
             onAdd: onAddPhoto,
             onRemove: onRemovePhoto,
             requiresPhoto: requiresPhoto,
+            helperText: requiresPhoto
+                ? 'Capture at least one annotated photo when recording a failure.'
+                : 'Optional — attach reference photos for this checklist item.',
           ),
         ],
       ),
@@ -560,16 +1070,20 @@ class _ChecklistItemEditor extends StatelessWidget {
 
 class _PhotoGallery extends StatelessWidget {
   const _PhotoGallery({
+    required this.title,
     required this.photos,
     required this.onAdd,
     required this.onRemove,
     required this.requiresPhoto,
+    this.helperText,
   });
 
+  final String title;
   final List<String> photos;
   final Future<void> Function() onAdd;
   final ValueChanged<String> onRemove;
   final bool requiresPhoto;
+  final String? helperText;
 
   @override
   Widget build(BuildContext context) {
@@ -579,18 +1093,14 @@ class _PhotoGallery extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text('Photo evidence', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+            Text(title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700)),
             if (requiresPhoto)
               Padding(
                 padding: const EdgeInsets.only(left: 8),
                 child: Icon(Icons.star, size: 14, color: theme.colorScheme.error),
               ),
             const Spacer(),
-            TextButton.icon(
-              onPressed: onAdd,
-              icon: const Icon(Icons.camera_alt_outlined),
-              label: const Text('Add'),
-            ),
+            TextButton.icon(onPressed: onAdd, icon: const Icon(Icons.camera_alt_outlined), label: const Text('Add')),
           ],
         ),
         const SizedBox(height: 8),
@@ -601,9 +1111,12 @@ class _PhotoGallery extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
               child: Text(
-                requiresPhoto ? 'Capture at least one photo when recording a failure.' : 'Optional — attach reference photos.',
+                helperText ??
+                    (requiresPhoto
+                        ? 'Capture at least one photo when documenting a defect.'
+                        : 'Optional — attach supporting photos for this step.'),
                 style: theme.textTheme.bodySmall,
               ),
             ),
@@ -653,9 +1166,9 @@ class _PhotoGallery extends StatelessWidget {
 }
 
 class _PhotoSourceSheet extends StatelessWidget {
-  const _PhotoSourceSheet({required this.item});
+  const _PhotoSourceSheet({required this.contextTitle});
 
-  final ChecklistItemModel item;
+  final String contextTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -667,7 +1180,7 @@ class _PhotoSourceSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Attach photo for "${item.title}"', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            Text('Attach photo for "$contextTitle"', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 16),
             _PhotoSourceTile(
               icon: Icons.camera_alt_outlined,
@@ -683,10 +1196,7 @@ class _PhotoSourceSheet extends StatelessWidget {
               onTap: () => Navigator.of(context).pop(ImageSource.gallery),
             ),
             const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
           ],
         ),
       ),
@@ -730,6 +1240,81 @@ class _PhotoSourceTile extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _BarcodeScannerScreen extends StatefulWidget {
+  const _BarcodeScannerScreen({required this.title});
+
+  final String title;
+
+  @override
+  State<_BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
+}
+
+class _BarcodeScannerScreenState extends State<_BarcodeScannerScreen> {
+  late final MobileScannerController _controller;
+  bool _captured = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = MobileScannerController(torchEnabled: false, facing: CameraFacing.back);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.title)),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          MobileScanner(
+            controller: _controller,
+            onDetect: (capture) {
+              if (_captured) {
+                return;
+              }
+              final codes = capture.barcodes;
+              if (codes.isEmpty) {
+                return;
+              }
+              final value = codes.first.rawValue;
+              if (value == null || value.trim().isEmpty) {
+                return;
+              }
+              _captured = true;
+              Navigator.of(context).pop(value);
+            },
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 32),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Text(
+                    'Align the barcode within the frame to capture.',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

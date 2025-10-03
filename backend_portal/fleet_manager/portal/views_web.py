@@ -98,6 +98,52 @@ def app_shell(request: HttpRequest) -> HttpResponse:
         key: round((value / max(assignment_total_count, 1)) * 100, 1)
         for key, value in assignment_totals.items()
     }
+    inspection_status_cards = [
+        {
+            "key": Inspection.STATUS_DRAFT,
+            "label": "Draft",
+            "count": inspection_totals.get(Inspection.STATUS_DRAFT, 0),
+            "percent": inspection_percentages.get(Inspection.STATUS_DRAFT, 0),
+        },
+        {
+            "key": Inspection.STATUS_IN_PROGRESS,
+            "label": "In Progress",
+            "count": inspection_totals.get(Inspection.STATUS_IN_PROGRESS, 0),
+            "percent": inspection_percentages.get(Inspection.STATUS_IN_PROGRESS, 0),
+        },
+        {
+            "key": Inspection.STATUS_SUBMITTED,
+            "label": "Submitted",
+            "count": inspection_totals.get(Inspection.STATUS_SUBMITTED, 0),
+            "percent": inspection_percentages.get(Inspection.STATUS_SUBMITTED, 0),
+        },
+        {
+            "key": Inspection.STATUS_APPROVED,
+            "label": "Approved",
+            "count": inspection_totals.get(Inspection.STATUS_APPROVED, 0),
+            "percent": inspection_percentages.get(Inspection.STATUS_APPROVED, 0),
+        },
+    ]
+    assignment_status_cards = [
+        {
+            "key": VehicleAssignment.STATUS_ASSIGNED,
+            "label": "Assigned",
+            "count": assignment_totals.get(VehicleAssignment.STATUS_ASSIGNED, 0),
+            "percent": assignment_percentages.get(VehicleAssignment.STATUS_ASSIGNED, 0),
+        },
+        {
+            "key": VehicleAssignment.STATUS_IN_PROGRESS,
+            "label": "In Progress",
+            "count": assignment_totals.get(VehicleAssignment.STATUS_IN_PROGRESS, 0),
+            "percent": assignment_percentages.get(VehicleAssignment.STATUS_IN_PROGRESS, 0),
+        },
+        {
+            "key": VehicleAssignment.STATUS_COMPLETED,
+            "label": "Completed",
+            "count": assignment_totals.get(VehicleAssignment.STATUS_COMPLETED, 0),
+            "percent": assignment_percentages.get(VehicleAssignment.STATUS_COMPLETED, 0),
+        },
+    ]
     recent_inspections = (
         Inspection.objects.select_related(
             "vehicle",
@@ -137,8 +183,10 @@ def app_shell(request: HttpRequest) -> HttpResponse:
         "kpi_in_progress_inspections": inspection_totals.get(Inspection.STATUS_IN_PROGRESS, 0),
         "inspection_status_totals": inspection_totals,
         "inspection_status_percentages": inspection_percentages,
+        "inspection_status_cards": inspection_status_cards,
         "assignment_status_totals": assignment_totals,
         "assignment_status_percentages": assignment_percentages,
+        "assignment_status_cards": assignment_status_cards,
         "recent_inspections": recent_inspections,
         "upcoming_assignments": upcoming_assignments,
         "recent_customers": recent_customers,

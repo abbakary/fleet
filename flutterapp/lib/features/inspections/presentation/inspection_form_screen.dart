@@ -185,8 +185,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
         .toList();
     final theme = Theme.of(context);
     final instructionState = _instructionStateFor(step);
-    return Scrollbar(
-      child: ListView(
+    return ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
           _StepIntroCard(
@@ -330,8 +329,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     final stepSkipped = isTrailerStep && _trailerNotApplicable;
     final items = step.items;
     final instructionState = _instructionStateFor(step);
-    return Scrollbar(
-      child: ListView(
+    return ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
           _StepIntroCard(
@@ -398,8 +396,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
   Widget _buildOperationalStep(_GuidedStep step) {
     final theme = Theme.of(context);
     final instructionState = _instructionStateFor(step);
-    return Scrollbar(
-      child: ListView(
+    return ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
           _StepIntroCard(

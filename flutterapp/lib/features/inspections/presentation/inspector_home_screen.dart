@@ -616,6 +616,148 @@ class _MiniFab extends StatelessWidget {
   }
 }
 
+class _ChecklistGuide extends StatelessWidget {
+  const _ChecklistGuide({required this.entries});
+
+  final List<ChecklistGuideEntry> entries;
+
+  @override
+  Widget build(BuildContext context) {
+    if (entries.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      children: entries.map((entry) => _ChecklistGuideTile(entry: entry)).toList(),
+    );
+  }
+}
+
+class _ChecklistGuideTile extends StatelessWidget {
+  const _ChecklistGuideTile({required this.entry});
+
+  final ChecklistGuideEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final subtitle = entry.summary.trim();
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ExpansionTile(
+        title: Text(entry.title, style: theme.textTheme.titleMedium),
+        subtitle: subtitle.isEmpty ? null : Text(subtitle),
+        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        children: [
+          if (entry.steps.isNotEmpty)
+            _GuideSection(
+              title: 'Key steps',
+              children: entry.steps.map((step) => _GuideBullet(text: step)).toList(),
+            ),
+          if (entry.points.isNotEmpty)
+            _GuideSection(
+              title: 'Inspection points',
+              children: entry.points.map((point) => _GuidePointRow(point: point)).toList(),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GuideSection extends StatelessWidget {
+  const _GuideSection({required this.title, required this.children});
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 12, bottom: 8),
+          child: Text(title, style: theme.textTheme.titleSmall),
+        ),
+        ...children,
+      ],
+    );
+  }
+}
+
+class _GuideBullet extends StatelessWidget {
+  const _GuideBullet({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('• '),
+          Expanded(
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GuidePointRow extends StatelessWidget {
+  const _GuidePointRow({required this.point});
+
+  final ChecklistGuidePoint point;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final icon = point.requiresPhoto ? Icons.camera_alt_outlined : Icons.check_circle_outline;
+    final iconColor = point.requiresPhoto ? theme.colorScheme.primary : theme.colorScheme.secondary;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: iconColor),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(point.label, style: theme.textTheme.bodyMedium),
+                if (point.description.trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      point.description,
+                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                  ),
+                if (point.requiresPhoto)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      'Photo evidence required',
+                      style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.primary),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _AssignmentCard extends StatelessWidget {
   const _AssignmentCard({
     required this.assignment,

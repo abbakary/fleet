@@ -1,0 +1,89 @@
+<div class="card">
+  <div class="card-header pb-0">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <h5 class="mb-0">Portal Users</h5>
+      <div class="d-flex gap-2">
+        <a
+          class="btn btn-primary btn-sm"
+          href="{% url 'portal-users-new' %}"
+          data-portal-tab="users"
+          data-portal-tab-target="users"
+          hx-get="{% url 'portal-users-new' %}"
+          hx-target="#portalContent"
+          hx-swap="innerHTML"
+        >
+          <i class="fa fa-plus me-2"></i>Create User
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Username</th>
+            <th scope="col">Role</th>
+            <th scope="col">Organization</th>
+            <th scope="col">Job Title</th>
+            <th scope="col">Active</th>
+            <th scope="col">Updated</th>
+            <th scope="col" class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+            <tr>
+              <td class="text-nowrap">{{ u.user.get_full_name|default:u.user.username }}</td>
+              <td class="text-nowrap">{{ u.user.username }}</td>
+              <td class="text-uppercase">{{ u.get_role_display }}</td>
+              <td>{{ u.organization|default:"—" }}</td>
+              <td>{{ u.job_title|default:"—" }}</td>
+              <td>
+                {% if u.user.is_active %}
+                  <span class="badge badge-light-success">Active</span>
+                {% else %}
+                  <span class="badge badge-light-danger">Inactive</span>
+                {% endif %}
+              </td>
+              <td>{{ u.updated_at|timesince }} ago</td>
+              <td class="text-end">
+                <div class="btn-group" role="group">
+                  <a
+                    class="btn btn-outline-primary btn-sm"
+                    href="{% url 'portal-users-edit' u.pk %}"
+                    data-portal-tab="users"
+                    data-portal-tab-target="users"
+                    hx-get="{% url 'portal-users-edit' u.pk %}"
+                    hx-target="#portalContent"
+                    hx-swap="innerHTML"
+                  >
+                    Edit
+                  </a>
+                  <form
+                    action="{% url 'portal-users-delete' u.pk %}"
+                    method="post"
+                    hx-post="{% url 'portal-users-delete' u.pk %}"
+                    hx-target="#portalContent"
+                    hx-swap="innerHTML"
+                    data-portal-tab-target="users"
+                  >
+                    {% csrf_token %}
+                    <button class="btn btn-outline-danger btn-sm" type="submit" hx-confirm="Delete user {{ u.user.username }}? This removes the underlying login.">
+                      Delete
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center p-4">No users found.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

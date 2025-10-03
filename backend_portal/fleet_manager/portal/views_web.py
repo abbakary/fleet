@@ -34,6 +34,14 @@ def _require_admin(request: HttpRequest) -> PortalUser | None:
     if not user.is_authenticated:
         return None
     profile = get_portal_profile(user)
+    # Allow Django superusers/staff. Auto-provision a PortalUser as admin if missing.
+    if (not profile or profile.role != PortalUser.ROLE_ADMIN) and (user.is_superuser or user.is_staff):
+        profile = profile or PortalUser.objects.filter(user=user).first()
+        if not profile:
+            profile = PortalUser.objects.create(user=user, role=PortalUser.ROLE_ADMIN)
+        else:
+            profile.role = PortalUser.ROLE_ADMIN
+            profile.save(update_fields=["role", "updated_at"])  # type: ignore[attr-defined]
     if not profile or profile.role != PortalUser.ROLE_ADMIN:
         return None
     return profile

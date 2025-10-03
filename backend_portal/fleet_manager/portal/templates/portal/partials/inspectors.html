@@ -3,15 +3,7 @@
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
       <h5 class="mb-0">Inspectors</h5>
       <div class="d-flex gap-2">
-        <a
-          class="btn btn-primary btn-sm"
-          href="{% url 'portal-inspectors-new' %}"
-          data-portal-tab="inspectors"
-          data-portal-tab-target="inspectors"
-          hx-get="{% url 'portal-inspectors-new' %}"
-          hx-target="#portalContent"
-          hx-swap="innerHTML"
-        >
+        <a class="btn btn-primary btn-sm" href="{% url 'portal-inspectors-new' %}">
           <i class="fa fa-plus me-2"></i>Add Inspector
         </a>
       </div>
@@ -46,27 +38,12 @@
               <td>{{ inspector.updated_at|timesince }} ago</td>
               <td class="text-end">
                 <div class="btn-group" role="group">
-                  <a
-                    class="btn btn-outline-primary btn-sm"
-                    href="{% url 'portal-inspectors-edit' inspector.pk %}"
-                    data-portal-tab="inspectors"
-                    data-portal-tab-target="inspectors"
-                    hx-get="{% url 'portal-inspectors-edit' inspector.pk %}"
-                    hx-target="#portalContent"
-                    hx-swap="innerHTML"
-                  >
+                  <a class="btn btn-outline-primary btn-sm" href="{% url 'portal-inspectors-edit' inspector.pk %}">
                     Edit
                   </a>
-                  <form
-                    action="{% url 'portal-inspectors-delete' inspector.pk %}"
-                    method="post"
-                    hx-post="{% url 'portal-inspectors-delete' inspector.pk %}"
-                    hx-target="#portalContent"
-                    hx-swap="innerHTML"
-                    data-portal-tab-target="inspectors"
-                  >
+                  <form action="{% url 'portal-inspectors-delete' inspector.pk %}" method="post" onsubmit="return confirm('Delete inspector {{ inspector.profile.user.get_full_name|default:inspector.profile.user.username|escapejs }}?');">
                     {% csrf_token %}
-                    <button class="btn btn-outline-danger btn-sm" type="submit" hx-confirm="Delete inspector {{ inspector.profile.user.get_full_name|default:inspector.profile.user.username }}?">
+                    <button class="btn btn-outline-danger btn-sm" type="submit">
                       Delete
                     </button>
                   </form>

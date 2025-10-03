@@ -59,7 +59,7 @@
           </div>
           <div class="left-header col-xl-4 col-lg-5 col-md-4 col-sm-3 p-0">
             <div class="d-flex align-items-center gap-3">
-              <h4 class="f-w-600 mb-0">Welcome back{{ profile.user.first_name and ',' }} {{ profile.user.get_full_name|default:profile.user.username }}</h4>
+              <h4 class="f-w-600 mb-0">Welcome back{% if profile.user.first_name %}, {% endif %}{{ profile.user.get_full_name|default:profile.user.username }}</h4>
               <img class="mt-0" src="{% static 'assets/images/hand.gif' %}" alt="wave" />
             </div>
             <div class="welcome-content d-xl-block d-none">

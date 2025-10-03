@@ -207,10 +207,10 @@ def customers_view(request: HttpRequest) -> HttpResponse:
     profile = _require_admin(request)
     if not profile:
         return render(request, "portal/forbidden.html", status=403)
-    if not _is_htmx(request):
-        return _dashboard_redirect("customers")
     customers = Customer.objects.select_related("profile", "profile__user").order_by("-created_at")[:200]
-    return render(request, "portal/partials/customers.html", {"customers": customers})
+    if _is_htmx(request):
+        return render(request, "portal/partials/customers.html", {"customers": customers})
+    return render(request, "portal/pages/customers.html", {"profile": profile, "customers": customers})
 
 
 @login_required
@@ -218,12 +218,12 @@ def vehicles_view(request: HttpRequest) -> HttpResponse:
     profile = _require_admin(request)
     if not profile:
         return render(request, "portal/forbidden.html", status=403)
-    if not _is_htmx(request):
-        return _dashboard_redirect("vehicles")
     vehicles = Vehicle.objects.select_related("customer", "customer__profile", "customer__profile__user").order_by(
         "-created_at"
     )[:200]
-    return render(request, "portal/partials/vehicles.html", {"vehicles": vehicles})
+    if _is_htmx(request):
+        return render(request, "portal/partials/vehicles.html", {"vehicles": vehicles})
+    return render(request, "portal/pages/vehicles.html", {"profile": profile, "vehicles": vehicles})
 
 
 @login_required
@@ -231,10 +231,10 @@ def inspectors_view(request: HttpRequest) -> HttpResponse:
     profile = _require_admin(request)
     if not profile:
         return render(request, "portal/forbidden.html", status=403)
-    if not _is_htmx(request):
-        return _dashboard_redirect("inspectors")
     inspectors = InspectorProfile.objects.select_related("profile", "profile__user").order_by("-created_at")[:200]
-    return render(request, "portal/partials/inspectors.html", {"inspectors": inspectors})
+    if _is_htmx(request):
+        return render(request, "portal/partials/inspectors.html", {"inspectors": inspectors})
+    return render(request, "portal/pages/inspectors.html", {"profile": profile, "inspectors": inspectors})
 
 
 @login_required
@@ -242,8 +242,6 @@ def assignments_view(request: HttpRequest) -> HttpResponse:
     profile = _require_admin(request)
     if not profile:
         return render(request, "portal/forbidden.html", status=403)
-    if not _is_htmx(request):
-        return _dashboard_redirect("assignments")
     assignments = (
         VehicleAssignment.objects.select_related(
             "vehicle",
@@ -254,7 +252,9 @@ def assignments_view(request: HttpRequest) -> HttpResponse:
         )
         .order_by("-scheduled_for")[:200]
     )
-    return render(request, "portal/partials/assignments.html", {"assignments": assignments})
+    if _is_htmx(request):
+        return render(request, "portal/partials/assignments.html", {"assignments": assignments})
+    return render(request, "portal/pages/assignments.html", {"profile": profile, "assignments": assignments})
 
 
 @login_required
@@ -262,8 +262,6 @@ def inspections_view(request: HttpRequest) -> HttpResponse:
     profile = _require_admin(request)
     if not profile:
         return render(request, "portal/forbidden.html", status=403)
-    if not _is_htmx(request):
-        return _dashboard_redirect("inspections")
     inspections = (
         Inspection.objects.select_related(
             "vehicle",
@@ -274,7 +272,9 @@ def inspections_view(request: HttpRequest) -> HttpResponse:
         )
         .order_by("-created_at")[:200]
     )
-    return render(request, "portal/partials/inspections.html", {"inspections": inspections})
+    if _is_htmx(request):
+        return render(request, "portal/partials/inspections.html", {"inspections": inspections})
+    return render(request, "portal/pages/inspections.html", {"profile": profile, "inspections": inspections})
 
 
 @login_required
@@ -282,10 +282,10 @@ def categories_view(request: HttpRequest) -> HttpResponse:
     profile = _require_admin(request)
     if not profile:
         return render(request, "portal/forbidden.html", status=403)
-    if not _is_htmx(request):
-        return _dashboard_redirect("categories")
     categories = InspectionCategory.objects.prefetch_related("items").order_by("display_order", "name")
-    return render(request, "portal/partials/categories.html", {"categories": categories})
+    if _is_htmx(request):
+        return render(request, "portal/partials/categories.html", {"categories": categories})
+    return render(request, "portal/pages/categories.html", {"profile": profile, "categories": categories})
 
 
 @login_required
@@ -293,10 +293,10 @@ def users_view(request: HttpRequest) -> HttpResponse:
     profile = _require_admin(request)
     if not profile:
         return render(request, "portal/forbidden.html", status=403)
-    if not _is_htmx(request):
-        return _dashboard_redirect("users")
     users = PortalUser.objects.select_related("user").order_by("-created_at")[:200]
-    return render(request, "portal/partials/users.html", {"users": users})
+    if _is_htmx(request):
+        return render(request, "portal/partials/users.html", {"users": users})
+    return render(request, "portal/pages/users.html", {"profile": profile, "users": users})
 
 
 # ------- Portal users -------

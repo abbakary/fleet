@@ -695,10 +695,23 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     _vinController.text = vehicle.vin;
     final isTrailer = _isTrailerVehicle(vehicle);
     _trailerNotApplicable = !isTrailer;
+    _GuidedStep? couplingStep;
+    for (final step in _steps) {
+      if (step.definition.code == 'coupling_connections') {
+        couplingStep = step;
+        break;
+      }
+    }
     if (_trailerNotApplicable) {
       _skippedSteps.add('coupling_connections');
+      if (couplingStep != null) {
+        _setInstructionCompletion(couplingStep, true);
+      }
     } else {
       _skippedSteps.remove('coupling_connections');
+      if (couplingStep != null) {
+        _setInstructionCompletion(couplingStep, false);
+      }
     }
   }
 

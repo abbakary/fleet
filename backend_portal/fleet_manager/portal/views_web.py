@@ -88,6 +88,16 @@ def app_shell(request: HttpRequest) -> HttpResponse:
     today = timezone.now().date()
     inspection_totals = _status_totals(Inspection.objects)
     assignment_totals = _status_totals(VehicleAssignment.objects)
+    inspection_total_count = Inspection.objects.count()
+    assignment_total_count = VehicleAssignment.objects.count()
+    inspection_percentages = {
+        key: round((value / max(inspection_total_count, 1)) * 100, 1)
+        for key, value in inspection_totals.items()
+    }
+    assignment_percentages = {
+        key: round((value / max(assignment_total_count, 1)) * 100, 1)
+        for key, value in assignment_totals.items()
+    }
     recent_inspections = (
         Inspection.objects.select_related(
             "vehicle",
@@ -121,11 +131,14 @@ def app_shell(request: HttpRequest) -> HttpResponse:
         "kpi_users": PortalUser.objects.exclude(role=PortalUser.ROLE_ADMIN).count(),
         "kpi_vehicles": Vehicle.objects.count(),
         "kpi_inspectors": InspectorProfile.objects.count(),
-        "kpi_inspections": Inspection.objects.count(),
+        "kpi_inspections": inspection_total_count,
+        "kpi_assignments": assignment_total_count,
         "kpi_pending_assignments": assignment_totals.get(VehicleAssignment.STATUS_ASSIGNED, 0),
         "kpi_in_progress_inspections": inspection_totals.get(Inspection.STATUS_IN_PROGRESS, 0),
         "inspection_status_totals": inspection_totals,
+        "inspection_status_percentages": inspection_percentages,
         "assignment_status_totals": assignment_totals,
+        "assignment_status_percentages": assignment_percentages,
         "recent_inspections": recent_inspections,
         "upcoming_assignments": upcoming_assignments,
         "recent_customers": recent_customers,

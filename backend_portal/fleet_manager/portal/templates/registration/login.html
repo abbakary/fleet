@@ -51,7 +51,7 @@
                   <div class="form-group">
                     <label class="col-form-label" for="id_password">Password</label>
                     <div class="form-input position-relative">
-                      {{ form.password|add_class:"form-control" }}
+                      {{ form.password }}
                       <div class="show-hide"><span class="show"></span></div>
                       {% for error in form.password.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
                     </div>

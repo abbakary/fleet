@@ -866,12 +866,22 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     if (picked == null) {
       return null;
     }
-    final annotated = await PhotoAnnotationScreen.open(
-      context,
-      imageFile: File(picked.path),
-      contextTitle: contextTitle,
-    );
-    return annotated;
+    if (kIsWeb) {
+      final bytes = await picked.readAsBytes();
+      final annotated = await PhotoAnnotationScreen.open(
+        context,
+        imageBytes: bytes,
+        contextTitle: contextTitle,
+      );
+      return annotated;
+    } else {
+      final annotated = await PhotoAnnotationScreen.open(
+        context,
+        imageFile: File(picked.path),
+        contextTitle: contextTitle,
+      );
+      return annotated;
+    }
   }
 
   Future<void> _startScan({required String title, required ValueChanged<String> onValue}) async {

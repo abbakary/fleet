@@ -158,6 +158,110 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
     );
   }
 
+  List<Widget> _buildAssignmentSections(
+    BuildContext context,
+    InspectorDashboardController controller,
+  ) {
+    final List<Widget> sections = <Widget>[];
+    final theme = Theme.of(context);
+
+    if (controller.overdueAssignments.isNotEmpty) {
+      sections.addAll(
+        _buildAssignmentBucket(
+          context: context,
+          controller: controller,
+          title: 'Overdue assignments',
+          assignments: controller.overdueAssignments,
+          emptyMessage: 'No overdue assignments.',
+          accentColor: theme.colorScheme.error,
+          categoryLabel: 'Overdue',
+          showEmptyState: false,
+        ),
+      );
+    }
+
+    sections.addAll(
+      _buildAssignmentBucket(
+        context: context,
+        controller: controller,
+        title: 'Today\'s assignments',
+        assignments: controller.assignmentsToday,
+        emptyMessage: 'No assignments scheduled for today.',
+        accentColor: theme.colorScheme.primary,
+        categoryLabel: 'Today',
+        showEmptyState: true,
+      ),
+    );
+
+    if (controller.upcomingAssignments.isNotEmpty) {
+      sections.addAll(
+        _buildAssignmentBucket(
+          context: context,
+          controller: controller,
+          title: 'Upcoming assignments',
+          assignments: controller.upcomingAssignments,
+          emptyMessage: 'No upcoming assignments.',
+          accentColor: theme.colorScheme.secondary,
+          categoryLabel: 'Upcoming',
+          showEmptyState: false,
+        ),
+      );
+    }
+
+    return sections;
+  }
+
+  List<Widget> _buildAssignmentBucket({
+    required BuildContext context,
+    required InspectorDashboardController controller,
+    required String title,
+    required List<VehicleAssignmentModel> assignments,
+    required String emptyMessage,
+    required Color accentColor,
+    required String categoryLabel,
+    required bool showEmptyState,
+  }) {
+    if (assignments.isEmpty && !showEmptyState) {
+      return const <Widget>[];
+    }
+
+    final theme = Theme.of(context);
+    final List<Widget> widgets = <Widget>[
+      Text(title, style: theme.textTheme.titleLarge),
+      const SizedBox(height: 12),
+    ];
+
+    if (assignments.isEmpty) {
+      widgets.add(
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(emptyMessage),
+          ),
+        ),
+      );
+    } else {
+      widgets.addAll(
+        assignments.map((assignment) {
+          final vehicle = controller.vehicleById(assignment.vehicleId);
+          return _AssignmentCard(
+            assignment: assignment,
+            vehicle: vehicle,
+            onStart: () => _startAssignmentInspection(context, controller, assignment),
+            onAddVehicle: vehicle?.customerId != null
+                ? () => _openAddVehicleDialog(context, controller, vehicle!.customerId!)
+                : null,
+            categoryLabel: categoryLabel,
+            accentColor: accentColor,
+          );
+        }),
+      );
+    }
+
+    widgets.add(const SizedBox(height: 24));
+    return widgets;
+  }
+
   Widget _buildFab(BuildContext context, InspectorDashboardController controller) {
     if (controller.inspectorProfileId == null) {
       return const SizedBox.shrink();

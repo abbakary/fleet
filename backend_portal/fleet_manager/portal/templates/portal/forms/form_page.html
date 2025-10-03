@@ -6,7 +6,7 @@
     <div class="card">
       <div class="card-header pb-0"><h5 class="mb-0">{{ form_title }}</h5></div>
       <div class="card-body">
-        <form action="{{ form_action }}" method="post" hx-boost="true">
+        <form action="{{ form_action }}" method="post">
           {% csrf_token %}
           {{ form.non_field_errors }}
           <div class="row g-3">

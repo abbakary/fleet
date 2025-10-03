@@ -813,6 +813,18 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     return completion != null && completion.length == step.definition.instructions.length;
   }
 
+  void _handleTrailerSkipToggle(_GuidedStep step, bool skip) {
+    setState(() {
+      _trailerNotApplicable = skip;
+      if (skip) {
+        _skippedSteps.add(step.definition.code);
+      } else {
+        _skippedSteps.remove(step.definition.code);
+      }
+      _setInstructionCompletion(step, skip);
+    });
+  }
+
   Future<String?> _pickAnnotatedPhoto(String contextTitle) async {
     final source = await showModalBottomSheet<ImageSource?>(
       context: context,

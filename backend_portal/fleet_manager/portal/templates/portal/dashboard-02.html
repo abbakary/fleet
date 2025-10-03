@@ -93,20 +93,20 @@
       </div>
       <div class="card-body">
         <ul class="list-unstyled mb-0">
-          {% for status, label in (("draft", "Draft"), ("in_progress", "In Progress"), ("submitted", "Submitted"), ("approved", "Approved")) %}
+          {% for status in inspection_status_cards %}
             <li class="mb-3">
               <div class="d-flex align-items-center justify-content-between">
-                <span class="f-light">{{ label }}</span>
-                <span class="badge rounded-pill badge-light-primary">{{ inspection_status_totals|default:{}|dict_get:status|default:0 }}</span>
+                <span class="f-light">{{ status.label }}</span>
+                <span class="badge rounded-pill badge-light-primary">{{ status.count }}</span>
               </div>
               <div class="progress value-progress">
                 <div
                   class="progress-bar bg-primary"
                   role="progressbar"
-                  style="width: {{ inspection_status_totals|default:{}|dict_get:status|default:0|divisibleby:kpi_inspections|yesno:'0,0' }}%"
-                  aria-valuenow="{{ inspection_status_totals|default:{}|dict_get:status|default:0 }}"
+                  style="width: {{ status.percent }}%"
+                  aria-valuenow="{{ status.count }}"
                   aria-valuemin="0"
-                  aria-valuemax="{{ kpi_inspections }}"
+                  aria-valuemax="{{ kpi_inspections|default:0 }}"
                 ></div>
               </div>
             </li>
@@ -127,20 +127,20 @@
       </div>
       <div class="card-body">
         <ul class="list-unstyled mb-0">
-          {% for status, label in (("assigned", "Assigned"), ("in_progress", "In Progress"), ("completed", "Completed")) %}
+          {% for status in assignment_status_cards %}
             <li class="mb-3">
               <div class="d-flex align-items-center justify-content-between">
-                <span class="f-light">{{ label }}</span>
-                <span class="badge rounded-pill badge-light-secondary">{{ assignment_status_totals|default:{}|dict_get:status|default:0 }}</span>
+                <span class="f-light">{{ status.label }}</span>
+                <span class="badge rounded-pill badge-light-secondary">{{ status.count }}</span>
               </div>
               <div class="progress value-progress">
                 <div
                   class="progress-bar bg-secondary"
                   role="progressbar"
-                  style="width: {{ assignment_status_totals|default:{}|dict_get:status|default:0|divisibleby:kpi_pending_assignments|yesno:'0,0' }}%"
-                  aria-valuenow="{{ assignment_status_totals|default:{}|dict_get:status|default:0 }}"
+                  style="width: {{ status.percent }}%"
+                  aria-valuenow="{{ status.count }}"
                   aria-valuemin="0"
-                  aria-valuemax="{{ kpi_pending_assignments }}"
+                  aria-valuemax="{{ kpi_assignments|default:0 }}"
                 ></div>
               </div>
             </li>

@@ -1,5 +1,3 @@
-import 'package:collection/collection.dart';
-
 class GuidedInspectionStepDefinition {
   const GuidedInspectionStepDefinition({
     required this.order,

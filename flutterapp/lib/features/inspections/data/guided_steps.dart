@@ -27,8 +27,14 @@ class GuidedInspectionStepLookup {
 
   final List<GuidedInspectionStepDefinition> steps;
 
-  GuidedInspectionStepDefinition? operator [](String code) =>
-      steps.firstWhereOrNull((definition) => definition.code == code);
+  GuidedInspectionStepDefinition? operator [](String code) {
+    for (final definition in steps) {
+      if (definition.code == code) {
+        return definition;
+      }
+    }
+    return null;
+  }
 }
 
 const List<GuidedInspectionStepDefinition> guidedInspectionSteps = <GuidedInspectionStepDefinition>[

@@ -3,15 +3,7 @@
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
       <h5 class="mb-0">Portal Users</h5>
       <div class="d-flex gap-2">
-        <a
-          class="btn btn-primary btn-sm"
-          href="{% url 'portal-users-new' %}"
-          data-portal-tab="users"
-          data-portal-tab-target="users"
-          hx-get="{% url 'portal-users-new' %}"
-          hx-target="#portalContent"
-          hx-swap="innerHTML"
-        >
+        <a class="btn btn-primary btn-sm" href="{% url 'portal-users-new' %}">
           <i class="fa fa-plus me-2"></i>Create User
         </a>
       </div>
@@ -50,27 +42,12 @@
               <td>{{ u.updated_at|timesince }} ago</td>
               <td class="text-end">
                 <div class="btn-group" role="group">
-                  <a
-                    class="btn btn-outline-primary btn-sm"
-                    href="{% url 'portal-users-edit' u.pk %}"
-                    data-portal-tab="users"
-                    data-portal-tab-target="users"
-                    hx-get="{% url 'portal-users-edit' u.pk %}"
-                    hx-target="#portalContent"
-                    hx-swap="innerHTML"
-                  >
+                  <a class="btn btn-outline-primary btn-sm" href="{% url 'portal-users-edit' u.pk %}">
                     Edit
                   </a>
-                  <form
-                    action="{% url 'portal-users-delete' u.pk %}"
-                    method="post"
-                    hx-post="{% url 'portal-users-delete' u.pk %}"
-                    hx-target="#portalContent"
-                    hx-swap="innerHTML"
-                    data-portal-tab-target="users"
-                  >
+                  <form action="{% url 'portal-users-delete' u.pk %}" method="post" onsubmit="return confirm('Delete user {{ u.user.username|escapejs }}? This removes the underlying login.');">
                     {% csrf_token %}
-                    <button class="btn btn-outline-danger btn-sm" type="submit" hx-confirm="Delete user {{ u.user.username }}? This removes the underlying login.">
+                    <button class="btn btn-outline-danger btn-sm" type="submit">
                       Delete
                     </button>
                   </form>

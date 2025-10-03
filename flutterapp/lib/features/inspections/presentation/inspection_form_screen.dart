@@ -1275,12 +1275,19 @@ class _PhotoGallery extends StatelessWidget {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(14),
-                        child: Image.file(
-                          File(path),
-                          width: 110,
-                          height: 110,
-                          fit: BoxFit.cover,
-                        ),
+                        child: path.startsWith('data:image')
+                            ? Image.memory(
+                                base64Decode(path.split(',').last),
+                                width: 110,
+                                height: 110,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.file(
+                                File(path),
+                                width: 110,
+                                height: 110,
+                                fit: BoxFit.cover,
+                              ),
                       ),
                       Positioned(
                         top: 6,

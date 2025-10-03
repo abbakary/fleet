@@ -1,0 +1,81 @@
+<div class="card">
+  <div class="card-header pb-0">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <h5 class="mb-0">Inspections</h5>
+      <div class="d-flex gap-2">
+        <a
+          class="btn btn-primary btn-sm"
+          href="{% url 'portal-inspections-new' %}"
+          data-portal-tab="inspections"
+          data-portal-tab-target="inspections"
+          hx-get="{% url 'portal-inspections-new' %}"
+          hx-target="#portalContent"
+          hx-swap="innerHTML"
+        >
+          <i class="fa fa-plus me-2"></i>Log Inspection
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Reference</th>
+            <th scope="col">Vehicle</th>
+            <th scope="col">Customer</th>
+            <th scope="col">Inspector</th>
+            <th scope="col">Status</th>
+            <th scope="col">Updated</th>
+            <th scope="col" class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in inspections %}
+            <tr>
+              <td class="text-nowrap">{{ i.reference }}</td>
+              <td class="text-nowrap">{{ i.vehicle.license_plate }}</td>
+              <td class="text-nowrap">{{ i.customer.legal_name }}</td>
+              <td class="text-nowrap">{{ i.inspector.profile.user.get_full_name|default:i.inspector.profile.user.username }}</td>
+              <td><span class="badge badge-light-primary text-uppercase">{{ i.get_status_display }}</span></td>
+              <td>{{ i.updated_at|timesince }} ago</td>
+              <td class="text-end">
+                <div class="btn-group" role="group">
+                  <a
+                    class="btn btn-outline-primary btn-sm"
+                    href="{% url 'portal-inspections-edit' i.pk %}"
+                    data-portal-tab="inspections"
+                    data-portal-tab-target="inspections"
+                    hx-get="{% url 'portal-inspections-edit' i.pk %}"
+                    hx-target="#portalContent"
+                    hx-swap="innerHTML"
+                  >
+                    Edit
+                  </a>
+                  <form
+                    action="{% url 'portal-inspections-delete' i.pk %}"
+                    method="post"
+                    hx-post="{% url 'portal-inspections-delete' i.pk %}"
+                    hx-target="#portalContent"
+                    hx-swap="innerHTML"
+                    data-portal-tab-target="inspections"
+                  >
+                    {% csrf_token %}
+                    <button class="btn btn-outline-danger btn-sm" type="submit" hx-confirm="Delete inspection {{ i.reference }}?">
+                      Delete
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center p-4">No inspections found.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

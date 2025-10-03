@@ -182,11 +182,17 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
         )
         .toList();
     final theme = Theme.of(context);
+    final instructionState = _instructionStateFor(step);
     return Scrollbar(
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
-          _StepIntroCard(step: step),
+          _StepIntroCard(
+            step: step,
+            completedIndices: instructionState,
+            enabled: true,
+            onToggle: (index, value) => _onInstructionToggle(step, index, value),
+          ),
           const SizedBox(height: 20),
           Card(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -321,25 +327,22 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     final isTrailerStep = step.definition.code == 'coupling_connections';
     final stepSkipped = isTrailerStep && _trailerNotApplicable;
     final items = step.items;
+    final instructionState = _instructionStateFor(step);
     return Scrollbar(
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
-          _StepIntroCard(step: step),
+          _StepIntroCard(
+            step: step,
+            completedIndices: instructionState,
+            enabled: !stepSkipped,
+            onToggle: (index, value) => _onInstructionToggle(step, index, value),
+          ),
           if (isTrailerStep) ...[
             const SizedBox(height: 16),
             SwitchListTile.adaptive(
               value: _trailerNotApplicable,
-              onChanged: (value) {
-                setState(() {
-                  _trailerNotApplicable = value;
-                  if (value) {
-                    _skippedSteps.add(step.definition.code);
-                  } else {
-                    _skippedSteps.remove(step.definition.code);
-                  }
-                });
-              },
+              onChanged: (value) => _handleTrailerSkipToggle(step, value ?? false),
               title: const Text('Trailer not attached'),
               subtitle: const Text('Skip this step if the power unit is inspected without a trailer.'),
             ),
@@ -392,11 +395,17 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
 
   Widget _buildOperationalStep(_GuidedStep step) {
     final theme = Theme.of(context);
+    final instructionState = _instructionStateFor(step);
     return Scrollbar(
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
-          _StepIntroCard(step: step),
+          _StepIntroCard(
+            step: step,
+            completedIndices: instructionState,
+            enabled: true,
+            onToggle: (index, value) => _onInstructionToggle(step, index, value),
+          ),
           const SizedBox(height: 16),
           Card(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),

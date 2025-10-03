@@ -342,7 +342,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
             const SizedBox(height: 16),
             SwitchListTile.adaptive(
               value: _trailerNotApplicable,
-              onChanged: (value) => _handleTrailerSkipToggle(step, value ?? false),
+              onChanged: (value) => _handleTrailerSkipToggle(step, value),
               title: const Text('Trailer not attached'),
               subtitle: const Text('Skip this step if the power unit is inspected without a trailer.'),
             ),

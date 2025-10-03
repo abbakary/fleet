@@ -39,6 +39,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
   final Map<int, List<String>> _photoPaths = <int, List<String>>{};
   final Map<String, List<String>> _stepPhotos = <String, List<String>>{};
   final Map<String, TextEditingController> _stepNotesControllers = <String, TextEditingController>{};
+  final Map<String, Set<int>> _instructionCompletion = <String, Set<int>>{};
   final Map<String, bool> _operationalChecks = <String, bool>{
     'brake_test': false,
     'steering_check': false,
@@ -81,6 +82,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     }
     for (final step in _steps) {
       _stepNotesControllers[step.definition.code] = TextEditingController();
+      _instructionCompletion[step.definition.code] = <int>{};
     }
   }
 

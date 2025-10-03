@@ -482,11 +482,12 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
 
   Widget _buildChecklistPhotoSummary(_GuidedStep step) {
     final theme = Theme.of(context);
+    final generalPhotos = _stepPhotos[step.definition.code] ?? const <String>[];
     final photoEntries = step.items
         .map((item) => MapEntry(item, _photoPaths[item.id] ?? const <String>[]))
         .where((entry) => entry.value.isNotEmpty)
         .toList();
-    if (photoEntries.isEmpty) {
+    if (generalPhotos.isEmpty && photoEntries.isEmpty) {
       return const SizedBox.shrink();
     }
     return Card(
@@ -496,8 +497,19 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Checklist photo log', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+            Text('Photo evidence log', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
+            if (generalPhotos.isNotEmpty) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: Text('Step evidence', style: theme.textTheme.bodyLarge)),
+                  const SizedBox(width: 12),
+                  Chip(label: Text('${generalPhotos.length} photo${generalPhotos.length == 1 ? '' : 's'}')),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
             ...photoEntries.map(
               (entry) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),

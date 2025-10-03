@@ -202,93 +202,16 @@
       </div>
     </div>
 
-    <div id="portalLoader" class="htmx-indicator position-fixed top-50 start-50 translate-middle">
-      <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
-    </div>
-
     <script src="{% static 'assets/js/jquery.min.js' %}"></script>
     <script src="{% static 'assets/js/bootstrap/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'assets/js/icons/feather-icon/feather.min.js' %}"></script>
     <script src="{% static 'assets/js/icons/feather-icon/feather-icon.js' %}"></script>
     <script src="{% static 'assets/js/config.js' %}"></script>
     <script src="{% static 'assets/js/script.js' %}"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 
     <script>
-      feather.replace();
-
-      function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-        return '';
-      }
-
-      function setActiveTab(tab) {
-        document.querySelectorAll('[data-portal-tab]').forEach((link) => {
-          if (link.dataset.portalTab === tab) {
-            link.classList.add('active');
-            link.closest('li')?.classList.add('active');
-          } else {
-            link.classList.remove('active');
-            link.closest('li')?.classList.remove('active');
-          }
-        });
-        document.body.dataset.activeTab = tab;
-      }
-
-      document.body.addEventListener('htmx:configRequest', (event) => {
-        event.detail.headers['X-CSRFToken'] = getCookie('csrftoken');
-        event.detail.target = event.detail.target || '#portalContent';
-        event.detail.verb = event.detail.verb || 'GET';
-        event.detail.indicator = '#portalLoader';
-        const tabAttr = event.detail.requestConfig.elt?.dataset?.portalTabTarget;
-        if (tabAttr) {
-          event.detail.headers['X-Portal-Tab'] = tabAttr;
-        }
-      });
-
-      document.body.addEventListener('htmx:afterSwap', (event) => {
-        const tabAttr = event.detail.requestConfig.elt?.dataset?.portalTab || event.detail.requestConfig.headers['X-Portal-Tab'];
-        if (tabAttr) {
-          setActiveTab(tabAttr);
-          const url = new URL(window.location.href);
-          url.searchParams.set('tab', tabAttr);
-          history.replaceState({}, '', url);
-        }
-      });
-
-      document.querySelectorAll('[data-portal-tab][data-portal-url]').forEach((link) => {
-        link.addEventListener('click', (event) => {
-          event.preventDefault();
-          const tab = link.dataset.portalTab;
-          const url = link.dataset.portalUrl;
-          if (!url) {
-            setActiveTab(tab);
-            const nextUrl = new URL(window.location.href);
-            nextUrl.searchParams.set('tab', tab);
-            history.replaceState({}, '', nextUrl);
-            return;
-          }
-          htmx.ajax('GET', url, { target: '#portalContent', swap: 'innerHTML', indicator: '#portalLoader', headers: { 'X-Portal-Tab': tab } });
-        });
-      });
-
       document.addEventListener('DOMContentLoaded', () => {
-        const initialTab = document.body.dataset.activeTab || 'overview';
-        if (initialTab !== 'overview') {
-          const navLink = document.querySelector(`[data-portal-tab="${initialTab}"][data-portal-url]`);
-          if (navLink) {
-            htmx.ajax('GET', navLink.dataset.portalUrl, {
-              target: '#portalContent',
-              swap: 'innerHTML',
-              indicator: '#portalLoader',
-              headers: { 'X-Portal-Tab': initialTab },
-            });
-          }
-        } else {
-          setActiveTab('overview');
-        }
+        feather.replace();
       });
     </script>
     {% block extra_scripts %}{% endblock %}

@@ -116,31 +116,17 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                                   ],
                                 ),
                               ),
-                            Text(
-                              'Today\'s assignments',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 12),
-                            if (controller.assignments.isEmpty)
-                              const Card(
-                                child: Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Text('No assignments scheduled.'),
-                                ),
-                              )
-                            else
-                              ...controller.assignments.map((assignment) {
-                                final vehicle = controller.vehicleById(assignment.vehicleId);
-                                return _AssignmentCard(
-                                  assignment: assignment,
-                                  vehicle: vehicle,
-                                  onStart: () => _startAssignmentInspection(context, controller, assignment),
-                                  onAddVehicle: vehicle?.customerId != null
-                                      ? () => _openAddVehicleDialog(context, controller, vehicle!.customerId!)
-                                      : null,
-                                );
-                              }),
-                            const SizedBox(height: 32),
+                            ..._buildAssignmentSections(context, controller),
+                            if (controller.checklistGuide.isNotEmpty) ...[
+                              Text(
+                                'Fleet inspection playbook',
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              const SizedBox(height: 12),
+                              _ChecklistGuide(entries: controller.checklistGuide),
+                              const SizedBox(height: 32),
+                            ] else
+                              const SizedBox(height: 24),
                             Text(
                               'Recent inspections',
                               style: Theme.of(context).textTheme.titleLarge,

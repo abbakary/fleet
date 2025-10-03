@@ -9,6 +9,7 @@ class GuidedInspectionStepDefinition {
     this.requiresVehicleSelection = false,
     this.optional = false,
     this.requiresTrailer = false,
+    this.enforceInstructionCompletion = true,
   });
 
   final int order;
@@ -20,6 +21,7 @@ class GuidedInspectionStepDefinition {
   final bool requiresVehicleSelection;
   final bool optional;
   final bool requiresTrailer;
+  final bool enforceInstructionCompletion;
 }
 
 class GuidedInspectionStepLookup {
@@ -47,10 +49,10 @@ const List<GuidedInspectionStepDefinition> guidedInspectionSteps = <GuidedInspec
     categoryCode: 'pre_trip_documentation',
     requiresVehicleSelection: true,
     instructions: <String>[
-      'Scan the VIN or license plate to automatically capture identifiers.',
-      'Input current odometer and engine hour readings manually if scanning is unavailable.',
-      'Capture a panoramic photo of the vehicle to document pre-inspection condition.',
-      'Verify assignment details and match them with the vehicle tag or paperwork.',
+      'Scan the VIN or license plate using the guided scanner overlay.',
+      'Input the odometer and engine hours directly from the dashboard.',
+      'Document the overall vehicle condition with baseline photos and notes.',
+      'Verify vehicle identification against assignment paperwork before proceeding.',
     ],
   ),
   GuidedInspectionStepDefinition(
@@ -60,9 +62,10 @@ const List<GuidedInspectionStepDefinition> guidedInspectionSteps = <GuidedInspec
     summary: 'Complete a clockwise walk-around, logging any structural defects with annotated photo proof.',
     categoryCode: 'exterior_structure',
     instructions: <String>[
-      'Follow on-screen hotspots to cover bumpers, doors, roofline, and undercarriage points.',
-      'Document dents, cracks, corrosion, or loose panels with annotated photos.',
-      'Check frame rails, crossmembers, and chassis mounting points for damage.',
+      'Follow the guided walk-around indicators to cover front, sides, roofline, and rear.',
+      'Document dents, cracks, rust, or loose body panels with annotated photo evidence.',
+      'Check frame rails, crossmembers, and chassis mounting points for structural damage.',
+      'Attach photo evidence for any exterior or structural defect before continuing.',
     ],
   ),
   GuidedInspectionStepDefinition(
@@ -72,9 +75,10 @@ const List<GuidedInspectionStepDefinition> guidedInspectionSteps = <GuidedInspec
     summary: 'Measure and record tire health, wheel hardware, and axle condition for every wheel position.',
     categoryCode: 'tires_wheels_axles',
     instructions: <String>[
-      'Record tread depth and tire pressure readings for inner and outer tires.',
-      'Inspect sidewalls for bulges, cuts, or exposed cords and photograph issues.',
-      'Check hub seals, axle housings, and lug torque indicators.',
+      'Measure and record tire pressure for every wheel position.',
+      'Capture tread depth readings and note irregular wear patterns.',
+      'Inspect sidewalls for cuts, bulges, or exposed cords and document defects.',
+      'Check wheel rims, lug torque indicators, axles, and bearings for looseness or leaks.',
     ],
   ),
   GuidedInspectionStepDefinition(
@@ -84,9 +88,10 @@ const List<GuidedInspectionStepDefinition> guidedInspectionSteps = <GuidedInspec
     summary: 'Assess service, emergency, and parking brake components with evidence of wear conditions.',
     categoryCode: 'braking_system',
     instructions: <String>[
-      'Capture lining thickness where visible and document any heat checking or glazing.',
-      'Verify hydraulic or air lines for leaks, securing clips, and chafing.',
-      'Test parking brake application and record response.',
+      'Inspect brake pads or shoes, drums, and rotors for thickness and heat checking.',
+      'Document hydraulic or air brake components, hoses, and fittings for leaks or wear.',
+      'Check supply lines, reservoirs, and valves for chafing or improper routing.',
+      'Test parking brake application and record responsiveness.',
     ],
   ),
   GuidedInspectionStepDefinition(
@@ -96,9 +101,10 @@ const List<GuidedInspectionStepDefinition> guidedInspectionSteps = <GuidedInspec
     summary: 'Evaluate stability and alignment components, ensuring safe handling performance.',
     categoryCode: 'suspension_steering',
     instructions: <String>[
-      'Inspect springs, shocks, and air bags for leaks or uneven ride height.',
-      'Check steering linkage, tie rods, and kingpins for play, wear, or damage.',
-      'Document mounting hardware, bushings, and torque arms.',
+      'Check springs, shock absorbers, and air bags for leaks, cracks, or uneven ride height.',
+      'Inspect steering linkage, tie rods, and kingpins for free play or damage.',
+      'Document suspension mounts, bushings, torque arms, and u-bolts for wear.',
+      'Confirm alignment indicators and steering wheel centering.',
     ],
   ),
   GuidedInspectionStepDefinition(
@@ -108,9 +114,10 @@ const List<GuidedInspectionStepDefinition> guidedInspectionSteps = <GuidedInspec
     summary: 'Capture engine bay health including fluids, belts, and drivetrain integrity.',
     categoryCode: 'engine_powertrain',
     instructions: <String>[
-      'Verify oil, coolant, transmission, DEF, and hydraulic fluid levels.',
-      'Check belts, hoses, and filters for cracking or loose clamps.',
-      'Document exhaust leaks, mounts, and drivetrain connections.',
+      'Verify oil, coolant, transmission, DEF, and hydraulic fluid levels are within range.',
+      'Inspect belts, hoses, clamps, and air filters for cracking or looseness.',
+      'Document exhaust system condition, mounts, and evidence of leaks.',
+      'Check drivetrain components, seals, and housings for leaks or abnormal noise.',
     ],
   ),
   GuidedInspectionStepDefinition(
@@ -120,9 +127,10 @@ const List<GuidedInspectionStepDefinition> guidedInspectionSteps = <GuidedInspec
     summary: 'Systematically test all lighting circuits and core electrical systems.',
     categoryCode: 'electrical_lighting',
     instructions: <String>[
-      'Use assisted testing to step through headlights, turn signals, and marker lights.',
-      'Verify brake lights and ABS indicators with a brake application check.',
-      'Inspect batteries, cables, and harnesses for corrosion or loose connections.',
+      'Run the systematic lighting test covering headlights, tail lights, and brake lights.',
+      'Cycle turn signals, marker lights, and hazard flashers verifying synchronization.',
+      'Inspect interior lighting, dashboard instruments, and warning indicators.',
+      'Check batteries, wiring harnesses, and connectors for corrosion or loose terminals.',
     ],
   ),
   GuidedInspectionStepDefinition(
@@ -132,9 +140,10 @@ const List<GuidedInspectionStepDefinition> guidedInspectionSteps = <GuidedInspec
     summary: 'Validate driver safety equipment, visibility systems, and control panel readiness.',
     categoryCode: 'cabin_interior',
     instructions: <String>[
-      'Test seat belts, seats, and mirrors for secure operation.',
-      'Check windshield, wipers, washers, and defrosters for full coverage.',
-      'Confirm gauges, warning lights, and control switches operate.',
+      'Verify seat belts, seat tracks, and headrests for secure operation.',
+      'Inspect mirrors, windshield, wipers, washers, and defrosters for visibility.',
+      'Test dashboard instruments, controls, HVAC, and infotainment systems.',
+      'Confirm emergency equipment, paperwork, and safety signage are accessible.',
     ],
   ),
   GuidedInspectionStepDefinition(
@@ -144,9 +153,10 @@ const List<GuidedInspectionStepDefinition> guidedInspectionSteps = <GuidedInspec
     summary: 'Verify trailer coupling, lines, and safety connections where applicable.',
     categoryCode: 'coupling_connections',
     instructions: <String>[
-      'Inspect fifth wheel or kingpin components for secure locking and wear.',
-      'Verify safety chains, breakaway cables, and locking pins are present.',
-      'Check glad hands, airlines, and electrical cords for leaks and abrasion.',
+      'Inspect fifth wheel, kingpin, pintle, or gooseneck components for secure locking and wear.',
+      'Verify safety chains, breakaway cables, and locking pins are present and undamaged.',
+      'Check electrical connectors, glad hands, and air lines for leaks or abrasion.',
+      'Capture supporting photos for any missing or worn coupling hardware.',
     ],
     optional: true,
     requiresTrailer: true,
@@ -158,9 +168,10 @@ const List<GuidedInspectionStepDefinition> guidedInspectionSteps = <GuidedInspec
     summary: 'Confirm emergency preparedness equipment is present, charged, and within service dates.',
     categoryCode: 'safety_equipment',
     instructions: <String>[
-      'Inspect fire extinguishers for charge, seal, and inspection date.',
-      'Verify triangles, flares, first-aid, and PPE are stocked and accessible.',
-      'Capture photos of missing or deficient equipment.',
+      'Check fire extinguisher charge level, inspection tag, and security seal.',
+      'Verify warning triangles, flares, and reflective devices are present and serviceable.',
+      'Confirm first aid kit, spill kit, and PPE inventory is complete.',
+      'Document any missing or deficient safety equipment with photos.',
     ],
   ),
   GuidedInspectionStepDefinition(
@@ -170,9 +181,10 @@ const List<GuidedInspectionStepDefinition> guidedInspectionSteps = <GuidedInspec
     summary: 'Close the inspection with dynamic operational checks before releasing the vehicle.',
     categoryCode: 'operational_tests',
     instructions: <String>[
-      'Conduct brake responsiveness tests in a safe area and record pedal feel.',
+      'Conduct brake responsiveness test noting pedal feel and stopping distance.',
       'Cycle steering lock-to-lock listening for abnormal noises or resistance.',
-      'Start the engine, observe idle, warning lights, and note any vibration.',
+      'Start the engine, observe idle quality, warning lights, and vibrations.',
+      'Perform transmission shifting test verifying smooth engagement in all ranges.',
     ],
   ),
 ];

@@ -119,96 +119,57 @@
             <div id="sidebar-menu">
               <ul class="sidebar-links" id="simple-bar">
                 <li class="sidebar-main-title"><div><h6>Navigation</h6></div></li>
-                <li class="sidebar-list">
-                  <a
-                    class="sidebar-link link-nav"
-                    href="?tab=overview"
-                    data-portal-tab="overview"
-                  >
+                <li class="sidebar-list{% if active_tab == 'overview' %} active{% endif %}">
+                  <a class="sidebar-link link-nav{% if active_tab == 'overview' %} active{% endif %}" href="{% url 'portal-admin' %}">
                     <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-home"></use></svg>
                     <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-home"></use></svg>
                     <span>Overview</span>
                   </a>
                 </li>
-                <li class="sidebar-list">
-                  <a
-                    class="sidebar-link link-nav"
-                    href="?tab=customers"
-                    data-portal-tab="customers"
-                    data-portal-url="{% url 'portal-customers' %}"
-                  >
+                <li class="sidebar-list{% if active_tab == 'customers' %} active{% endif %}">
+                  <a class="sidebar-link link-nav{% if active_tab == 'customers' %} active{% endif %}" href="{% url 'portal-customers' %}">
                     <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-users"></use></svg>
                     <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-users"></use></svg>
                     <span>Customers</span>
                   </a>
                 </li>
-                <li class="sidebar-list">
-                  <a
-                    class="sidebar-link link-nav"
-                    href="?tab=vehicles"
-                    data-portal-tab="vehicles"
-                    data-portal-url="{% url 'portal-vehicles' %}"
-                  >
+                <li class="sidebar-list{% if active_tab == 'vehicles' %} active{% endif %}">
+                  <a class="sidebar-link link-nav{% if active_tab == 'vehicles' %} active{% endif %}" href="{% url 'portal-vehicles' %}">
                     <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-widget"></use></svg>
                     <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-widget"></use></svg>
                     <span>Vehicles</span>
                   </a>
                 </li>
-                <li class="sidebar-list">
-                  <a
-                    class="sidebar-link link-nav"
-                    href="?tab=assignments"
-                    data-portal-tab="assignments"
-                    data-portal-url="{% url 'portal-assignments' %}"
-                  >
+                <li class="sidebar-list{% if active_tab == 'assignments' %} active{% endif %}">
+                  <a class="sidebar-link link-nav{% if active_tab == 'assignments' %} active{% endif %}" href="{% url 'portal-assignments' %}">
                     <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-task"></use></svg>
                     <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-task"></use></svg>
                     <span>Assignments</span>
                   </a>
                 </li>
-                <li class="sidebar-list">
-                  <a
-                    class="sidebar-link link-nav"
-                    href="?tab=inspections"
-                    data-portal-tab="inspections"
-                    data-portal-url="{% url 'portal-inspections' %}"
-                  >
+                <li class="sidebar-list{% if active_tab == 'inspections' %} active{% endif %}">
+                  <a class="sidebar-link link-nav{% if active_tab == 'inspections' %} active{% endif %}" href="{% url 'portal-inspections' %}">
                     <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-dashboard"></use></svg>
                     <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-dashboard"></use></svg>
                     <span>Inspections</span>
                   </a>
                 </li>
-                <li class="sidebar-list">
-                  <a
-                    class="sidebar-link link-nav"
-                    href="?tab=inspectors"
-                    data-portal-tab="inspectors"
-                    data-portal-url="{% url 'portal-inspectors' %}"
-                  >
+                <li class="sidebar-list{% if active_tab == 'inspectors' %} active{% endif %}">
+                  <a class="sidebar-link link-nav{% if active_tab == 'inspectors' %} active{% endif %}" href="{% url 'portal-inspectors' %}">
                     <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-team"></use></svg>
                     <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-team"></use></svg>
                     <span>Inspectors</span>
                   </a>
                 </li>
-                <li class="sidebar-list">
-                  <a
-                    class="sidebar-link link-nav"
-                    href="?tab=categories"
-                    data-portal-tab="categories"
-                    data-portal-url="{% url 'portal-categories' %}"
-                  >
+                <li class="sidebar-list{% if active_tab == 'categories' %} active{% endif %}">
+                  <a class="sidebar-link link-nav{% if active_tab == 'categories' %} active{% endif %}" href="{% url 'portal-categories' %}">
                     <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-ui"></use></svg>
                     <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-ui"></use></svg>
                     <span>Checklist</span>
                   </a>
                 </li>
-                <li class="sidebar-list">
-                  <a
-                    class="sidebar-link link-nav"
-                    href="?tab=users"
-                    data-portal-tab="users"
-                    data-portal-url="{% url 'portal-users' %}"
-                  >
+                <li class="sidebar-list{% if active_tab == 'users' %} active{% endif %}">
+                  <a class="sidebar-link link-nav{% if active_tab == 'users' %} active{% endif %}" href="{% url 'portal-users' %}">
                     <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-profile"></use></svg>
                     <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-profile"></use></svg>
                     <span>Portal Users</span>
@@ -241,93 +202,16 @@
       </div>
     </div>
 
-    <div id="portalLoader" class="htmx-indicator position-fixed top-50 start-50 translate-middle">
-      <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
-    </div>
-
     <script src="{% static 'assets/js/jquery.min.js' %}"></script>
     <script src="{% static 'assets/js/bootstrap/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'assets/js/icons/feather-icon/feather.min.js' %}"></script>
     <script src="{% static 'assets/js/icons/feather-icon/feather-icon.js' %}"></script>
     <script src="{% static 'assets/js/config.js' %}"></script>
     <script src="{% static 'assets/js/script.js' %}"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 
     <script>
-      feather.replace();
-
-      function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-        return '';
-      }
-
-      function setActiveTab(tab) {
-        document.querySelectorAll('[data-portal-tab]').forEach((link) => {
-          if (link.dataset.portalTab === tab) {
-            link.classList.add('active');
-            link.closest('li')?.classList.add('active');
-          } else {
-            link.classList.remove('active');
-            link.closest('li')?.classList.remove('active');
-          }
-        });
-        document.body.dataset.activeTab = tab;
-      }
-
-      document.body.addEventListener('htmx:configRequest', (event) => {
-        event.detail.headers['X-CSRFToken'] = getCookie('csrftoken');
-        event.detail.target = event.detail.target || '#portalContent';
-        event.detail.verb = event.detail.verb || 'GET';
-        event.detail.indicator = '#portalLoader';
-        const tabAttr = event.detail.requestConfig.elt?.dataset?.portalTabTarget;
-        if (tabAttr) {
-          event.detail.headers['X-Portal-Tab'] = tabAttr;
-        }
-      });
-
-      document.body.addEventListener('htmx:afterSwap', (event) => {
-        const tabAttr = event.detail.requestConfig.elt?.dataset?.portalTab || event.detail.requestConfig.headers['X-Portal-Tab'];
-        if (tabAttr) {
-          setActiveTab(tabAttr);
-          const url = new URL(window.location.href);
-          url.searchParams.set('tab', tabAttr);
-          history.replaceState({}, '', url);
-        }
-      });
-
-      document.querySelectorAll('[data-portal-tab][data-portal-url]').forEach((link) => {
-        link.addEventListener('click', (event) => {
-          event.preventDefault();
-          const tab = link.dataset.portalTab;
-          const url = link.dataset.portalUrl;
-          if (!url) {
-            setActiveTab(tab);
-            const nextUrl = new URL(window.location.href);
-            nextUrl.searchParams.set('tab', tab);
-            history.replaceState({}, '', nextUrl);
-            return;
-          }
-          htmx.ajax('GET', url, { target: '#portalContent', swap: 'innerHTML', indicator: '#portalLoader', headers: { 'X-Portal-Tab': tab } });
-        });
-      });
-
       document.addEventListener('DOMContentLoaded', () => {
-        const initialTab = document.body.dataset.activeTab || 'overview';
-        if (initialTab !== 'overview') {
-          const navLink = document.querySelector(`[data-portal-tab="${initialTab}"][data-portal-url]`);
-          if (navLink) {
-            htmx.ajax('GET', navLink.dataset.portalUrl, {
-              target: '#portalContent',
-              swap: 'innerHTML',
-              indicator: '#portalLoader',
-              headers: { 'X-Portal-Tab': initialTab },
-            });
-          }
-        } else {
-          setActiveTab('overview');
-        }
+        feather.replace();
       });
     </script>
     {% block extra_scripts %}{% endblock %}

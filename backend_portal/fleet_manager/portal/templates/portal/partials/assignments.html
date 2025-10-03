@@ -3,15 +3,7 @@
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
       <h5 class="mb-0">Assignments</h5>
       <div class="d-flex gap-2">
-        <a
-          class="btn btn-primary btn-sm"
-          href="{% url 'portal-assignments-new' %}"
-          data-portal-tab="assignments"
-          data-portal-tab-target="assignments"
-          hx-get="{% url 'portal-assignments-new' %}"
-          hx-target="#portalContent"
-          hx-swap="innerHTML"
-        >
+        <a class="btn btn-primary btn-sm" href="{% url 'portal-assignments-new' %}">
           <i class="fa fa-plus me-2"></i>Create Assignment
         </a>
       </div>
@@ -40,27 +32,12 @@
               <td>{{ a.updated_at|timesince }} ago</td>
               <td class="text-end">
                 <div class="btn-group" role="group">
-                  <a
-                    class="btn btn-outline-primary btn-sm"
-                    href="{% url 'portal-assignments-edit' a.pk %}"
-                    data-portal-tab="assignments"
-                    data-portal-tab-target="assignments"
-                    hx-get="{% url 'portal-assignments-edit' a.pk %}"
-                    hx-target="#portalContent"
-                    hx-swap="innerHTML"
-                  >
+                  <a class="btn btn-outline-primary btn-sm" href="{% url 'portal-assignments-edit' a.pk %}">
                     Edit
                   </a>
-                  <form
-                    action="{% url 'portal-assignments-delete' a.pk %}"
-                    method="post"
-                    hx-post="{% url 'portal-assignments-delete' a.pk %}"
-                    hx-target="#portalContent"
-                    hx-swap="innerHTML"
-                    data-portal-tab-target="assignments"
-                  >
+                  <form action="{% url 'portal-assignments-delete' a.pk %}" method="post" onsubmit="return confirm('Delete assignment for {{ a.vehicle.license_plate|escapejs }}?');">
                     {% csrf_token %}
-                    <button class="btn btn-outline-danger btn-sm" type="submit" hx-confirm="Delete assignment for {{ a.vehicle.license_plate }}?">
+                    <button class="btn btn-outline-danger btn-sm" type="submit">
                       Delete
                     </button>
                   </form>

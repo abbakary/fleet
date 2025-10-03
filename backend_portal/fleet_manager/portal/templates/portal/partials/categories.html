@@ -3,15 +3,7 @@
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
       <h5 class="mb-0">Checklist Categories</h5>
       <div class="d-flex gap-2">
-        <a
-          class="btn btn-primary btn-sm"
-          href="{% url 'portal-categories-new' %}"
-          data-portal-tab="categories"
-          data-portal-tab-target="categories"
-          hx-get="{% url 'portal-categories-new' %}"
-          hx-target="#portalContent"
-          hx-swap="innerHTML"
-        >
+        <a class="btn btn-primary btn-sm" href="{% url 'portal-categories-new' %}">
           <i class="fa fa-plus me-2"></i>Add Category
         </a>
       </div>
@@ -29,25 +21,10 @@
                   <small class="text-muted">Code: {{ c.code }}</small>
                 </div>
                 <div class="d-flex gap-2">
-                  <a
-                    class="btn btn-outline-primary btn-sm"
-                    href="{% url 'portal-categories-edit' c.pk %}"
-                    data-portal-tab="categories"
-                    data-portal-tab-target="categories"
-                    hx-get="{% url 'portal-categories-edit' c.pk %}"
-                    hx-target="#portalContent"
-                    hx-swap="innerHTML"
-                  >Edit</a>
-                  <form
-                    action="{% url 'portal-categories-delete' c.pk %}"
-                    method="post"
-                    hx-post="{% url 'portal-categories-delete' c.pk %}"
-                    hx-target="#portalContent"
-                    hx-swap="innerHTML"
-                    data-portal-tab-target="categories"
-                  >
+                  <a class="btn btn-outline-primary btn-sm" href="{% url 'portal-categories-edit' c.pk %}">Edit</a>
+                  <form action="{% url 'portal-categories-delete' c.pk %}" method="post" onsubmit="return confirm('Delete category {{ c.name|escapejs }}?');">
                     {% csrf_token %}
-                    <button class="btn btn-outline-danger btn-sm" type="submit" hx-confirm="Delete category {{ c.name }}?">Delete</button>
+                    <button class="btn btn-outline-danger btn-sm" type="submit">Delete</button>
                   </form>
                 </div>
               </div>
@@ -56,15 +33,7 @@
               <p class="f-light mb-3">{{ c.description|default:"No description." }}</p>
               <div class="d-flex align-items-center justify-content-between mb-2">
                 <h6 class="mb-0">Items</h6>
-                <a
-                  class="btn btn-outline-primary btn-sm"
-                  href="{% url 'portal-checklist-items-new' %}?category={{ c.pk }}"
-                  data-portal-tab="categories"
-                  data-portal-tab-target="categories"
-                  hx-get="{% url 'portal-checklist-items-new' %}?category={{ c.pk }}"
-                  hx-target="#portalContent"
-                  hx-swap="innerHTML"
-                >Add Item</a>
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'portal-checklist-items-new' %}?category={{ c.pk }}">Add Item</a>
               </div>
               <ul class="list-group list-group-flush">
                 {% for item in c.items.all %}
@@ -74,25 +43,10 @@
                       <small class="text-muted">Code: {{ item.code }}{% if item.requires_photo %} · Photo required{% endif %}</small>
                     </div>
                     <div class="d-flex gap-2">
-                      <a
-                        class="btn btn-outline-primary btn-sm"
-                        href="{% url 'portal-checklist-items-edit' item.pk %}"
-                        data-portal-tab="categories"
-                        data-portal-tab-target="categories"
-                        hx-get="{% url 'portal-checklist-items-edit' item.pk %}"
-                        hx-target="#portalContent"
-                        hx-swap="innerHTML"
-                      >Edit</a>
-                      <form
-                        action="{% url 'portal-checklist-items-delete' item.pk %}"
-                        method="post"
-                        hx-post="{% url 'portal-checklist-items-delete' item.pk %}"
-                        hx-target="#portalContent"
-                        hx-swap="innerHTML"
-                        data-portal-tab-target="categories"
-                      >
+                      <a class="btn btn-outline-primary btn-sm" href="{% url 'portal-checklist-items-edit' item.pk %}">Edit</a>
+                      <form action="{% url 'portal-checklist-items-delete' item.pk %}" method="post" onsubmit="return confirm('Delete item {{ item.title|escapejs }}?');">
                         {% csrf_token %}
-                        <button class="btn btn-outline-danger btn-sm" type="submit" hx-confirm="Delete item {{ item.title }}?">Delete</button>
+                        <button class="btn btn-outline-danger btn-sm" type="submit">Delete</button>
                       </form>
                     </div>
                   </li>

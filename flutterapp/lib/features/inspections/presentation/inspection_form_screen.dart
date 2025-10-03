@@ -909,13 +909,23 @@ class _GuidedStep {
 }
 
 class _StepIntroCard extends StatelessWidget {
-  const _StepIntroCard({required this.step});
+  const _StepIntroCard({
+    required this.step,
+    required this.completedIndices,
+    required this.onToggle,
+    this.enabled = true,
+  });
 
   final _GuidedStep step;
+  final Set<int> completedIndices;
+  final void Function(int index, bool value) onToggle;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final instructions = step.definition.instructions;
+    final completedCount = completedIndices.length.clamp(0, instructions.length);
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       color: theme.colorScheme.surfaceVariant,
@@ -925,24 +935,37 @@ class _StepIntroCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(step.definition.title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 12),
-            ...step.definition.instructions.map(
-              (instruction) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('• '),
-                    Expanded(
-                      child: Text(
-                        instruction,
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ),
-                  ],
+            const SizedBox(height: 8),
+            Text(step.definition.summary, style: theme.textTheme.bodyMedium),
+            if (instructions.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Text('Guided actions', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+                  const Spacer(),
+                  Text('$completedCount of ${instructions.length} completed', style: theme.textTheme.labelMedium),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ...List.generate(
+                instructions.length,
+                (index) => CheckboxListTile(
+                  value: completedIndices.contains(index),
+                  onChanged: enabled
+                      ? (value) => onToggle(index, value ?? false)
+                      : null,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(instructions[index], style: theme.textTheme.bodyMedium),
                 ),
               ),
-            ),
+            ],
+            if (!enabled) ...[
+              const SizedBox(height: 12),
+              Text('Step marked as not applicable for this inspection.',
+                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            ],
           ],
         ),
       ),

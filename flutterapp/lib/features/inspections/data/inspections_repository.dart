@@ -1,8 +1,8 @@
 import 'dart:io';
-
-import 'dart:io';
+import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
 import '../../../core/api/api_client.dart';
@@ -152,6 +152,19 @@ class InspectionsRepository {
         final uploads = <Map<String, dynamic>>[];
         for (final entry in photos) {
           if (entry is! String || entry.isEmpty) {
+            continue;
+          }
+          if (kIsWeb) {
+            if (entry.startsWith('data:image')) {
+              final base64Part = entry.split(',').last;
+              try {
+                final bytes = base64Decode(base64Part);
+                final multipart = MultipartFile.fromBytes(bytes, filename: 'photo_${DateTime.now().millisecondsSinceEpoch}.png');
+                uploads.add({'image': multipart});
+              } catch (_) {
+                continue;
+              }
+            }
             continue;
           }
           final filePath = entry.startsWith('file://') ? entry.substring(7) : entry;

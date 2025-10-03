@@ -21,13 +21,13 @@ class StyledFormMixin:
     def _apply_widget_styles(self):
         for field in self.fields.values():
             css = field.widget.attrs.get("class", "").strip()
-            base = "input"
-            if isinstance(field.widget, (forms.Textarea,)):
-                base = "textarea"
+            base = "form-control"
+            if isinstance(field.widget, forms.Textarea):
+                base = "form-control"
             elif isinstance(field.widget, (forms.Select, forms.SelectMultiple)):
-                base = "select"
+                base = "form-select"
             elif isinstance(field.widget, forms.CheckboxInput):
-                base = "checkbox"
+                base = "form-check-input"
             field.widget.attrs["class"] = (css + " " + base).strip()
 
 

@@ -763,6 +763,43 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     });
   }
 
+  Set<int> _instructionStateFor(_GuidedStep step) {
+    final completion = _instructionCompletion[step.definition.code];
+    return completion == null ? <int>{} : Set<int>.from(completion);
+  }
+
+  void _onInstructionToggle(_GuidedStep step, int index, bool value) {
+    setState(() {
+      final completion = _instructionCompletion.putIfAbsent(step.definition.code, () => <int>{});
+      if (value) {
+        completion.add(index);
+      } else {
+        completion.remove(index);
+      }
+    });
+  }
+
+  void _setInstructionCompletion(_GuidedStep step, bool completed) {
+    final completion = _instructionCompletion.putIfAbsent(step.definition.code, () => <int>{});
+    completion.clear();
+    if (completed) {
+      for (var i = 0; i < step.definition.instructions.length; i += 1) {
+        completion.add(i);
+      }
+    }
+  }
+
+  bool _shouldEnforceInstructions(_GuidedStep step) =>
+      step.definition.enforceInstructionCompletion && step.definition.instructions.isNotEmpty;
+
+  bool _areInstructionsComplete(_GuidedStep step) {
+    if (!_shouldEnforceInstructions(step)) {
+      return true;
+    }
+    final completion = _instructionCompletion[step.definition.code];
+    return completion != null && completion.length == step.definition.instructions.length;
+  }
+
   Future<String?> _pickAnnotatedPhoto(String contextTitle) async {
     final source = await showModalBottomSheet<ImageSource?>(
       context: context,

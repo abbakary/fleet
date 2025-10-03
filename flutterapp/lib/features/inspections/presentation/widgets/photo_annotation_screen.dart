@@ -1,29 +1,35 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 class PhotoAnnotationScreen extends StatefulWidget {
   const PhotoAnnotationScreen({
-    required this.imageFile,
+    this.imageFile,
+    this.imageBytes,
     required this.contextTitle,
     super.key,
   });
 
-  final File imageFile;
+  final File? imageFile;
+  final Uint8List? imageBytes;
   final String contextTitle;
 
   static Future<String?> open(
     BuildContext context, {
-    required File imageFile,
+    File? imageFile,
+    Uint8List? imageBytes,
     required String contextTitle,
   }) {
     return Navigator.of(context).push<String>(
       MaterialPageRoute<String>(
         builder: (_) => PhotoAnnotationScreen(
           imageFile: imageFile,
+          imageBytes: imageBytes,
           contextTitle: contextTitle,
         ),
       ),
@@ -177,7 +183,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
             ),
             const SizedBox(width: 12),
             FilledButton.icon(
-              onPressed: _strokes.isEmpty && !_hasImageChanges ? () => Navigator.of(context).pop(widget.imageFile.path) : _save,
+              onPressed: _save,
               icon: const Icon(Icons.save_alt),
               label: const Text('Save'),
             ),
@@ -191,7 +197,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
 
   Future<void> _loadImage() async {
     try {
-      final bytes = await widget.imageFile.readAsBytes();
+      final bytes = widget.imageBytes ?? await widget.imageFile!.readAsBytes();
       if (!mounted) return;
       final image = await decodeImageFromList(bytes);
       if (!mounted) return;
@@ -291,6 +297,11 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
     if (byteData == null) {
       return null;
     }
+    final bytes = byteData.buffer.asUint8List();
+    if (kIsWeb) {
+      final encoded = base64Encode(bytes);
+      return 'data:image/png;base64,$encoded';
+    }
     final directory = await getApplicationDocumentsDirectory();
     final photoDirectory = Directory('${directory.path}/inspection_photos');
     if (!photoDirectory.existsSync()) {
@@ -298,7 +309,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
     }
     final filePath = '${photoDirectory.path}/${DateTime.now().millisecondsSinceEpoch}_annotated.png';
     final file = File(filePath);
-    await file.writeAsBytes(byteData.buffer.asUint8List());
+    await file.writeAsBytes(bytes);
     return file.path;
   }
 }

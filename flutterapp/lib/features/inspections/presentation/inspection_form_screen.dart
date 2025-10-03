@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -183,8 +185,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
         .toList();
     final theme = Theme.of(context);
     final instructionState = _instructionStateFor(step);
-    return Scrollbar(
-      child: ListView(
+    return ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
           _StepIntroCard(
@@ -328,8 +329,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     final stepSkipped = isTrailerStep && _trailerNotApplicable;
     final items = step.items;
     final instructionState = _instructionStateFor(step);
-    return Scrollbar(
-      child: ListView(
+    return ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
           _StepIntroCard(
@@ -396,8 +396,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
   Widget _buildOperationalStep(_GuidedStep step) {
     final theme = Theme.of(context);
     final instructionState = _instructionStateFor(step);
-    return Scrollbar(
-      child: ListView(
+    return ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
           _StepIntroCard(
@@ -864,12 +863,22 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     if (picked == null) {
       return null;
     }
-    final annotated = await PhotoAnnotationScreen.open(
-      context,
-      imageFile: File(picked.path),
-      contextTitle: contextTitle,
-    );
-    return annotated;
+    if (kIsWeb) {
+      final bytes = await picked.readAsBytes();
+      final annotated = await PhotoAnnotationScreen.open(
+        context,
+        imageBytes: bytes,
+        contextTitle: contextTitle,
+      );
+      return annotated;
+    } else {
+      final annotated = await PhotoAnnotationScreen.open(
+        context,
+        imageFile: File(picked.path),
+        contextTitle: contextTitle,
+      );
+      return annotated;
+    }
   }
 
   Future<void> _startScan({required String title, required ValueChanged<String> onValue}) async {
@@ -1266,12 +1275,19 @@ class _PhotoGallery extends StatelessWidget {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(14),
-                        child: Image.file(
-                          File(path),
-                          width: 110,
-                          height: 110,
-                          fit: BoxFit.cover,
-                        ),
+                        child: path.startsWith('data:image')
+                            ? Image.memory(
+                                base64Decode(path.split(',').last),
+                                width: 110,
+                                height: 110,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.file(
+                                File(path),
+                                width: 110,
+                                height: 110,
+                                fit: BoxFit.cover,
+                              ),
                       ),
                       Positioned(
                         top: 6,

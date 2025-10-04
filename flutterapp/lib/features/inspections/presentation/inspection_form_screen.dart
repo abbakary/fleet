@@ -1614,11 +1614,11 @@ class _BarcodeScannerScreenState extends State<_BarcodeScannerScreen> {
                   color: Colors.black54,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Text(
-                    'Align the barcode within the frame to capture.',
-                    style: TextStyle(color: Colors.white),
+                    context.l10n.alignBarcodeHint,
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ),
               ),

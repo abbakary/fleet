@@ -43,6 +43,104 @@ from .serializers import (
 from .services import generate_customer_report
 
 
+def _extract_data_pairs(data: Any) -> List[Tuple[str, List[Any]]]:
+    if isinstance(data, QueryDict):
+        return [(key, list(values)) for key, values in data.lists()]
+    if isinstance(data, dict):
+        pairs: List[Tuple[str, List[Any]]] = []
+        for key, value in data.items():
+            if isinstance(value, list):
+                pairs.append((key, value))
+            else:
+                pairs.append((key, [value]))
+        return pairs
+    return []
+
+
+def _assign_path(container: Any, path: List[str], values: List[Any]) -> None:
+    segment = path[0]
+    is_last = len(path) == 1
+    value: Any = values if len(values) > 1 else values[0]
+
+    if isinstance(container, list):
+        if not segment.isdigit():
+            return
+        index = int(segment)
+        while len(container) <= index:
+            container.append(None)
+        if is_last:
+            container[index] = value
+            return
+        next_segment = path[1]
+        child = container[index]
+        if child is None or (next_segment.isdigit() and not isinstance(child, list)) or (not next_segment.isdigit() and not isinstance(child, dict)):
+            container[index] = [] if next_segment.isdigit() else {}
+        _assign_path(container[index], path[1:], values)
+        return
+
+    if is_last:
+        container[segment] = value
+        return
+
+    next_segment = path[1]
+    child = container.get(segment)
+    if child is None or (next_segment.isdigit() and not isinstance(child, list)) or (not next_segment.isdigit() and not isinstance(child, dict)):
+        container[segment] = [] if next_segment.isdigit() else {}
+    _assign_path(container[segment], path[1:], values)
+
+
+def _assign_nested_item(buckets: dict[int, dict[str, Any]], key: str, values: List[Any]) -> None:
+    prefix = "item_responses["
+    remainder = key[len(prefix) :]
+    remainder = remainder.rstrip("]")
+    if not remainder:
+        return
+    segments = remainder.split("][")
+    try:
+        index = int(segments[0])
+    except ValueError:
+        return
+    path = segments[1:]
+    if not path:
+        return
+    bucket = buckets.setdefault(index, {})
+    _assign_path(bucket, path, values)
+
+
+def _normalize_inspection_payload(data: Any) -> dict[str, Any]:
+    base_payload: dict[str, Any] = {}
+    nested_items: dict[int, dict[str, Any]] = {}
+
+    for key, values in _extract_data_pairs(data):
+        if key.startswith("item_responses["):
+            _assign_nested_item(nested_items, key, values)
+            continue
+        if key == "item_responses" and len(values) == 1 and isinstance(values[0], str):
+            try:
+                base_payload[key] = json.loads(values[0])
+            except json.JSONDecodeError:
+                base_payload[key] = []
+            continue
+        base_payload[key] = values[0] if len(values) == 1 else values
+
+    if "item_responses" not in base_payload:
+        if nested_items:
+            base_payload["item_responses"] = [nested_items[index] for index in sorted(nested_items)]
+        else:
+            base_payload["item_responses"] = []
+    else:
+        responses = base_payload["item_responses"]
+        if isinstance(responses, str):
+            try:
+                base_payload["item_responses"] = json.loads(responses)
+            except json.JSONDecodeError:
+                base_payload["item_responses"] = []
+        elif isinstance(responses, list):
+            base_payload["item_responses"] = [item for item in responses if isinstance(item, dict)]
+
+    return base_payload
+
+
 class AuthTokenView(ObtainAuthToken):
     permission_classes = [AllowAny]
 

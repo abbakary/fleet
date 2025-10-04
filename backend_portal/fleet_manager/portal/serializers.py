@@ -376,7 +376,9 @@ class InspectionListSerializer(serializers.ModelSerializer):
     vehicle = VehicleSerializer(read_only=True)
     inspector = InspectorProfileSerializer(read_only=True)
     customer = CustomerSerializer(read_only=True)
+    customer_report = CustomerReportSerializer(read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    critical_issue_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Inspection
@@ -388,10 +390,19 @@ class InspectionListSerializer(serializers.ModelSerializer):
             "inspector",
             "status",
             "status_display",
+            "critical_issue_count",
+            "customer_report",
             "created_at",
             "updated_at",
         ]
         read_only_fields = fields
+
+    def get_critical_issue_count(self, obj: Inspection) -> int:
+        responses = getattr(obj, "item_responses", None)
+        if responses is None:
+            return 0
+        iterable = responses.all() if hasattr(responses, "all") else responses
+        return sum(1 for response in iterable if response.result == InspectionItemResponse.RESULT_FAIL)
 
 
 class InspectionCategorySerializer(serializers.ModelSerializer):

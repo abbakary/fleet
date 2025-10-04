@@ -33,6 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final session = context.watch<SessionController>();
     final isLoading = session.isLoading;
     final error = session.error;
+    final l10n = context.l10n;
 
     return Scaffold(
       body: Stack(

@@ -88,7 +88,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _image == null
-              ? const Center(child: Text('Unable to load image.'))
+              ? Center(child: Text(context.l10n.unableToLoadImage))
               : Column(
                   children: [
                     Expanded(

@@ -551,7 +551,7 @@ class _QuickActionsBar extends StatelessWidget {
             child: FilledButton.icon(
               onPressed: onNewInspection,
               icon: const Icon(Icons.add_task),
-              label: const Text('New inspection'),
+              label: Text(l10n.quickActionsNewInspection),
             ),
           ),
           const SizedBox(width: 10),

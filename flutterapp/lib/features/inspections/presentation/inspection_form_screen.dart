@@ -851,7 +851,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     }
     final vehicle = _selectedVehicle;
     if (vehicle == null) {
-      _showError('Select a vehicle before submitting.');
+      _showError(context.l10n.selectVehicleBeforeSubmitting);
       return;
     }
     setState(() => _isSubmitting = true);

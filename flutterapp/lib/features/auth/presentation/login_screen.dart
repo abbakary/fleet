@@ -122,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller: _usernameController,
                             textInputAction: TextInputAction.next,
                             decoration: InputDecoration(
-                              labelText: 'Username',
+                              labelText: l10n.loginUsernameLabel,
                               prefixIcon: const Icon(Icons.person_outline),
                               filled: true,
                               fillColor: const Color(0xFFF4F7FB),
@@ -130,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Enter your username';
+                                return l10n.loginUsernameRequired;
                               }
                               return null;
                             },

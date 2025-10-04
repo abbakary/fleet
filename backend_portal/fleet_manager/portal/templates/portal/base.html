@@ -19,6 +19,9 @@
       rel="stylesheet"
     />
 
+    <!-- Font Awesome for enhanced icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
     <link rel="stylesheet" href="{% static 'assets/css/font-awesome.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/vendors/icofont.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/vendors/themify.css' %}" />
@@ -32,6 +35,287 @@
     <link rel="stylesheet" href="{% static 'assets/css/style.css' %}" />
     <link id="color" rel="stylesheet" href="{% static 'assets/css/color-1.css' %}" media="screen" />
     <link rel="stylesheet" href="{% static 'assets/css/responsive.css' %}" />
+
+    <!-- Custom CSS for enhanced sidebar and layout -->
+    <style>
+      :root {
+        --sidebar-bg: #1e293b;
+        --sidebar-active: #3b82f6;
+        --sidebar-hover: #334155;
+        --sidebar-text: #e2e8f0;
+        --sidebar-icon: #94a3b8;
+        --sidebar-width: 280px;
+        --sidebar-collapsed-width: 80px;
+        --header-height: 80px;
+        --transition-speed: 0.3s;
+      }
+
+      /* Enhanced Sidebar Styling */
+      .sidebar-wrapper {
+        background: var(--sidebar-bg);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        transition: all var(--transition-speed) ease;
+        width: var(--sidebar-width);
+      }
+
+      .sidebar-wrapper.collapsed {
+        width: var(--sidebar-collapsed-width);
+      }
+
+      .sidebar-wrapper.collapsed .sidebar-link span,
+      .sidebar-wrapper.collapsed .sidebar-main-title,
+      .sidebar-wrapper.collapsed .sidebar-group-title {
+        display: none;
+      }
+
+      .sidebar-wrapper.collapsed .logo-wrapper img {
+        width: 40px;
+        height: 40px;
+      }
+
+      .sidebar-main {
+        padding-top: 20px;
+      }
+
+      .sidebar-links {
+        padding: 0 15px;
+      }
+
+      .sidebar-list {
+        margin-bottom: 5px;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.2s ease;
+      }
+
+      .sidebar-list:hover {
+        background-color: var(--sidebar-hover);
+      }
+
+      .sidebar-list.active {
+        background-color: var(--sidebar-active);
+      }
+
+      .sidebar-link {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        color: var(--sidebar-text);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border-radius: 8px;
+      }
+
+      .sidebar-link:hover {
+        color: white;
+        transform: translateX(5px);
+      }
+
+      .sidebar-link.active {
+        color: white;
+        background-color: var(--sidebar-active);
+        box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+      }
+
+      .sidebar-link .sidebar-icon {
+        margin-right: 12px;
+        font-size: 18px;
+        width: 24px;
+        text-align: center;
+        color: var(--sidebar-icon);
+        transition: all 0.2s ease;
+      }
+
+      .sidebar-link.active .sidebar-icon,
+      .sidebar-link:hover .sidebar-icon {
+        color: white;
+      }
+
+      .sidebar-link span {
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+
+      .sidebar-main-title {
+        padding: 15px 15px 10px;
+        margin-top: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .sidebar-main-title h6 {
+        color: var(--sidebar-text);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .sidebar-group-title {
+        padding: 10px 15px 5px;
+        margin-top: 15px;
+        color: #94a3b8;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+      }
+
+      /* Enhanced Header */
+      .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        height: var(--header-height);
+      }
+
+      .header-wrapper {
+        padding: 0 30px;
+      }
+
+      .welcome-content {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 14px;
+      }
+
+      /* Enhanced Page Body */
+      .page-body {
+        background-color: #f8fafc;
+        min-height: calc(100vh - var(--header-height));
+        padding: 30px;
+      }
+
+      .page-body .container-fluid {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      /* Card enhancements for content pages */
+      .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        margin-bottom: 24px;
+      }
+
+      .card:hover {
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+      }
+
+      .card-header {
+        background: white;
+        border-bottom: 1px solid #e2e8f0;
+        border-radius: 12px 12px 0 0 !important;
+        padding: 20px 25px;
+      }
+
+      .card-body {
+        padding: 25px;
+      }
+
+      /* Enhanced buttons */
+      .btn {
+        border-radius: 8px;
+        font-weight: 500;
+        padding: 10px 20px;
+        transition: all 0.2s ease;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        border: none;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+      }
+
+      /* Enhanced table styling */
+      .table {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 0 0 1px #e2e8f0;
+      }
+
+      .table thead th {
+        background-color: #f1f5f9;
+        border-bottom: 2px solid #e2e8f0;
+        font-weight: 600;
+        color: #475569;
+        padding: 15px;
+      }
+
+      .table tbody td {
+        padding: 15px;
+        vertical-align: middle;
+      }
+
+      .table tbody tr {
+        transition: all 0.2s ease;
+      }
+
+      .table tbody tr:hover {
+        background-color: #f8fafc;
+      }
+
+      /* Responsive improvements */
+      @media (max-width: 1199.98px) {
+        .sidebar-wrapper {
+          transform: translateX(-100%);
+          position: fixed;
+          z-index: 1000;
+          height: 100vh;
+        }
+
+        .sidebar-wrapper.show {
+          transform: translateX(0);
+        }
+
+        .page-body {
+          padding: 20px;
+        }
+      }
+
+      @media (max-width: 767.98px) {
+        .page-body {
+          padding: 15px;
+        }
+
+        .header-wrapper {
+          padding: 0 15px;
+        }
+
+        .left-header h4 {
+          font-size: 18px;
+        }
+      }
+
+      /* Custom scrollbar for sidebar */
+      .sidebar-main::-webkit-scrollbar {
+        width: 5px;
+      }
+
+      .sidebar-main::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .sidebar-main::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+      }
+
+      /* Animation for page transitions */
+      .page-transition {
+        animation: fadeIn 0.5s ease;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    </style>
 
     {% block extra_head %}{% endblock %}
   </head>
@@ -54,12 +338,12 @@
               </a>
             </div>
             <div class="toggle-sidebar">
-              <i class="status_toggle middle sidebar-toggle" data-feather="align-center"></i>
+              <i class="status_toggle middle sidebar-toggle" data-feather="align-center" id="sidebarToggle"></i>
             </div>
           </div>
           <div class="left-header col-xl-4 col-lg-5 col-md-4 col-sm-3 p-0">
             <div class="d-flex align-items-center gap-3">
-              <h4 class="f-w-600 mb-0">Welcome back{% if profile and profile.user.first_name %}, {% endif %}{% if profile %}{{ profile.user.get_full_name|default:profile.user.username }}{% else %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}</h4>
+              <h4 class="f-w-600 mb-0 text-white">Welcome back{% if profile and profile.user.first_name %}, {% endif %}{% if profile %}{{ profile.user.get_full_name|default:profile.user.username }}{% else %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}</h4>
               <img class="mt-0" src="{% static 'assets/images/hand.gif' %}" alt="wave" />
             </div>
             <div class="welcome-content d-xl-block d-none">
@@ -88,10 +372,10 @@
                   <img class="b-r-10" src="{% static 'assets/images/dashboard/profile.png' %}" alt="profile" />
                   <div class="media-body d-xxl-block d-none box-col-none">
                     <div class="d-flex align-items-center gap-2">
-                      <span>{% if profile %}{{ profile.user.get_full_name|default:profile.user.username }}{% else %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}</span>
-                      <i class="middle fa fa-angle-down"></i>
+                      <span class="text-white">{% if profile %}{{ profile.user.get_full_name|default:profile.user.username }}{% else %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}</span>
+                      <i class="middle fa fa-angle-down text-white"></i>
                     </div>
-                    <p class="mb-0 font-roboto">Admin</p>
+                    <p class="mb-0 font-roboto text-white-50">Admin</p>
                   </div>
                 </div>
                 <ul class="profile-dropdown onhover-show-div">
@@ -119,66 +403,63 @@
             <div id="sidebar-menu">
               <ul class="sidebar-links" id="simple-bar">
                 <li class="sidebar-main-title"><div><h6>Navigation</h6></div></li>
+                
                 <li class="sidebar-list{% if active_tab == 'overview' %} active{% endif %}">
                   <a class="sidebar-link link-nav{% if active_tab == 'overview' %} active{% endif %}" href="{% url 'portal-admin' %}">
-                    <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-home"></use></svg>
-                    <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-home"></use></svg>
+                    <i class="sidebar-icon fas fa-tachometer-alt"></i>
                     <span>Overview</span>
                   </a>
                 </li>
+                
+                <li class="sidebar-group-title">Management</li>
+                
                 <li class="sidebar-list{% if active_tab == 'customers' %} active{% endif %}">
                   <a class="sidebar-link link-nav{% if active_tab == 'customers' %} active{% endif %}" href="{% url 'portal-customers' %}">
-                    <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-users"></use></svg>
-                    <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-users"></use></svg>
+                    <i class="sidebar-icon fas fa-users"></i>
                     <span>Customers</span>
                   </a>
                 </li>
+                
                 <li class="sidebar-list{% if active_tab == 'vehicles' %} active{% endif %}">
                   <a class="sidebar-link link-nav{% if active_tab == 'vehicles' %} active{% endif %}" href="{% url 'portal-vehicles' %}">
-                    <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-widget"></use></svg>
-                    <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-widget"></use></svg>
+                    <i class="sidebar-icon fas fa-truck"></i>
                     <span>Vehicles</span>
                   </a>
                 </li>
-                <li class="sidebar-list{% if active_tab == 'catalog' %} active{% endif %}">
-                  <a class="sidebar-link link-nav{% if active_tab == 'catalog' %} active{% endif %}" href="{% url 'portal-vehicle-catalog' %}">
-                    <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-folder"></use></svg>
-                    <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-folder"></use></svg>
-                    <span>Vehicle Catalog</span>
-                  </a>
-                </li>
+                
                 <li class="sidebar-list{% if active_tab == 'assignments' %} active{% endif %}">
                   <a class="sidebar-link link-nav{% if active_tab == 'assignments' %} active{% endif %}" href="{% url 'portal-assignments' %}">
-                    <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-task"></use></svg>
-                    <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-task"></use></svg>
+                    <i class="sidebar-icon fas fa-tasks"></i>
                     <span>Assignments</span>
                   </a>
                 </li>
+                
                 <li class="sidebar-list{% if active_tab == 'inspections' %} active{% endif %}">
                   <a class="sidebar-link link-nav{% if active_tab == 'inspections' %} active{% endif %}" href="{% url 'portal-inspections' %}">
-                    <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-dashboard"></use></svg>
-                    <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-dashboard"></use></svg>
+                    <i class="sidebar-icon fas fa-clipboard-check"></i>
                     <span>Inspections</span>
                   </a>
                 </li>
+                
+                <li class="sidebar-group-title">System</li>
+                
                 <li class="sidebar-list{% if active_tab == 'inspectors' %} active{% endif %}">
                   <a class="sidebar-link link-nav{% if active_tab == 'inspectors' %} active{% endif %}" href="{% url 'portal-inspectors' %}">
-                    <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-team"></use></svg>
-                    <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-team"></use></svg>
+                    <i class="sidebar-icon fas fa-user-check"></i>
                     <span>Inspectors</span>
                   </a>
                 </li>
+                
                 <li class="sidebar-list{% if active_tab == 'categories' %} active{% endif %}">
                   <a class="sidebar-link link-nav{% if active_tab == 'categories' %} active{% endif %}" href="{% url 'portal-categories' %}">
-                    <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-ui"></use></svg>
-                    <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-ui"></use></svg>
+                    <i class="sidebar-icon fas fa-clipboard-list"></i>
                     <span>Checklist</span>
                   </a>
                 </li>
+                
                 <li class="sidebar-list{% if active_tab == 'users' %} active{% endif %}">
                   <a class="sidebar-link link-nav{% if active_tab == 'users' %} active{% endif %}" href="{% url 'portal-users' %}">
-                    <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-profile"></use></svg>
-                    <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-profile"></use></svg>
+                    <i class="sidebar-icon fas fa-user-cog"></i>
                     <span>Portal Users</span>
                   </a>
                 </li>
@@ -203,7 +484,9 @@
               </div>
             {% endif %}
 
-            {% block content %}{% endblock %}
+            <div class="page-transition">
+              {% block content %}{% endblock %}
+            </div>
           </div>
         </div>
       </div>
@@ -221,6 +504,24 @@
       document.addEventListener('DOMContentLoaded', () => {
         feather.replace();
 
+        // Enhanced sidebar toggle functionality
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarWrapper = document.querySelector('.sidebar-wrapper');
+        
+        if (sidebarToggle && sidebarWrapper) {
+          sidebarToggle.addEventListener('click', () => {
+            sidebarWrapper.classList.toggle('collapsed');
+          });
+        }
+
+        // Mobile sidebar toggle
+        if (window.innerWidth < 1200) {
+          document.querySelector('.toggle-sidebar').addEventListener('click', () => {
+            sidebarWrapper.classList.toggle('show');
+          });
+        }
+
+        // HTMX integration for dynamic content loading
         const body = document.body;
         const portalContent = document.getElementById('portalContent');
         if (portalContent) {
@@ -235,9 +536,22 @@
               a.classList.add('active');
               const label = a.querySelector('span');
               if (label) body.setAttribute('data-active-tab', label.textContent.trim().toLowerCase());
+              
+              // Close sidebar on mobile after selection
+              if (window.innerWidth < 1200) {
+                sidebarWrapper.classList.remove('show');
+              }
             });
           });
         }
+
+        // Add animation to cards on page load
+        setTimeout(() => {
+          document.querySelectorAll('.card').forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.classList.add('animate__animated', 'animate__fadeInUp');
+          });
+        }, 100);
       });
     </script>
     {% block extra_scripts %}{% endblock %}

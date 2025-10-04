@@ -1,12 +1,14 @@
 import 'dart:io';
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:provider/provider.dart';
 
 import '../data/guided_steps.dart';
+import '../data/inspections_repository.dart';
 import '../data/models.dart';
 import 'widgets/photo_annotation_screen.dart';
 
@@ -42,6 +44,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
   final Map<String, List<String>> _stepPhotos = <String, List<String>>{};
   final Map<String, TextEditingController> _stepNotesControllers = <String, TextEditingController>{};
   final Map<String, Set<int>> _instructionCompletion = <String, Set<int>>{};
+  final Map<String, ScrollController> _stepScrollControllers = <String, ScrollController>{};
   final Map<String, bool> _operationalChecks = <String, bool>{
     'brake_test': false,
     'steering_check': false,

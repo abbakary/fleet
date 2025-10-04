@@ -12,6 +12,8 @@ from .models import (
     PortalUser,
     Vehicle,
     VehicleAssignment,
+    VehicleMake,
+    VehicleModelName,
 )
 
 User = get_user_model()
@@ -189,6 +191,22 @@ class VehicleAssignmentForm(BaseForm):
             "status",
             "remarks",
         ]
+
+
+class VehicleMakeForm(BaseForm):
+    class Meta:
+        model = VehicleMake
+        fields = ["name"]
+
+
+class VehicleModelNameForm(BaseForm):
+    class Meta:
+        model = VehicleModelName
+        fields = ["make", "name"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["make"].queryset = VehicleMake.objects.order_by("name")
 
 
 class InspectionForm(BaseForm):

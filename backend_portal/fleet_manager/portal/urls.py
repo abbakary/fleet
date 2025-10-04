@@ -45,6 +45,14 @@ urlpatterns = [
     path('app/vehicles/<int:pk>/edit/', views_web.vehicle_edit, name='portal-vehicles-edit'),
     path('app/vehicles/<int:pk>/delete/', views_web.vehicle_delete, name='portal-vehicles-delete'),
 
+    path('app/vehicle-catalog/', views_web.vehicle_catalog_view, name='portal-vehicle-catalog'),
+    path('app/vehicle-makes/new/', views_web.vehicle_make_create, name='portal-vehicle-makes-new'),
+    path('app/vehicle-makes/<int:pk>/edit/', views_web.vehicle_make_edit, name='portal-vehicle-makes-edit'),
+    path('app/vehicle-makes/<int:pk>/delete/', views_web.vehicle_make_delete, name='portal-vehicle-makes-delete'),
+    path('app/vehicle-models/new/', views_web.vehicle_model_create, name='portal-vehicle-models-new'),
+    path('app/vehicle-models/<int:pk>/edit/', views_web.vehicle_model_edit, name='portal-vehicle-models-edit'),
+    path('app/vehicle-models/<int:pk>/delete/', views_web.vehicle_model_delete, name='portal-vehicle-models-delete'),
+
     path('app/inspectors/', views_web.inspectors_view, name='portal-inspectors'),
     path('app/inspectors/new/', views_web.inspector_create, name='portal-inspectors-new'),
     path('app/inspectors/<int:pk>/edit/', views_web.inspector_edit, name='portal-inspectors-edit'),

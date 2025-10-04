@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
+from django.db.models import Count, Prefetch
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -15,6 +15,8 @@ from .forms import (
     PortalUserUpdateForm,
     VehicleAssignmentForm,
     VehicleForm,
+    VehicleMakeForm,
+    VehicleModelNameForm,
 )
 from .models import (
     ChecklistItem,
@@ -25,6 +27,8 @@ from .models import (
     PortalUser,
     Vehicle,
     VehicleAssignment,
+    VehicleMake,
+    VehicleModelName,
 )
 from .permissions import get_portal_profile
 
@@ -506,6 +510,166 @@ def vehicle_delete(request: HttpRequest, pk: int) -> HttpResponse:
     if _is_htmx(request):
         return HttpResponse(status=405)
     return _dashboard_redirect("vehicles")
+
+
+# ------- Vehicle catalog -------
+@login_required
+def vehicle_catalog_view(request: HttpRequest) -> HttpResponse:
+    profile = _require_admin(request)
+    if not profile:
+        return render(request, "portal/forbidden.html", status=403)
+    makes = (
+        VehicleMake.objects.order_by("name")
+        .prefetch_related(Prefetch("models", queryset=VehicleModelName.objects.order_by("name")))
+    )
+    context = {"makes": makes}
+    if _is_htmx(request):
+        return render(request, "portal/partials/vehicle_catalog.html", context)
+    context.update({"profile": profile, "active_tab": "catalog"})
+    return render(request, "portal/pages/vehicle_catalog.html", context)
+
+
+@login_required
+def vehicle_make_create(request: HttpRequest) -> HttpResponse:
+    profile = _require_admin(request)
+    if not profile:
+        return render(request, "portal/forbidden.html", status=403)
+    if request.method == "POST":
+        form = VehicleMakeForm(request.POST)
+        if form.is_valid():
+            form.save()
+            if _is_htmx(request):
+                return vehicle_catalog_view(request)
+            return _dashboard_redirect("catalog")
+    else:
+        form = VehicleMakeForm()
+    return _render_form(
+        request,
+        profile,
+        form,
+        tab="catalog",
+        title="Add Vehicle Make",
+        submit_label="Create Make",
+        is_create=True,
+    )
+
+
+@login_required
+def vehicle_make_edit(request: HttpRequest, pk: int) -> HttpResponse:
+    profile = _require_admin(request)
+    if not profile:
+        return render(request, "portal/forbidden.html", status=403)
+    obj = get_object_or_404(VehicleMake, pk=pk)
+    if request.method == "POST":
+        form = VehicleMakeForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            if _is_htmx(request):
+                return vehicle_catalog_view(request)
+            return _dashboard_redirect("catalog")
+    else:
+        form = VehicleMakeForm(instance=obj)
+    return _render_form(
+        request,
+        profile,
+        form,
+        tab="catalog",
+        title="Edit Vehicle Make",
+        submit_label="Save Changes",
+        is_create=False,
+        extra_context={"object": obj},
+    )
+
+
+@login_required
+def vehicle_make_delete(request: HttpRequest, pk: int) -> HttpResponse:
+    profile = _require_admin(request)
+    if not profile:
+        return render(request, "portal/forbidden.html", status=403)
+    obj = get_object_or_404(VehicleMake, pk=pk)
+    if request.method == "POST":
+        obj.delete()
+        if _is_htmx(request):
+            return vehicle_catalog_view(request)
+        return _dashboard_redirect("catalog")
+    if _is_htmx(request):
+        return HttpResponse(status=405)
+    return _dashboard_redirect("catalog")
+
+
+@login_required
+def vehicle_model_create(request: HttpRequest) -> HttpResponse:
+    profile = _require_admin(request)
+    if not profile:
+        return render(request, "portal/forbidden.html", status=403)
+    initial_make = request.GET.get("make")
+    if request.method == "POST":
+        form = VehicleModelNameForm(request.POST)
+        if form.is_valid():
+            form.save()
+            if _is_htmx(request):
+                return vehicle_catalog_view(request)
+            return _dashboard_redirect("catalog")
+    else:
+        initial = {}
+        if initial_make:
+            try:
+                initial["make"] = VehicleMake.objects.get(pk=int(initial_make))
+            except (VehicleMake.DoesNotExist, ValueError, TypeError):
+                pass
+        form = VehicleModelNameForm(initial=initial)
+    return _render_form(
+        request,
+        profile,
+        form,
+        tab="catalog",
+        title="Add Vehicle Model",
+        submit_label="Create Model",
+        is_create=True,
+    )
+
+
+@login_required
+def vehicle_model_edit(request: HttpRequest, pk: int) -> HttpResponse:
+    profile = _require_admin(request)
+    if not profile:
+        return render(request, "portal/forbidden.html", status=403)
+    obj = get_object_or_404(VehicleModelName, pk=pk)
+    if request.method == "POST":
+        form = VehicleModelNameForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            if _is_htmx(request):
+                return vehicle_catalog_view(request)
+            return _dashboard_redirect("catalog")
+    else:
+        form = VehicleModelNameForm(instance=obj)
+    return _render_form(
+        request,
+        profile,
+        form,
+        tab="catalog",
+        title="Edit Vehicle Model",
+        submit_label="Save Changes",
+        is_create=False,
+        extra_context={"object": obj},
+    )
+
+
+@login_required
+def vehicle_model_delete(request: HttpRequest, pk: int) -> HttpResponse:
+    profile = _require_admin(request)
+    if not profile:
+        return render(request, "portal/forbidden.html", status=403)
+    obj = get_object_or_404(VehicleModelName, pk=pk)
+    if request.method == "POST":
+        obj.delete()
+        if _is_htmx(request):
+            return vehicle_catalog_view(request)
+        return _dashboard_redirect("catalog")
+    if _is_htmx(request):
+        return HttpResponse(status=405)
+    return _dashboard_redirect("catalog")
 
 
 # ------- Inspectors -------

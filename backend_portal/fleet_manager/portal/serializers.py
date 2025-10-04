@@ -143,21 +143,22 @@ class InspectorProfileSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
-class VehicleMakeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = VehicleMake
-        fields = ["id", "name", "created_at", "updated_at"]
-        read_only_fields = ["id", "created_at", "updated_at"]
-
-
 class VehicleModelNameSerializer(serializers.ModelSerializer):
-    make_detail = VehicleMakeSerializer(source="make", read_only=True)
-    make = serializers.PrimaryKeyRelatedField(queryset=VehicleMake.objects.all())
+    make_name = serializers.CharField(source="make.name", read_only=True)
 
     class Meta:
         model = VehicleModelName
-        fields = ["id", "make", "make_detail", "name", "created_at", "updated_at"]
-        read_only_fields = ["id", "created_at", "updated_at", "make_detail"]
+        fields = ["id", "make", "make_name", "name", "created_at", "updated_at"]
+        read_only_fields = ["id", "make_name", "created_at", "updated_at"]
+
+
+class VehicleMakeSerializer(serializers.ModelSerializer):
+    models = VehicleModelNameSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = VehicleMake
+        fields = ["id", "name", "models", "created_at", "updated_at"]
+        read_only_fields = ["id", "models", "created_at", "updated_at"]
 
 
 class VehicleSerializer(serializers.ModelSerializer):

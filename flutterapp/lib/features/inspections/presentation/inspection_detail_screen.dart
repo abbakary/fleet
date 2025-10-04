@@ -41,6 +41,11 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
             tooltip: 'View HTML report',
             onPressed: () => _openReport(context),
           ),
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf_outlined),
+            tooltip: 'Download PDF',
+            onPressed: () => _downloadPdf(context),
+          ),
         ],
       ),
       body: SafeArea(

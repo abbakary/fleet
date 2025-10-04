@@ -46,7 +46,7 @@ const List<GuidedInspectionStepDefinition> guidedInspectionSteps = <GuidedInspec
     title: 'Pre-Trip Documentation',
     summary:
         'Confirm vehicle identity, capture baseline readings, and note any pre-existing conditions before physical checks begin.',
-    categoryCode: 'pre_trip_documentation',
+    categoryCode: 'pre_trip',
     requiresVehicleSelection: true,
     instructions: <String>[
       'Scan the VIN or license plate using the guided scanner overlay.',

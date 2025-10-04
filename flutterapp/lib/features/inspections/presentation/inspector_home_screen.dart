@@ -52,9 +52,10 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
           appBar: AppBar(
             title: Text('Inspector • ${widget.profile.fullName}'),
             actions: [
+              const LanguageMenu(),
               IconButton(
                 icon: const Icon(Icons.logout),
-                tooltip: 'Sign out',
+                tooltip: l10n.commonSignOut,
                 onPressed: () async {
                   await controller.signOut();
                 },

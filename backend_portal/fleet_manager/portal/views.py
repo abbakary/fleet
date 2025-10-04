@@ -19,6 +19,8 @@ from .models import (
     PortalUser,
     Vehicle,
     VehicleAssignment,
+    VehicleMake,
+    VehicleModelName,
 )
 from .permissions import IsAdmin, IsInspectorOrAdmin, get_portal_profile
 from .serializers import (

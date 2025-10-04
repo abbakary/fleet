@@ -559,7 +559,7 @@ class _QuickActionsBar extends StatelessWidget {
             child: FilledButton.icon(
               onPressed: onSync,
               icon: const Icon(Icons.sync),
-              label: const Text('Sync offline'),
+              label: Text(l10n.quickActionsSyncOffline),
             ),
           ),
           const SizedBox(width: 10),

@@ -114,13 +114,14 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final step = _steps[_currentStepIndex];
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Guided Inspection'),
+        title: Text(l10n.guidedInspectionTitle),
         actions: [
           IconButton(
-            tooltip: 'Discard',
+            tooltip: l10n.discardTooltip,
             icon: const Icon(Icons.close),
             onPressed: () => Navigator.of(context).maybePop(),
           ),
@@ -130,7 +131,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildProgressHeader(theme, step),
+            _buildProgressHeader(theme, step, context),
             const Divider(height: 1),
             Expanded(
               child: Form(
@@ -144,25 +145,26 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
               ),
             ),
             const Divider(height: 1),
-            _buildNavigationBar(step),
+            _buildNavigationBar(step, context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProgressHeader(ThemeData theme, _GuidedStep step) {
+  Widget _buildProgressHeader(ThemeData theme, _GuidedStep step, BuildContext context) {
+    final l10n = context.l10n;
     final progress = (_currentStepIndex + 1) / _steps.length;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Step ${_currentStepIndex + 1} of ${_steps.length}', style: theme.textTheme.bodyMedium),
+          Text(l10n.stepProgress(_currentStepIndex + 1, _steps.length), style: theme.textTheme.bodyMedium),
           const SizedBox(height: 4),
-          Text(step.definition.title, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+          Text(_stepTitle(context, step.definition.code), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
-          Text(step.definition.summary, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          Text(_stepSummary(context, step.definition.code), style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
           const SizedBox(height: 12),
           LinearProgressIndicator(value: progress, minHeight: 6, borderRadius: BorderRadius.circular(8)),
         ],
@@ -182,6 +184,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
   }
 
   Widget _buildPreTripStep(_GuidedStep step) {
+    final l10n = context.l10n;
     final vehicleItems = widget.vehicles
         .map(
           (vehicle) => DropdownMenuItem<VehicleModel>(
@@ -212,7 +215,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
                 children: [
                   DropdownButtonFormField<VehicleModel>(
                     value: _selectedVehicle,
-                    decoration: const InputDecoration(labelText: 'Vehicle'),
+                    decoration: InputDecoration(labelText: l10n.vehicleLabel),
                     items: vehicleItems,
                     onChanged: (selected) {
                       setState(() {
@@ -222,7 +225,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
                         }
                       });
                     },
-                    validator: (value) => value == null ? 'Select a vehicle' : null,
+                    validator: (value) => value == null ? l10n.selectVehicleBeforeContinuing : null,
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -230,22 +233,22 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
                       Expanded(
                         child: FilledButton.tonalIcon(
                           onPressed: () => _startScan(
-                            title: 'Scan VIN',
+                            title: l10n.scanVin,
                             onValue: (value) => _vinController.text = value,
                           ),
                           icon: const Icon(Icons.qr_code_scanner),
-                          label: const Text('Scan VIN'),
+                          label: Text(l10n.scanVin),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: FilledButton.tonalIcon(
                           onPressed: () => _startScan(
-                            title: 'Scan License Plate',
+                            title: l10n.scanPlate,
                             onValue: (value) => _plateController.text = value,
                           ),
                           icon: const Icon(Icons.directions_car_filled_outlined),
-                          label: const Text('Scan Plate'),
+                          label: Text(l10n.scanPlate),
                         ),
                       ),
                     ],
@@ -253,14 +256,14 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _vinController,
-                    decoration: const InputDecoration(labelText: 'VIN'),
+                    decoration: InputDecoration(labelText: l10n.vinLabel),
                     textCapitalization: TextCapitalization.characters,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Capture the VIN';
+                        return l10n.vinCaptureRequired;
                       }
                       if (value.trim().length < 8) {
-                        return 'VIN appears incomplete';
+                        return l10n.vinIncomplete;
                       }
                       return null;
                     },
@@ -268,22 +271,22 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _plateController,
-                    decoration: const InputDecoration(labelText: 'License plate'),
+                    decoration: InputDecoration(labelText: l10n.licensePlateLabel),
                     textCapitalization: TextCapitalization.characters,
-                    validator: (value) => value == null || value.trim().isEmpty ? 'Enter license plate' : null,
+                    validator: (value) => value == null || value.trim().isEmpty ? l10n.enterLicensePlate : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _odometerController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Odometer (mi)'),
+                    decoration: InputDecoration(labelText: l10n.odometerLabel),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Enter odometer reading';
+                        return l10n.odometerRequired;
                       }
                       final parsed = int.tryParse(value.replaceAll(',', ''));
                       if (parsed == null || parsed < 0) {
-                        return 'Invalid odometer value';
+                        return l10n.odometerInvalid;
                       }
                       return null;
                     },
@@ -291,20 +294,20 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _vehicleConditionController,
-                    decoration: const InputDecoration(
-                      labelText: 'General vehicle condition',
-                      hintText: 'Document any pre-existing dents, rust, or cleanliness concerns.',
+                    decoration: InputDecoration(
+                      labelText: l10n.generalVehicleConditionLabel,
+                      hintText: l10n.generalVehicleConditionHint,
                     ),
                     minLines: 3,
                     maxLines: 6,
-                    validator: (value) => value == null || value.trim().isEmpty ? 'Summarize vehicle condition' : null,
+                    validator: (value) => value == null || value.trim().isEmpty ? l10n.generalVehicleConditionRequired : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _identificationNotesController,
-                    decoration: const InputDecoration(
-                      labelText: 'Identification notes',
-                      hintText: 'Reference paperwork, assignments, or tag confirmations.',
+                    decoration: InputDecoration(
+                      labelText: l10n.identificationNotesLabel,
+                      hintText: l10n.identificationNotesHint,
                     ),
                     minLines: 2,
                     maxLines: 4,
@@ -313,8 +316,8 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
                   CheckboxListTile(
                     value: _identificationVerified,
                     onChanged: (value) => setState(() => _identificationVerified = value ?? false),
-                    title: const Text('Vehicle identification verified'),
-                    subtitle: const Text('VIN tag, license plate, and paperwork match the assignment.'),
+                    title: Text(l10n.identificationVerifiedTitle),
+                    subtitle: Text(l10n.identificationVerifiedSubtitle),
                     controlAffinity: ListTileControlAffinity.leading,
                   ),
                 ],
@@ -322,9 +325,9 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildGeneralPhotoSection(step, requiresPhoto: true, helperText: 'Capture a panoramic photo or supporting exterior images.'),
+          _buildGeneralPhotoSection(step, requiresPhoto: true, helperText: l10n.captureBaselinePhoto),
           const SizedBox(height: 24),
-          _buildStepNotesField(step, hintText: 'Pre-trip notes, additional reminders, or follow-up tasks.'),
+          _buildStepNotesField(step, hintText: l10n.captureBaselinePhoto),
         ],
       ),
     );
@@ -332,6 +335,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
 
   Widget _buildChecklistStep(_GuidedStep step) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final isTrailerStep = step.definition.code == 'coupling_connections';
     final stepSkipped = isTrailerStep && _trailerNotApplicable;
     final items = step.items;
@@ -350,8 +354,8 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
             SwitchListTile.adaptive(
               value: _trailerNotApplicable,
               onChanged: (value) => _handleTrailerSkipToggle(step, value),
-              title: const Text('Trailer not attached'),
-              subtitle: const Text('Skip this step if the power unit is inspected without a trailer.'),
+              title: Text(l10n.trailerNotAttached),
+              subtitle: Text(l10n.trailerNotAttachedSubtitle),
             ),
           ],
           const SizedBox(height: 16),
@@ -361,7 +365,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Trailer-specific checks are marked as not applicable for this inspection. Re-enable them if a trailer becomes available.',
+                  l10n.stepMarkedNotApplicable,
                   style: theme.textTheme.bodyMedium,
                 ),
               ),
@@ -370,7 +374,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text('No checklist items were provided for this step. Add step notes or photos as needed.'),
+                child: Text(l10n.stepNoChecklistItems),
               ),
             )
           else
@@ -388,12 +392,12 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
               ),
             ),
           const SizedBox(height: 24),
-          _buildGeneralPhotoSection(step, helperText: 'Add supporting photos that are not tied to a specific checklist item.'),
+          _buildGeneralPhotoSection(step, helperText: l10n.optionalAttachReferencePhotos),
           const SizedBox(height: 24),
           _buildChecklistPhotoSummary(step),
           if (!stepSkipped) ...[
             const SizedBox(height: 24),
-            _buildStepNotesField(step, hintText: 'Add reminders or context for this inspection area.'),
+            _buildStepNotesField(step, hintText: l10n.optionalAttachReferencePhotos),
           ],
         ],
       ),
@@ -402,7 +406,9 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
 
   Widget _buildOperationalStep(_GuidedStep step) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final instructionState = _instructionStateFor(step);
+    final instructions = _stepInstructions(context, step.definition.code);
     return ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
@@ -419,44 +425,27 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
               padding: const EdgeInsets.all(12),
               child: Column(
                 children: [
-                  _OperationalCheckTile(
-                    title: 'Brake responsiveness test',
-                    subtitle: 'Confirm pedal feel, stopping distance, and ABS indicators.',
-                    value: _operationalChecks['brake_test']!,
-                    onChanged: (value) => setState(() => _operationalChecks['brake_test'] = value ?? false),
-                  ),
-                  _OperationalCheckTile(
-                    title: 'Steering operation check',
-                    subtitle: 'Cycle steering lock-to-lock monitoring for binding or noise.',
-                    value: _operationalChecks['steering_check']!,
-                    onChanged: (value) => setState(() => _operationalChecks['steering_check'] = value ?? false),
-                  ),
-                  _OperationalCheckTile(
-                    title: 'Engine start and idle verification',
-                    subtitle: 'Observe idle RPMs, warning lights, and abnormal vibration.',
-                    value: _operationalChecks['engine_start']!,
-                    onChanged: (value) => setState(() => _operationalChecks['engine_start'] = value ?? false),
-                  ),
-                  _OperationalCheckTile(
-                    title: 'Transmission shifting test',
-                    subtitle: 'Shift through gears verifying engagement and abnormal feedback.',
-                    value: _operationalChecks['transmission_check']!,
-                    onChanged: (value) => setState(() => _operationalChecks['transmission_check'] = value ?? false),
-                  ),
+                  for (var i = 0; i < instructions.length; i += 1)
+                    _OperationalCheckTile(
+                      title: instructions[i],
+                      subtitle: '',
+                      value: _operationalChecks[_operationalKeyForIndex(i)]!,
+                      onChanged: (value) => setState(() => _operationalChecks[_operationalKeyForIndex(i)] = value ?? false),
+                    ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 24),
-          _buildGeneralPhotoSection(step, helperText: 'Capture videos or photos that demonstrate operational performance.'),
+          _buildGeneralPhotoSection(step, helperText: l10n.optionalAttachReferencePhotos),
           const SizedBox(height: 24),
           TextFormField(
             controller: _operationalNotesController,
             minLines: 3,
             maxLines: 6,
-            decoration: const InputDecoration(
-              labelText: 'Operational notes',
-              hintText: 'Add performance observations or escalation recommendations.',
+            decoration: InputDecoration(
+              labelText: l10n.notesFieldLabel,
+              hintText: l10n.optionalAttachReferencePhotos,
             ),
           ),
           const SizedBox(height: 24),
@@ -464,9 +453,9 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
             controller: _generalNotesController,
             minLines: 3,
             maxLines: 8,
-            decoration: const InputDecoration(
-              labelText: 'Final summary',
-              hintText: 'Summarize inspection findings, next steps, and customer communication notes.',
+            decoration: InputDecoration(
+              labelText: l10n.submitInspectionLabel,
+              hintText: l10n.optionalAttachReferencePhotos,
             ),
           ),
         ],
@@ -475,9 +464,10 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
   }
 
   Widget _buildGeneralPhotoSection(_GuidedStep step, {bool requiresPhoto = false, String? helperText}) {
+    final l10n = context.l10n;
     final photos = _stepPhotos[step.definition.code] ?? const <String>[];
     return _PhotoGallery(
-      title: 'Step evidence',
+      title: l10n.stepEvidenceTitle,
       photos: photos,
       onAdd: () => _addStepPhoto(step),
       onRemove: (path) => _removeStepPhoto(step, path),
@@ -488,6 +478,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
 
   Widget _buildChecklistPhotoSummary(_GuidedStep step) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final generalPhotos = _stepPhotos[step.definition.code] ?? const <String>[];
     final photoEntries = step.items
         .map((item) => MapEntry(item, _photoPaths[item.id] ?? const <String>[]))
@@ -503,15 +494,15 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Photo evidence log', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+            Text(l10n.photoEvidenceLogTitle, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
             if (generalPhotos.isNotEmpty) ...[
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: Text('Step evidence', style: theme.textTheme.bodyLarge)),
+                  Expanded(child: Text(l10n.photoEvidenceSectionStep, style: theme.textTheme.bodyLarge)),
                   const SizedBox(width: 12),
-                  Chip(label: Text('${generalPhotos.length} photo${generalPhotos.length == 1 ? '' : 's'}')),
+                  Chip(label: Text(l10n.photoCountLabel(generalPhotos.length))),
                 ],
               ),
               const SizedBox(height: 12),
@@ -529,7 +520,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Chip(label: Text('${entry.value.length} photo${entry.value.length == 1 ? '' : 's'}')),
+                    Chip(label: Text(l10n.photoCountLabel(entry.value.length))),
                   ],
                 ),
               ),
@@ -541,19 +532,21 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
   }
 
   Widget _buildStepNotesField(_GuidedStep step, {String? hintText}) {
+    final l10n = context.l10n;
     final controller = _stepNotesControllers[step.definition.code]!;
     return TextFormField(
       controller: controller,
       minLines: 2,
       maxLines: 6,
       decoration: InputDecoration(
-        labelText: 'Notes for ${step.definition.title}',
+        labelText: '${l10n.notesFieldLabel} — ${_stepTitle(context, step.definition.code)}',
         hintText: hintText,
       ),
     );
   }
 
-  Widget _buildNavigationBar(_GuidedStep step) {
+  Widget _buildNavigationBar(_GuidedStep step, BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final isFirst = _currentStepIndex == 0;
     final isLast = _currentStepIndex == _steps.length - 1;
@@ -564,7 +557,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
         children: [
           OutlinedButton(
             onPressed: isFirst || _isSubmitting ? null : _handlePrevious,
-            child: const Text('Back'),
+            child: Text(l10n.backLabel),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -573,7 +566,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
               icon: _isSubmitting
                   ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : Icon(isLast ? Icons.assignment_turned_in_outlined : Icons.arrow_forward),
-              label: Text(isLast ? 'Submit inspection' : 'Next step'),
+              label: Text(isLast ? l10n.submitInspectionLabel : l10n.nextStepLabel),
             ),
           ),
         ],

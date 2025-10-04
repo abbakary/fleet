@@ -104,6 +104,9 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     for (final controller in _stepNotesControllers.values) {
       controller.dispose();
     }
+    for (final controller in _stepScrollControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 

@@ -291,8 +291,8 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                     final processed = await controller.syncOfflineInspections();
                     if (!context.mounted) return;
                     final message = processed > 0
-                        ? 'Synced $processed inspection(s).'
-                        : 'No inspections waiting for sync.';
+                        ? l10n.syncedCount(processed)
+                        : l10n.syncedNone;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(message)),
                     );

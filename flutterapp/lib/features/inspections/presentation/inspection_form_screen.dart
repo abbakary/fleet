@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
+import '../../../core/ui/animated_background.dart';
 
 import '../data/guided_steps.dart';
 import '../data/inspections_repository.dart';
@@ -862,6 +863,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
   Future<String?> _pickAnnotatedPhoto(String contextTitle) async {
     final source = await showModalBottomSheet<ImageSource?>(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) => _PhotoSourceSheet(contextTitle: contextTitle),
@@ -1336,7 +1338,9 @@ class _PhotoSourceSheet extends StatelessWidget {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        child: Column(
+        child: SingleChildScrollView(
+          controller: PrimaryScrollController.of(context),
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1358,6 +1362,7 @@ class _PhotoSourceSheet extends StatelessWidget {
             const SizedBox(height: 8),
             TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
           ],
+          ),
         ),
       ),
     );

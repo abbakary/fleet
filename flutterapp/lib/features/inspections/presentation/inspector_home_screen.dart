@@ -10,6 +10,7 @@ import '../data/models.dart';
 import 'controllers/inspector_dashboard_controller.dart';
 import 'inspection_detail_screen.dart';
 import 'inspection_form_screen.dart';
+import 'widgets/make_model_selector.dart';
 
 class InspectorHomeScreen extends StatelessWidget {
   const InspectorHomeScreen({required this.profile, super.key});
@@ -423,24 +424,10 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                   decoration: const InputDecoration(labelText: 'VIN'),
                   validator: _req,
                 ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: make,
-                        decoration: const InputDecoration(labelText: 'Make'),
-                        validator: _req,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        controller: model,
-                        decoration: const InputDecoration(labelText: 'Model'),
-                        validator: _req,
-                      ),
-                    ),
-                  ],
+                MakeModelSelector(
+                  makeController: make,
+                  modelController: model,
+                  vehicles: controller.vehicles,
                 ),
                 Row(
                   children: [

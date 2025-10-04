@@ -90,6 +90,28 @@ class InspectorProfile(TimeStampedModel):
         return f"{self.profile}"
 
 
+class VehicleMake(TimeStampedModel):
+    name = models.CharField(max_length=120, unique=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class VehicleModelName(TimeStampedModel):
+    make = models.ForeignKey(VehicleMake, on_delete=models.CASCADE, related_name="models")
+    name = models.CharField(max_length=120)
+
+    class Meta:
+        unique_together = ("make", "name")
+        ordering = ["make__name", "name"]
+
+    def __str__(self) -> str:
+        return f"{self.make.name} {self.name}"
+
+
 class Vehicle(TimeStampedModel):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="vehicles")
     vin = models.CharField(max_length=32, unique=True)

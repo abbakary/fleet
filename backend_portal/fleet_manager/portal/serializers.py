@@ -16,6 +16,8 @@ from .models import (
     PortalUser,
     Vehicle,
     VehicleAssignment,
+    VehicleMake,
+    VehicleModelName,
 )
 
 User = get_user_model()
@@ -141,6 +143,23 @@ class InspectorProfileSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
+class VehicleMakeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VehicleMake
+        fields = ["id", "name", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+
+class VehicleModelNameSerializer(serializers.ModelSerializer):
+    make_detail = VehicleMakeSerializer(source="make", read_only=True)
+    make = serializers.PrimaryKeyRelatedField(queryset=VehicleMake.objects.all())
+
+    class Meta:
+        model = VehicleModelName
+        fields = ["id", "make", "make_detail", "name", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at", "make_detail"]
+
+
 class VehicleSerializer(serializers.ModelSerializer):
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
     customer_display = serializers.SerializerMethodField()
@@ -168,6 +187,20 @@ class VehicleSerializer(serializers.ModelSerializer):
     def get_customer_display(self, obj):
         return obj.customer.legal_name
 
+    @transaction.atomic
+    def create(self, validated_data):
+        instance = Vehicle.objects.create(**validated_data)
+        _ensure_make_model_catalog(instance.make, instance.model)
+        return instance
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        _ensure_make_model_catalog(instance.make, instance.model)
+        return instance
+
 
 class VehicleAssignmentSerializer(serializers.ModelSerializer):
     vehicle = serializers.PrimaryKeyRelatedField(queryset=Vehicle.objects.all())
@@ -188,6 +221,16 @@ class VehicleAssignmentSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
+
+
+def _ensure_make_model_catalog(make_name: str, model_name: str) -> None:
+    make_name = (make_name or "").strip()
+    model_name = (model_name or "").strip()
+    if not make_name:
+        return
+    make, _ = VehicleMake.objects.get_or_create(name=make_name)
+    if model_name:
+        VehicleModelName.objects.get_or_create(make=make, name=model_name)
 
 
 class InspectionPhotoSerializer(serializers.ModelSerializer):

@@ -8,6 +8,7 @@ from portal import views_web
 urlpatterns = [
     # Custom admin portal (templates-based)
     path('admin/', views_web.app_shell, name='portal-admin'),
+    path('admin/recent-inspections/', views_web.recent_inspections_partial, name='portal-recent-inspections-partial'),
     # Keep Django admin accessible at a different path
     path('django-admin/', admin.site.urls),
     # Django auth (login/logout, password views)

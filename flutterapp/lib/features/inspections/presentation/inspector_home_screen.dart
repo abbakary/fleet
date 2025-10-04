@@ -138,10 +138,10 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                             ),
                             const SizedBox(height: 12),
                             if (controller.recentInspections.isEmpty)
-                              const Card(
+                              Card(
                                 child: Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Text('No inspections submitted yet.'),
+                                  padding: const EdgeInsets.all(16),
+                                  child: Text(l10n.noInspectionsSubmitted),
                                 ),
                               )
                             else

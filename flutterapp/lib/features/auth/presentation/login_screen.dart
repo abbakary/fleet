@@ -101,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'Fleet Inspection Portal',
+                                l10n.loginTitle,
                                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                       fontWeight: FontWeight.w700,
                                       color: const Color(0xFF22313F),

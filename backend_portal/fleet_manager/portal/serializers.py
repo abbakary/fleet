@@ -345,6 +345,15 @@ class InspectionSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "reference", "created_at", "updated_at", "customer", "customer_report"]
 
     def validate(self, attrs):
+        request = self.context.get("request")
+        if attrs.get("inspector") is None and request is not None:
+            try:
+                portal = getattr(request.user, "portal_profile", None)
+                inferred = getattr(portal, "inspector_profile", None)
+            except Exception:
+                inferred = None
+            if inferred is not None:
+                attrs["inspector"] = inferred
         vehicle = attrs.get("vehicle")
         inspector = attrs.get("inspector")
         assignment = attrs.get("assignment")

@@ -59,6 +59,7 @@ class AppRoot extends StatelessWidget {
         Provider<TokenStore>.value(value: tokenStore),
         Provider<ApiClient>.value(value: apiClient),
         Provider<OfflineQueueService>.value(value: offlineQueue),
+        ChangeNotifierProvider<LocaleController>.value(value: localeController),
         ProxyProvider2<ApiClient, OfflineQueueService, InspectionsRepository>(
           update: (_, api, queue, __) => InspectionsRepository(apiClient: api, offlineQueueService: queue),
         ),

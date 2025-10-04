@@ -8,6 +8,7 @@ import 'core/config/app_config.dart';
 import 'core/config/locale_controller.dart';
 import 'core/storage/offline_queue.dart';
 import 'core/storage/token_store.dart';
+import 'core/ui/language_menu.dart';
 import 'core/utils/localization_extensions.dart';
 import 'features/auth/data/auth_repository.dart';
 import 'features/auth/presentation/login_screen.dart';

@@ -6,6 +6,7 @@
   "languageMenuSystem": "Chaguo la mfumo",
   "languageMenuEnglish": "Kiingereza",
   "languageMenuSwahili": "Kiswahili",
+
   "loginTitle": "Ingia kwenye akaunti yako",
   "loginSubtitle": "Weka taarifa zako ili kuendelea",
   "loginUsernameLabel": "Jina la mtumiaji",
@@ -15,14 +16,134 @@
   "commonSignIn": "Ingia",
   "commonSignOut": "Toka",
   "unsupportedGreeting": "Habari {name}",
-  "@unsupportedGreeting": {
-    "placeholders": {
-      "name": {
-        "type": "String",
-        "example": "Jane Doe"
-      }
-    },
-    "description": "Salamu kwenye ukurasa wa jukumu lisilo tolewa kwenye app ya simu"
-  },
-  "unsupportedMessage": "Aina ya akaunti yako haiungwi mkono kwenye programu ya simu. Tafadhali tumia tovuti."
+  "@unsupportedGreeting": { "placeholders": { "name": { "type": "String" } }, "description": "Salamu kwenye ukurasa wa jukumu lisilo tolewa kwenye app ya simu" },
+  "unsupportedMessage": "Aina ya akaunti yako haiungwi mkono kwenye programu ya simu. Tafadhali tumia tovuti.",
+
+  "guidedInspectionTitle": "Utaratibu wa Ukaguzi",
+  "discardTooltip": "Tupa",
+  "stepProgress": "Hatua {current} ya {total}",
+  "@stepProgress": { "placeholders": { "current": {"type":"int"}, "total": {"type":"int"} } },
+
+  "vehicleLabel": "Gari",
+  "scanVin": "Skana VIN",
+  "scanPlate": "Skana Nambari",
+  "vinLabel": "VIN",
+  "vinCaptureRequired": "Pata VIN",
+  "vinIncomplete": "VIN haijaonekana kamili",
+  "licensePlateLabel": "Nambari ya usajili",
+  "enterLicensePlate": "Weka nambari ya usajili",
+  "odometerLabel": "Odometer (mi)",
+  "odometerRequired": "Weka kusoma kwa odometer",
+  "odometerInvalid": "Thamani ya odometer si sahihi",
+  "generalVehicleConditionLabel": "Hali ya jumla ya gari",
+  "generalVehicleConditionHint": "Andika auandika mabaki ya matundu, kutu, au usafi.",
+  "generalVehicleConditionRequired": "Muhtasari wa hali ya gari",
+  "identificationNotesLabel": "Maelezo ya utambuzi",
+  "identificationNotesHint": "Rejea karatasi, maagizo, au vibandiko vya lebo.",
+  "identificationVerifiedTitle": "Utambulisho wa gari umehakikiwa",
+  "identificationVerifiedSubtitle": "Leboko la VIN, nambari ya usajili, na karatasi vinaendana na agizo.",
+
+  "stepMarkedNotApplicable": "Hatua imetiwa alama kuwa haitumiki kwa ukaguzi huu.",
+
+  "stepEvidenceTitle": "Ushahidi wa hatua",
+  "addButtonLabel": "Ongeza",
+  "photoEvidenceLogTitle": "Ripo la ushahidi wa picha",
+  "photoEvidenceSectionStep": "Ushahidi wa hatua",
+  "photoCountLabel": "{count} picha",
+  "@photoCountLabel": { "placeholders": { "count": {"type":"int"} } },
+
+  "backLabel": "Rudi",
+  "submitInspectionLabel": "Tuma ukaguzi",
+  "nextStepLabel": "Hatua inayofuata",
+
+  "selectVehicleBeforeContinuing": "Chagua gari kabla ya kuendelea.",
+  "scanOrEnterVin": "Skana au ingiza VIN ili kuendelea.",
+  "captureLicensePlateToContinue": "Pata nambari ya usajili ili kuendelea.",
+  "confirmIdentificationVerified": "Thibitisha kwamba utambulisho wa gari umehakikiwa.",
+  "captureBaselinePhoto": "Pata picha ya msingi kabla ya kuendelea.",
+  "completeOperationalTests": "Kamilisha vipimo vyote vya uendeshaji kabla ya kutuma.",
+  "completeGuidedActions": "Kamilisha hatua za {step} kabla ya kuendelea.",
+  "@completeGuidedActions": { "placeholders": { "step": {"type":"String"} } },
+
+  "selectVehicleBeforeSubmitting": "Chagua gari kabla ya kutuma.",
+
+  "inspectionSubmitted": "Ukaguzi umetumwa kwa mafanikio.",
+  "inspectionSavedOffline": "Ukaguzi umehifadhiwa kwa offline na utaambatanishwa ukiwa mtandaoni.",
+
+  "quickActionsNewInspection": "Ukaguzi mpya",
+  "quickActionsSyncOffline": "Sawa offline",
+  "quickActionsRefresh": "Sasisha",
+  "syncingShort": "Inapitia…",
+  "syncedCount": "Imesawazishwa {count} ukaguzi(zi).",
+  "@syncedCount": { "placeholders": { "count": {"type":"int"} } },
+  "syncedNone": "Hakuna ukaguzi unaosubiri kusawazishwa.",
+
+  "addVehicleTitle": "Ongeza gari",
+  "licensePlateLabelShort": "Nambari ya usajili",
+  "vinLabelShort": "VIN",
+  "yearLabel": "Mwaka",
+  "vehicleTypeLabel": "Aina ya gari",
+  "mileageLabel": "Mileage",
+  "notesLabel": "Maelezo",
+  "cancelLabel": "Ghairi",
+  "saveLabel": "Hifadhi",
+  "vehicleAdded": "Gari limeongezwa.",
+
+  "photoAnnotateTitle": "Fafanua {contextTitle}",
+  "@photoAnnotateTitle": { "placeholders": { "contextTitle": {"type":"String"} } },
+  "clearAllTooltip": "Futa vyote",
+  "undoTooltip": "Rudisha",
+  "unableToLoadImage": "Haiwezi kupakia picha.",
+  "strokeWidthLabel": "Upana wa mstari: {width}",
+  "@strokeWidthLabel": { "placeholders": { "width": {"type":"int"} } },
+  "saveLabelShort": "Hifadhi",
+  "unableToSaveAnnotatedPhoto": "Haiwezi kuhifadhi picha iliyobadilishwa.",
+
+  "attachPhotoFor": "Unganisha picha kwa \"{contextTitle}\"",
+  "@attachPhotoFor": { "placeholders": { "contextTitle": {"type":"String"} } },
+  "useCamera": "Tumia kamera",
+  "useCameraSubtitle": "Pata ushahidi wa wakati halisi",
+  "uploadFromGallery": "Pakia kutoka kwenye galerii",
+  "uploadFromGallerySubtitle": "Chagua kutoka kwa picha zilizopo",
+
+  "guidedActionsLabel": "Hatua za mwongozo",
+  "guidedActionsProgress": "{completed} ya {total} imekamilika",
+  "@guidedActionsProgress": { "placeholders": { "completed": {"type":"int"}, "total": {"type":"int"} } },
+  "stepMarkedNotApplicableShort": "Haitumiki",
+
+  "photoRequiredLabel": "Picha inahitajika",
+
+  "segmentedPass": "Kupita",
+  "segmentedFail": "Kushindwa",
+  "segmentedNA": "Si lazima",
+
+  "severityLabel": "Ukali",
+  "severityMinor": "Ndogo",
+  "severityLow": "Chini",
+  "severityModerate": "Wastani",
+  "severityHigh": "Juu",
+  "severityCritical": "Kubwa",
+  "severityUnknown": "Haijulikani",
+
+  "notesFieldLabel": "Maelezo",
+  "photoEvidenceRequiredForFailure": "Ushahidi wa picha unahitajika kwa makosa.",
+
+  "stepNoChecklistItems": "Hakukuwepo vitu vya orodha ya ukaguzi kwa hatua hii. Ongeza maelezo au picha inapobidi.",
+
+  "trailerNotAttached": "Trela haikutangazwa",
+  "trailerNotAttachedSubtitle": "Ruka hatua hii ikiwa kitengo cha nguvu hakichunguzwi pamoja na trela.",
+
+  "captureAtLeastOneAnnotatedPhoto": "Pata angalau picha moja iliyobainishwa wakati wa kurekodi kosa.",
+  "optionalAttachReferencePhotos": "Hiari — ambatanisha picha za kumbukumbu kwa kipengele hiki.",
+
+  "photoEvidenceLabel": "Ushahidi wa picha",
+
+  "alignBarcodeHint": "Panga barcode ndani ya fremu ili kuchukua.",
+
+  "composeNotesVinCaptured": "VIN imepatikana: {vin}",
+  "@composeNotesVinCaptured": { "placeholders": { "vin": {"type":"String"} } },
+  "composeNotesLicensePlate": "Nambari ya usajili: {plate}",
+  "@composeNotesLicensePlate": { "placeholders": { "plate": {"type":"String"} } },
+  "composeNotesIdentificationVerified": "Utambulisho wa gari umehakikiwa: {yesNo}",
+  "@composeNotesIdentificationVerified": { "placeholders": { "yesNo": {"type":"String"} } }
 }

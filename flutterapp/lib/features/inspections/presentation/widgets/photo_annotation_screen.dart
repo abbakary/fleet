@@ -59,10 +59,10 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Annotate ${widget.contextTitle}'),
+        title: Text(context.l10n.photoAnnotateTitle(widget.contextTitle)),
         actions: [
           IconButton(
-            tooltip: 'Clear all',
+            tooltip: context.l10n.clearAllTooltip,
             icon: const Icon(Icons.clear_all),
             onPressed: _strokes.isEmpty
                 ? null
@@ -73,7 +73,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
                   },
           ),
           IconButton(
-            tooltip: 'Undo',
+            tooltip: context.l10n.undoTooltip,
             icon: const Icon(Icons.undo),
             onPressed: _strokes.isEmpty
                 ? null

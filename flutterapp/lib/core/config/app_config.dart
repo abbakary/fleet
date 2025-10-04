@@ -12,7 +12,13 @@ class AppConfig {
       return AppConfig(apiBaseUrl: override.endsWith('/') ? override : '$override/');
     }
     if (kIsWeb) {
-      return const AppConfig(apiBaseUrl: 'http://127.0.0.1:8000/api/');
+      final isLocal = Uri.base.host == 'localhost' || Uri.base.host == '127.0.0.1';
+      // In local dev, keep hitting Django on 127.0.0.1:8000 to avoid needing a proxy from the Flutter dev server
+      if (isLocal && Uri.base.port != 8000) {
+        return const AppConfig(apiBaseUrl: 'http://127.0.0.1:8000/api/');
+      }
+      // In deployed web (same-origin), use the current origin to avoid CORS
+      return AppConfig(apiBaseUrl: '${Uri.base.origin}/api/');
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:

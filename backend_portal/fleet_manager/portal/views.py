@@ -4,7 +4,7 @@ import json
 from typing import Any, List, Tuple
 
 from django.db.models import Prefetch
-from django.http import QueryDict
+from django.http import QueryDict, HttpResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
 from rest_framework import mixins, status, viewsets
@@ -373,6 +373,28 @@ class InspectionViewSet(viewsets.ModelViewSet):
         }
         html = render_to_string(template, context)
         return Response({"reference": str(inspection.reference), "role_view": "customer" if role == PortalUser.ROLE_CUSTOMER else "full", "html": html})
+
+    @action(detail=True, methods=["get"], permission_classes=[IsAuthenticated], url_path="report_pdf")
+    def report_pdf(self, request, pk=None):
+        inspection = self.get_object()
+        profile = get_portal_profile(request.user)
+        role = getattr(profile, "role", None)
+        template = "portal/reports/report_full.html"
+        if role == PortalUser.ROLE_CUSTOMER:
+            template = "portal/reports/report_customer.html"
+        context = {
+            "inspection": inspection,
+            "responses": inspection.item_responses.all(),
+        }
+        html = render_to_string(template, context)
+        try:
+            from weasyprint import HTML  # type: ignore
+        except Exception:
+            return Response({"detail": "PDF generator unavailable. Install WeasyPrint to enable PDF export."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        pdf = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
+        response = HttpResponse(pdf, content_type="application/pdf")
+        response["Content-Disposition"] = f'inline; filename="inspection_{inspection.reference}.pdf"'
+        return response
 
 
 class InspectionCategoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

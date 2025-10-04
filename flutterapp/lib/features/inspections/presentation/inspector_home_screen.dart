@@ -47,6 +47,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
   Widget build(BuildContext context) {
     return Consumer<InspectorDashboardController>(
       builder: (context, controller, _) {
+        final l10n = context.l10n;
         return Scaffold(
           appBar: AppBar(
             title: Text('Inspector • ${widget.profile.fullName}'),

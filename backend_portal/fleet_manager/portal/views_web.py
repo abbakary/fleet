@@ -182,6 +182,21 @@ def app_shell(request: HttpRequest) -> HttpResponse:
         .order_by("-created_at")[:6]
     )
 
+    # HTMX partial endpoint: recent inspections filter
+    def _recent_inspections_filtered(q: str | None = None):
+        qs = Inspection.objects.select_related(
+            "vehicle",
+            "vehicle__customer",
+            "inspector",
+            "inspector__profile",
+            "inspector__profile__user",
+        ).order_by("-created_at")
+        if q:
+            qs = qs.filter(
+                vehicle__license_plate__icontains=q
+            )
+        return qs[:20]
+
     context = {
         "profile": profile,
         "active_tab": request.GET.get("tab", "overview"),

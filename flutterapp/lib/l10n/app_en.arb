@@ -6,6 +6,7 @@
   "languageMenuSystem": "System default",
   "languageMenuEnglish": "English",
   "languageMenuSwahili": "Kiswahili",
+
   "loginTitle": "Sign in to your account",
   "loginSubtitle": "Enter your credentials to continue",
   "loginUsernameLabel": "Username",
@@ -15,14 +16,134 @@
   "commonSignIn": "Sign in",
   "commonSignOut": "Sign out",
   "unsupportedGreeting": "Hello {name}",
-  "@unsupportedGreeting": {
-    "placeholders": {
-      "name": {
-        "type": "String",
-        "example": "Jane Doe"
-      }
-    },
-    "description": "Greeting shown in unsupported role screen"
-  },
-  "unsupportedMessage": "Your account role is not supported in the mobile app. Please use the web portal."
+  "@unsupportedGreeting": { "placeholders": { "name": { "type": "String" } }, "description": "Greeting shown in unsupported role screen" },
+  "unsupportedMessage": "Your account role is not supported in the mobile app. Please use the web portal.",
+
+  "guidedInspectionTitle": "Guided Inspection",
+  "discardTooltip": "Discard",
+  "stepProgress": "Step {current} of {total}",
+  "@stepProgress": { "placeholders": { "current": {"type":"int"}, "total": {"type":"int"} } },
+
+  "vehicleLabel": "Vehicle",
+  "scanVin": "Scan VIN",
+  "scanPlate": "Scan Plate",
+  "vinLabel": "VIN",
+  "vinCaptureRequired": "Capture the VIN",
+  "vinIncomplete": "VIN appears incomplete",
+  "licensePlateLabel": "License plate",
+  "enterLicensePlate": "Enter license plate",
+  "odometerLabel": "Odometer (mi)",
+  "odometerRequired": "Enter odometer reading",
+  "odometerInvalid": "Invalid odometer value",
+  "generalVehicleConditionLabel": "General vehicle condition",
+  "generalVehicleConditionHint": "Document any pre-existing dents, rust, or cleanliness concerns.",
+  "generalVehicleConditionRequired": "Summarize vehicle condition",
+  "identificationNotesLabel": "Identification notes",
+  "identificationNotesHint": "Reference paperwork, assignments, or tag confirmations.",
+  "identificationVerifiedTitle": "Vehicle identification verified",
+  "identificationVerifiedSubtitle": "VIN tag, license plate, and paperwork match the assignment.",
+
+  "stepMarkedNotApplicable": "Step marked as not applicable for this inspection.",
+
+  "stepEvidenceTitle": "Step evidence",
+  "addButtonLabel": "Add",
+  "photoEvidenceLogTitle": "Photo evidence log",
+  "photoEvidenceSectionStep": "Step evidence",
+  "photoCountLabel": "{count} photo(s)",
+  "@photoCountLabel": { "placeholders": { "count": {"type":"int"} } },
+
+  "backLabel": "Back",
+  "submitInspectionLabel": "Submit inspection",
+  "nextStepLabel": "Next step",
+
+  "selectVehicleBeforeContinuing": "Select a vehicle before continuing.",
+  "scanOrEnterVin": "Scan or enter the VIN to continue.",
+  "captureLicensePlateToContinue": "Capture the license plate to continue.",
+  "confirmIdentificationVerified": "Confirm that vehicle identification has been verified.",
+  "captureBaselinePhoto": "Capture a baseline photo before proceeding.",
+  "completeOperationalTests": "Complete all operational tests before submitting.",
+  "completeGuidedActions": "Complete the guided actions for {step} before continuing.",
+  "@completeGuidedActions": { "placeholders": { "step": {"type":"String"} } },
+
+  "selectVehicleBeforeSubmitting": "Select a vehicle before submitting.",
+
+  "inspectionSubmitted": "Inspection submitted successfully.",
+  "inspectionSavedOffline": "Inspection saved offline and will sync when online.",
+
+  "quickActionsNewInspection": "New inspection",
+  "quickActionsSyncOffline": "Sync offline",
+  "quickActionsRefresh": "Refresh",
+  "syncingShort": "Syncing…",
+  "syncedCount": "Synced {count} inspection(s).",
+  "@syncedCount": { "placeholders": { "count": {"type":"int"} } },
+  "syncedNone": "No inspections waiting for sync.",
+
+  "addVehicleTitle": "Add vehicle",
+  "licensePlateLabelShort": "License plate",
+  "vinLabelShort": "VIN",
+  "yearLabel": "Year",
+  "vehicleTypeLabel": "Vehicle type",
+  "mileageLabel": "Mileage",
+  "notesLabel": "Notes",
+  "cancelLabel": "Cancel",
+  "saveLabel": "Save",
+  "vehicleAdded": "Vehicle added.",
+
+  "photoAnnotateTitle": "Annotate {contextTitle}",
+  "@photoAnnotateTitle": { "placeholders": { "contextTitle": {"type":"String"} } },
+  "clearAllTooltip": "Clear all",
+  "undoTooltip": "Undo",
+  "unableToLoadImage": "Unable to load image.",
+  "strokeWidthLabel": "Stroke width: {width}",
+  "@strokeWidthLabel": { "placeholders": { "width": {"type":"int"} } },
+  "saveLabelShort": "Save",
+  "unableToSaveAnnotatedPhoto": "Unable to save annotated photo.",
+
+  "attachPhotoFor": "Attach photo for \"{contextTitle}\"",
+  "@attachPhotoFor": { "placeholders": { "contextTitle": {"type":"String"} } },
+  "useCamera": "Use camera",
+  "useCameraSubtitle": "Capture real-time evidence",
+  "uploadFromGallery": "Upload from gallery",
+  "uploadFromGallerySubtitle": "Select from existing photos",
+
+  "guidedActionsLabel": "Guided actions",
+  "guidedActionsProgress": "{completed} of {total} completed",
+  "@guidedActionsProgress": { "placeholders": { "completed": {"type":"int"}, "total": {"type":"int"} } },
+  "stepMarkedNotApplicableShort": "Not applicable",
+
+  "photoRequiredLabel": "Photo required",
+
+  "segmentedPass": "Pass",
+  "segmentedFail": "Fail",
+  "segmentedNA": "N/A",
+
+  "severityLabel": "Severity",
+  "severityMinor": "Minor",
+  "severityLow": "Low",
+  "severityModerate": "Moderate",
+  "severityHigh": "High",
+  "severityCritical": "Critical",
+  "severityUnknown": "Unknown",
+
+  "notesFieldLabel": "Notes",
+  "photoEvidenceRequiredForFailure": "Photo evidence is required for failures.",
+
+  "stepNoChecklistItems": "No checklist items were provided for this step. Add step notes or photos as needed.",
+
+  "trailerNotAttached": "Trailer not attached",
+  "trailerNotAttachedSubtitle": "Skip this step if the power unit is inspected without a trailer.",
+
+  "captureAtLeastOneAnnotatedPhoto": "Capture at least one annotated photo when recording a failure.",
+  "optionalAttachReferencePhotos": "Optional — attach reference photos for this checklist item.",
+
+  "photoEvidenceLabel": "Photo evidence",
+
+  "alignBarcodeHint": "Align the barcode within the frame to capture.",
+
+  "composeNotesVinCaptured": "VIN captured: {vin}",
+  "@composeNotesVinCaptured": { "placeholders": { "vin": {"type":"String"} } },
+  "composeNotesLicensePlate": "License plate: {plate}",
+  "@composeNotesLicensePlate": { "placeholders": { "plate": {"type":"String"} } },
+  "composeNotesIdentificationVerified": "Vehicle identification verified: {yesNo}",
+  "@composeNotesIdentificationVerified": { "placeholders": { "yesNo": {"type":"String"} } }
 }

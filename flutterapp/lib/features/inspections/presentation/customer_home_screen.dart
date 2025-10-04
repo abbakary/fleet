@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/ui/animated_background.dart';
+import '../../../core/ui/language_menu.dart';
 import '../data/inspections_repository.dart';
 import '../data/models.dart';
 import 'controllers/customer_dashboard_controller.dart';
@@ -38,6 +39,7 @@ class _CustomerHomeView extends StatelessWidget {
             title: Text(
               'Customer • ${profile.organization.isNotEmpty ? profile.organization : profile.fullName}',
             ),
+            actions: const [LanguageMenu()],
           ),
           body: Stack(
             children: [

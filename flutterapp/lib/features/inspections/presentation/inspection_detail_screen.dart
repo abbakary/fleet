@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:open_filex/open_filex.dart';
 
 import '../../auth/presentation/session_controller.dart';
 import '../data/inspections_repository.dart';

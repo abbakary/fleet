@@ -1400,7 +1400,7 @@ class _PhotoGallery extends StatelessWidget {
                 child: Icon(Icons.star, size: 14, color: theme.colorScheme.error),
               ),
             const Spacer(),
-            TextButton.icon(onPressed: onAdd, icon: const Icon(Icons.camera_alt_outlined), label: const Text('Add')),
+            TextButton.icon(onPressed: onAdd, icon: const Icon(Icons.camera_alt_outlined), label: Text(context.l10n.addButtonLabel)),
           ],
         ),
         const SizedBox(height: 8),

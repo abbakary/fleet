@@ -411,7 +411,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
     final saved = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add vehicle'),
+        title: Text(l10n.addVehicleTitle),
         content: Form(
           key: formKey,
           child: SingleChildScrollView(
@@ -420,12 +420,12 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
               children: [
                 TextFormField(
                   controller: plate,
-                  decoration: const InputDecoration(labelText: 'License plate'),
+                  decoration: InputDecoration(labelText: l10n.licensePlateLabelShort),
                   validator: _req,
                 ),
                 TextFormField(
                   controller: vin,
-                  decoration: const InputDecoration(labelText: 'VIN'),
+                  decoration: InputDecoration(labelText: l10n.vinLabelShort),
                   validator: _req,
                 ),
                 MakeModelSelector(
@@ -439,7 +439,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                     Expanded(
                       child: TextFormField(
                         controller: year,
-                        decoration: const InputDecoration(labelText: 'Year'),
+                        decoration: InputDecoration(labelText: l10n.yearLabel),
                         keyboardType: TextInputType.number,
                         validator: _req,
                       ),
@@ -448,7 +448,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                     Expanded(
                       child: TextFormField(
                         controller: type,
-                        decoration: const InputDecoration(labelText: 'Vehicle type'),
+                        decoration: InputDecoration(labelText: l10n.vehicleTypeLabel),
                         validator: _req,
                       ),
                     ),
@@ -459,7 +459,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                     Expanded(
                       child: TextFormField(
                         controller: mileage,
-                        decoration: const InputDecoration(labelText: 'Mileage'),
+                        decoration: InputDecoration(labelText: l10n.mileageLabel),
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -467,7 +467,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                     Expanded(
                       child: TextFormField(
                         controller: notes,
-                        decoration: const InputDecoration(labelText: 'Notes'),
+                        decoration: InputDecoration(labelText: l10n.notesLabel),
                       ),
                     ),
                   ],
@@ -479,7 +479,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancelLabel),
           ),
           FilledButton(
             onPressed: () async {
@@ -503,11 +503,11 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
               if (id != null) {
                 Navigator.of(context).pop(true);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Vehicle added.')),
+                  SnackBar(content: Text(l10n.vehicleAdded)),
                 );
               }
             },
-            child: const Text('Save'),
+            child: Text(l10n.saveLabel),
           ),
         ],
       ),

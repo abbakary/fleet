@@ -41,6 +41,7 @@ class AppRoot extends StatelessWidget {
     required this.tokenStore,
     required this.apiClient,
     required this.offlineQueue,
+    required this.localeController,
     super.key,
   });
 
@@ -48,6 +49,7 @@ class AppRoot extends StatelessWidget {
   final TokenStore tokenStore;
   final ApiClient apiClient;
   final OfflineQueueService offlineQueue;
+  final LocaleController localeController;
 
   @override
   Widget build(BuildContext context) {

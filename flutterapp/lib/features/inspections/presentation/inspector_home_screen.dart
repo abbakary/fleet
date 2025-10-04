@@ -423,24 +423,10 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                   decoration: const InputDecoration(labelText: 'VIN'),
                   validator: _req,
                 ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: make,
-                        decoration: const InputDecoration(labelText: 'Make'),
-                        validator: _req,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        controller: model,
-                        decoration: const InputDecoration(labelText: 'Model'),
-                        validator: _req,
-                      ),
-                    ),
-                  ],
+                MakeModelSelector(
+                  makeController: make,
+                  modelController: model,
+                  vehicles: controller.vehicles,
                 ),
                 Row(
                   children: [

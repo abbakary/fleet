@@ -71,6 +71,22 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
       ),
     );
   }
+
+  Future<void> _downloadPdf(BuildContext context) async {
+    final repo = context.read<InspectionsRepository>();
+    try {
+      final path = await repo.downloadReportPdf(widget.summary.id);
+      if (!context.mounted) return;
+      if (path == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No PDF available.')));
+        return;
+      }
+      await OpenFilex.open(path);
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to download PDF')));
+    }
+  }
 }
 
 class _ReportHtmlScreen extends StatelessWidget {

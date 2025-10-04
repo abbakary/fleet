@@ -221,6 +221,27 @@ def app_shell(request: HttpRequest) -> HttpResponse:
     return render(request, "portal/dashboard-02.html", context)
 
 
+@csrf_exempt
+@login_required
+def recent_inspections_partial(request: HttpRequest) -> HttpResponse:
+    """Return the recent inspections table body as an HTMX fragment filtered by ?q=..."""
+    profile = _require_admin(request)
+    if not profile:
+        return render(request, "portal/forbidden.html", status=403)
+    q = request.GET.get("q", "").strip()
+    qs = Inspection.objects.select_related(
+        "vehicle",
+        "vehicle__customer",
+        "inspector",
+        "inspector__profile",
+        "inspector__profile__user",
+    ).order_by("-created_at")
+    if q:
+        qs = qs.filter(vehicle__license_plate__icontains=q)
+    recent = qs[:50]
+    return render(request, "portal/partials/recent_inspections_table.html", {"recent_inspections": recent})
+
+
 @login_required
 def customers_view(request: HttpRequest) -> HttpResponse:
     profile = _require_admin(request)

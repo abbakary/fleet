@@ -124,10 +124,16 @@ class VehicleAssignmentViewSet(viewsets.ModelViewSet):
 
 
 class VehicleMakeViewSet(viewsets.ModelViewSet):
-    queryset = VehicleMake.objects.all()
     serializer_class = VehicleMakeSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = None
+
+    def get_queryset(self):
+        queryset = VehicleMake.objects.prefetch_related("models").order_by("name")
+        search = self.request.query_params.get("search")
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+        return queryset
 
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update", "destroy"]:
@@ -141,14 +147,17 @@ class VehicleModelNameViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        qs = VehicleModelName.objects.select_related("make").all()
+        queryset = VehicleModelName.objects.select_related("make").order_by("name")
         make_id = self.request.query_params.get("make")
         make_name = self.request.query_params.get("make_name")
+        search = self.request.query_params.get("search")
         if make_id:
-            qs = qs.filter(make_id=make_id)
+            queryset = queryset.filter(make_id=make_id)
         elif make_name:
-            qs = qs.filter(make__name__iexact=make_name)
-        return qs
+            queryset = queryset.filter(make__name__iexact=make_name)
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+        return queryset
 
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update", "destroy"]:

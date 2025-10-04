@@ -1,0 +1,69 @@
+<div class="card">
+  <div class="card-header pb-0">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <h5 class="mb-0">Vehicle Catalog</h5>
+      <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'portal-vehicle-makes-new' %}">
+          <i class="fa fa-plus me-2"></i>Add Make
+        </a>
+        <a class="btn btn-primary btn-sm" href="{% url 'portal-vehicle-models-new' %}">
+          <i class="fa fa-plus me-2"></i>Add Model
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th scope="col">Make</th>
+            <th scope="col">Models</th>
+            <th scope="col" class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for make in makes %}
+            <tr>
+              <td class="text-nowrap">{{ make.name }}</td>
+              <td>
+                {% if make.models.all %}
+                  <div class="d-flex flex-wrap gap-2">
+                    {% for model in make.models.all %}
+                      <span class="badge bg-light text-dark border">
+                        {{ model.name }}
+                        <a class="ms-2 text-decoration-none" href="{% url 'portal-vehicle-models-edit' model.pk %}">Edit</a>
+                        <form class="d-inline" action="{% url 'portal-vehicle-models-delete' model.pk %}" method="post" onsubmit="return confirm('Delete model {{ model.name|escapejs }}?');">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-link btn-sm p-0 ms-2">Delete</button>
+                        </form>
+                      </span>
+                    {% empty %}
+                      <span class="text-muted">No models</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <span class="text-muted">No models</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <div class="btn-group" role="group">
+                  <a class="btn btn-outline-primary btn-sm" href="{% url 'portal-vehicle-makes-edit' make.pk %}">Edit</a>
+                  <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal-vehicle-models-new' %}?make={{ make.pk }}">Add Model</a>
+                  <form action="{% url 'portal-vehicle-makes-delete' make.pk %}" method="post" onsubmit="return confirm('Delete make {{ make.name|escapejs }}?');">
+                    {% csrf_token %}
+                    <button class="btn btn-outline-danger btn-sm" type="submit">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="3" class="text-center p-4">No makes found.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

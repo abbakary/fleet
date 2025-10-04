@@ -49,6 +49,22 @@ class InspectionsRepository {
     return list.map(InspectionCategoryModel.fromJson).toList();
   }
 
+  Future<List<VehicleMakeOption>> fetchVehicleMakes({String? search}) async {
+    final response = await _apiClient.get<dynamic>(ApiEndpoints.vehicleMakes, queryParameters: search != null && search.isNotEmpty ? {'search': search} : null);
+    final list = _extractList(response.data);
+    return list.map(VehicleMakeOption.fromJson).toList();
+  }
+
+  Future<List<VehicleModelOption>> fetchVehicleModels({int? makeId, String? makeName, String? search}) async {
+    final params = <String, dynamic>{};
+    if (makeId != null) params['make'] = makeId;
+    if (makeName != null && makeName.isNotEmpty) params['make_name'] = makeName;
+    if (search != null && search.isNotEmpty) params['search'] = search;
+    final response = await _apiClient.get<dynamic>(ApiEndpoints.vehicleModels, queryParameters: params.isEmpty ? null : params);
+    final list = _extractList(response.data);
+    return list.map(VehicleModelOption.fromJson).toList();
+  }
+
   Future<List<ChecklistItemModel>> fetchChecklistItems() async {
     final response = await _apiClient.get<dynamic>(ApiEndpoints.checklistItems);
     final list = _extractList(response.data);

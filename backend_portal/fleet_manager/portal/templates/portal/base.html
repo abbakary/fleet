@@ -140,6 +140,13 @@
                     <span>Vehicles</span>
                   </a>
                 </li>
+                <li class="sidebar-list{% if active_tab == 'catalog' %} active{% endif %}">
+                  <a class="sidebar-link link-nav{% if active_tab == 'catalog' %} active{% endif %}" href="{% url 'portal-vehicle-catalog' %}">
+                    <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-folder"></use></svg>
+                    <svg class="fill-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-folder"></use></svg>
+                    <span>Vehicle Catalog</span>
+                  </a>
+                </li>
                 <li class="sidebar-list{% if active_tab == 'assignments' %} active{% endif %}">
                   <a class="sidebar-link link-nav{% if active_tab == 'assignments' %} active{% endif %}" href="{% url 'portal-assignments' %}">
                     <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-task"></use></svg>

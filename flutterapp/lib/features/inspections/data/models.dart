@@ -134,6 +134,34 @@ class VehicleModel {
       );
 }
 
+class VehicleMakeOption {
+  const VehicleMakeOption({required this.id, required this.name});
+
+  final int id;
+  final String name;
+
+  factory VehicleMakeOption.fromJson(Map<String, dynamic> json) => VehicleMakeOption(
+        id: json['id'] as int,
+        name: json['name'] as String? ?? '',
+      );
+}
+
+class VehicleModelOption {
+  const VehicleModelOption({required this.id, required this.make, required this.makeName, required this.name});
+
+  final int id;
+  final int make;
+  final String makeName;
+  final String name;
+
+  factory VehicleModelOption.fromJson(Map<String, dynamic> json) => VehicleModelOption(
+        id: json['id'] as int,
+        make: json['make'] as int,
+        makeName: json['make_name'] as String? ?? '',
+        name: json['name'] as String? ?? '',
+      );
+}
+
 class ChecklistItemModel {
   const ChecklistItemModel({
     required this.id,

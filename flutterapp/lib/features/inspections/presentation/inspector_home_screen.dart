@@ -427,6 +427,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                 MakeModelSelector(
                   makeController: make,
                   modelController: model,
+                  repository: controller.repository,
                   vehicles: controller.vehicles,
                 ),
                 Row(

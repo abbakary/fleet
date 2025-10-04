@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../data/models.dart';
+import '../../data/inspections_repository.dart';
 
 class MakeModelSelector extends StatefulWidget {
   const MakeModelSelector({
     required this.makeController,
     required this.modelController,
-    required this.vehicles,
+    this.vehicles = const <VehicleModel>[],
+    this.repository,
     this.onMakeChanged,
     this.onModelChanged,
     super.key,
@@ -15,6 +17,7 @@ class MakeModelSelector extends StatefulWidget {
   final TextEditingController makeController;
   final TextEditingController modelController;
   final List<VehicleModel> vehicles;
+  final InspectionsRepository? repository;
   final ValueChanged<String>? onMakeChanged;
   final ValueChanged<String>? onModelChanged;
 
@@ -23,22 +26,53 @@ class MakeModelSelector extends StatefulWidget {
 }
 
 class _MakeModelSelectorState extends State<MakeModelSelector> {
-  late final Set<String> _allMakes;
-  late final Map<String, Set<String>> _modelsByMake;
+  Set<String> _allMakes = <String>{};
+  final Map<String, Set<String>> _modelsByMake = <String, Set<String>>{};
   String _selectedMake = '';
 
   @override
   void initState() {
     super.initState();
-    _allMakes = widget.vehicles.map((v) => v.make.trim()).where((m) => m.isNotEmpty).toSet()..toList()..toList();
-    _modelsByMake = <String, Set<String>>{};
-    for (final v in widget.vehicles) {
-      final make = v.make.trim();
-      final model = v.model.trim();
-      if (make.isEmpty || model.isEmpty) continue;
-      _modelsByMake.putIfAbsent(make, () => <String>{}).add(model);
-    }
     _selectedMake = widget.makeController.text.trim();
+    if (widget.repository != null) {
+      _loadMakes();
+    } else {
+      _allMakes = widget.vehicles.map((v) => v.make.trim()).where((m) => m.isNotEmpty).toSet();
+      for (final v in widget.vehicles) {
+        final make = v.make.trim();
+        final model = v.model.trim();
+        if (make.isEmpty || model.isEmpty) continue;
+        _modelsByMake.putIfAbsent(make, () => <String>{}).add(model);
+      }
+    }
+  }
+
+  Future<void> _loadMakes() async {
+    try {
+      final repo = widget.repository!;
+      final makes = await repo.fetchVehicleMakes();
+      setState(() {
+        _allMakes = makes.map((m) => m.name.trim()).where((n) => n.isNotEmpty).toSet();
+      });
+      if (_selectedMake.isNotEmpty) {
+        await _loadModelsForMake(_selectedMake);
+      }
+    } catch (_) {
+      // Silently ignore; fallback to manual entry
+    }
+  }
+
+  Future<void> _loadModelsForMake(String makeName) async {
+    if (widget.repository == null || makeName.trim().isEmpty) return;
+    try {
+      final repo = widget.repository!;
+      final models = await repo.fetchVehicleModels(makeName: makeName.trim());
+      setState(() {
+        _modelsByMake[makeName.trim()] = models.map((m) => m.name.trim()).where((n) => n.isNotEmpty).toSet();
+      });
+    } catch (_) {
+      // Ignore errors
+    }
   }
 
   Iterable<String> _suggestMakes(String pattern) {
@@ -75,16 +109,18 @@ class _MakeModelSelectorState extends State<MakeModelSelector> {
     return RawAutocomplete<String>(
       textEditingController: widget.makeController,
       optionsBuilder: (text) => _suggestMakes(text.text),
-      onSelected: (value) {
+      onSelected: (value) async {
         _selectedMake = value.trim();
         widget.onMakeChanged?.call(_selectedMake);
-        // When make changes, clear model unless the current model exists for the new make
         final models = _modelsByMake[_selectedMake] ?? const <String>{};
         if (!models.contains(widget.modelController.text.trim())) {
           widget.modelController.text = '';
           widget.onModelChanged?.call('');
         }
-        setState(() {});
+        if (widget.repository != null) {
+          await _loadModelsForMake(_selectedMake);
+        }
+        if (mounted) setState(() {});
       },
       fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) => TextFormField(
         controller: controller,
@@ -95,6 +131,9 @@ class _MakeModelSelectorState extends State<MakeModelSelector> {
         onChanged: (value) {
           _selectedMake = value.trim();
           widget.onMakeChanged?.call(_selectedMake);
+          if (widget.repository != null) {
+            _loadModelsForMake(_selectedMake);
+          }
           setState(() {});
         },
       ),

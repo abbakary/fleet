@@ -11,4 +11,6 @@ class ApiEndpoints {
   static const inspectionApprove = 'approve/';
   static const categories = 'categories/';
   static const checklistItems = 'checklist-items/';
+  static const vehicleMakes = 'vehicle-makes/';
+  static const vehicleModels = 'vehicle-models/';
 }

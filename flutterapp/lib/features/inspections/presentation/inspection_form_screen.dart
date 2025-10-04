@@ -1277,16 +1277,16 @@ class _ChecklistItemEditor extends StatelessWidget {
                     color: theme.colorScheme.errorContainer,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text('Photo required', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onErrorContainer)),
+                  child: Text(context.l10n.photoRequiredLabel, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onErrorContainer)),
                 ),
             ],
           ),
           const SizedBox(height: 16),
           SegmentedButton<String>(
-            segments: const [
-              ButtonSegment<String>(value: InspectionItemResponse.RESULT_PASS, label: Text('Pass'), icon: Icon(Icons.check_circle_outline)),
-              ButtonSegment<String>(value: InspectionItemResponse.RESULT_FAIL, label: Text('Fail'), icon: Icon(Icons.error_outline)),
-              ButtonSegment<String>(value: InspectionItemResponse.RESULT_NA, label: Text('N/A'), icon: Icon(Icons.help_outline)),
+            segments: [
+              ButtonSegment<String>(value: InspectionItemResponse.RESULT_PASS, label: Text(context.l10n.segmentedPass), icon: const Icon(Icons.check_circle_outline)),
+              ButtonSegment<String>(value: InspectionItemResponse.RESULT_FAIL, label: Text(context.l10n.segmentedFail), icon: const Icon(Icons.error_outline)),
+              ButtonSegment<String>(value: InspectionItemResponse.RESULT_NA, label: Text(context.l10n.segmentedNA), icon: const Icon(Icons.help_outline)),
             ],
             selected: <String>{response.result},
             onSelectionChanged: (values) => onResultChanged(values.first),
@@ -1301,7 +1301,7 @@ class _ChecklistItemEditor extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Severity', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                        Text(context.l10n.severityLabel, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
                         Text(severityLabel, style: theme.textTheme.bodySmall),
                       ],
                     ),
@@ -1325,25 +1325,25 @@ class _ChecklistItemEditor extends StatelessWidget {
             initialValue: response.notes,
             minLines: 2,
             maxLines: 5,
-            decoration: const InputDecoration(labelText: 'Notes', border: OutlineInputBorder()),
+            decoration: InputDecoration(labelText: context.l10n.notesFieldLabel, border: OutlineInputBorder()),
             onChanged: onNotesChanged,
             validator: (value) {
               if (response.result == InspectionItemResponse.RESULT_FAIL && photos.isEmpty) {
-                return 'Photo evidence is required for failures.';
+                return context.l10n.photoEvidenceRequiredForFailure;
               }
               return null;
             },
           ),
           const SizedBox(height: 16),
           _PhotoGallery(
-            title: 'Photo evidence',
+            title: context.l10n.photoEvidenceLabel,
             photos: photos,
             onAdd: onAddPhoto,
             onRemove: onRemovePhoto,
             requiresPhoto: requiresPhoto,
             helperText: requiresPhoto
-                ? 'Capture at least one annotated photo when recording a failure.'
-                : 'Optional — attach reference photos for this checklist item.',
+                ? context.l10n.captureAtLeastOneAnnotatedPhoto
+                : context.l10n.optionalAttachReferencePhotos,
           ),
         ],
       ),

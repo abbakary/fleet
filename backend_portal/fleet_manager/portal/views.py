@@ -123,6 +123,39 @@ class VehicleAssignmentViewSet(viewsets.ModelViewSet):
         return [IsAuthenticated(), IsInspectorOrAdmin()]
 
 
+class VehicleMakeViewSet(viewsets.ModelViewSet):
+    queryset = VehicleMake.objects.all()
+    serializer_class = VehicleMakeSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_permissions(self):
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            return [IsAuthenticated(), IsInspectorOrAdmin()]
+        return [IsAuthenticated()]
+
+
+class VehicleModelNameViewSet(viewsets.ModelViewSet):
+    serializer_class = VehicleModelNameSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        qs = VehicleModelName.objects.select_related("make").all()
+        make_id = self.request.query_params.get("make")
+        make_name = self.request.query_params.get("make_name")
+        if make_id:
+            qs = qs.filter(make_id=make_id)
+        elif make_name:
+            qs = qs.filter(make__name__iexact=make_name)
+        return qs
+
+    def get_permissions(self):
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            return [IsAuthenticated(), IsInspectorOrAdmin()]
+        return [IsAuthenticated()]
+
+
 class InspectionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = None

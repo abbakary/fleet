@@ -109,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Log in to coordinate inspections, capture field evidence, and deliver customer-ready reports.',
+                                l10n.loginSubtitle,
                                 textAlign: TextAlign.center,
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: const Color(0xFF4A6572),

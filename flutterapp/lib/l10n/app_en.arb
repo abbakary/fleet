@@ -147,6 +147,10 @@
   "composeNotesIdentificationVerified": "Vehicle identification verified: {yesNo}",
   "@composeNotesIdentificationVerified": { "placeholders": { "yesNo": {"type":"String"} } },
 
+  "checklistGuideTitle": "Fleet inspection playbook",
+  "recentInspectionsTitle": "Recent inspections",
+  "noInspectionsSubmitted": "No inspections submitted yet.",
+
   "step_pre_trip_documentation_title": "Pre-Trip Documentation",
   "step_pre_trip_documentation_summary": "Confirm vehicle identity, capture baseline readings, and note any pre-existing conditions before physical checks begin.",
   "step_pre_trip_documentation_instruction_1": "Scan the VIN or license plate using the guided scanner overlay.",

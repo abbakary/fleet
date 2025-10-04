@@ -1238,7 +1238,7 @@ class _ChecklistItemEditor extends StatelessWidget {
     final theme = Theme.of(context);
     final requiresPhoto = item.requiresPhoto;
     final hasFailure = response.result == InspectionItemResponse.RESULT_FAIL;
-    final severityLabel = _severityLabel(response.severity);
+    final severityLabel = _severityLabel(context, response.severity);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(18),

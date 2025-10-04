@@ -1350,20 +1350,21 @@ class _ChecklistItemEditor extends StatelessWidget {
     );
   }
 
-  String _severityLabel(int severity) {
+  String _severityLabel(BuildContext context, int severity) {
+    final l10n = context.l10n;
     switch (severity) {
       case 1:
-        return 'Minor';
+        return l10n.severityMinor;
       case 2:
-        return 'Low';
+        return l10n.severityLow;
       case 3:
-        return 'Moderate';
+        return l10n.severityModerate;
       case 4:
-        return 'High';
+        return l10n.severityHigh;
       case 5:
-        return 'Critical';
+        return l10n.severityCritical;
       default:
-        return 'Unknown';
+        return l10n.severityUnknown;
     }
   }
 }

@@ -186,6 +186,11 @@ const List<ChecklistCategoryBlueprint> fleetChecklistBlueprint = <ChecklistCateg
   ),
 ];
 
+String _aliasCode(String code) {
+  if (code == 'pre_trip_documentation') return 'pre_trip';
+  return code;
+}
+
 List<ChecklistGuideEntry> buildChecklistGuide(List<InspectionCategoryModel> remoteCategories) {
   final Map<String, InspectionCategoryModel> remoteByCode = <String, InspectionCategoryModel>{
     for (final category in remoteCategories) category.code: category,
@@ -194,7 +199,8 @@ List<ChecklistGuideEntry> buildChecklistGuide(List<InspectionCategoryModel> remo
   final List<ChecklistGuideEntry> entries = <ChecklistGuideEntry>[];
 
   for (final blueprint in fleetChecklistBlueprint) {
-    final InspectionCategoryModel? remote = remoteByCode[blueprint.code];
+    final String alias = _aliasCode(blueprint.code);
+    final InspectionCategoryModel? remote = remoteByCode[blueprint.code] ?? remoteByCode[alias];
     final String title = (remote?.name.trim().isNotEmpty ?? false) ? remote!.name : blueprint.title;
     final String summary = (remote?.description.trim().isNotEmpty ?? false) ? remote!.description : blueprint.summary;
     final List<ChecklistGuidePoint> points = remote?.items

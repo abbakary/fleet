@@ -144,7 +144,10 @@ class _UnsupportedRoleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Fleet Inspection')),
+      appBar: AppBar(
+        title: Text(context.l10n.appTitleShort),
+        actions: const [LanguageMenu()],
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -153,17 +156,20 @@ class _UnsupportedRoleScreen extends StatelessWidget {
             children: [
               const Icon(Icons.desktop_windows_outlined, size: 48),
               const SizedBox(height: 12),
-              Text('Hello ${profile.fullName}', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                context.l10n.unsupportedGreeting(profile.fullName),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 8),
-              const Text(
-                'Admin features are available on the web portal.\nPlease use the inspector or customer role in the app.',
+              Text(
+                context.l10n.unsupportedMessage,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
                 onPressed: () => context.read<SessionController>().logout(),
                 icon: const Icon(Icons.logout),
-                label: const Text('Sign out'),
+                label: Text(context.l10n.commonSignOut),
               ),
             ],
           ),

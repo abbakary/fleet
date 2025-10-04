@@ -16,6 +16,8 @@ from .models import (
     PortalUser,
     Vehicle,
     VehicleAssignment,
+    VehicleMake,
+    VehicleModelName,
 )
 
 User = get_user_model()

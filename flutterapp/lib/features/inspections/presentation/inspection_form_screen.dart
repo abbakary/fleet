@@ -808,30 +808,30 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     }
     if (step.definition.code == 'pre_trip_documentation') {
       if (_selectedVehicle == null) {
-        _showError('Select a vehicle before continuing.');
+        _showError(context.l10n.selectVehicleBeforeContinuing);
         return false;
       }
       if (_vinController.text.trim().isEmpty) {
-        _showError('Scan or enter the VIN to continue.');
+        _showError(context.l10n.scanOrEnterVin);
         return false;
       }
       if (_plateController.text.trim().isEmpty) {
-        _showError('Capture the license plate to continue.');
+        _showError(context.l10n.captureLicensePlateToContinue);
         return false;
       }
       if (!_identificationVerified) {
-        _showError('Confirm that vehicle identification has been verified.');
+        _showError(context.l10n.confirmIdentificationVerified);
         return false;
       }
       if ((_stepPhotos[step.definition.code]?.isEmpty ?? true)) {
-        _showError('Capture a baseline photo before proceeding.');
+        _showError(context.l10n.captureBaselinePhoto);
         return false;
       }
     }
     if (step.definition.code == 'operational_tests') {
       final incomplete = _operationalChecks.entries.where((entry) => !(entry.value)).map((entry) => entry.key).toList();
       if (incomplete.isNotEmpty) {
-        _showError('Complete all operational tests before submitting.');
+        _showError(context.l10n.completeOperationalTests);
         return false;
       }
     }

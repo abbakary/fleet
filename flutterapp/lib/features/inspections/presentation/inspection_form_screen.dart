@@ -806,6 +806,10 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     });
   }
 
+  ScrollController _scrollControllerFor(String stepCode) {
+    return _stepScrollControllers.putIfAbsent(stepCode, () => ScrollController());
+  }
+
   Set<int> _instructionStateFor(_GuidedStep step) {
     final completion = _instructionCompletion[step.definition.code];
     return completion == null ? <int>{} : Set<int>.from(completion);

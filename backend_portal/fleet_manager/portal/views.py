@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import json
+from typing import Any, List, Tuple
+
 from django.db.models import Prefetch
-from rest_framework import mixins, viewsets
+from django.http import QueryDict
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -37,6 +41,104 @@ from .serializers import (
     VehicleModelNameSerializer,
 )
 from .services import generate_customer_report
+
+
+def _extract_data_pairs(data: Any) -> List[Tuple[str, List[Any]]]:
+    if isinstance(data, QueryDict):
+        return [(key, list(values)) for key, values in data.lists()]
+    if isinstance(data, dict):
+        pairs: List[Tuple[str, List[Any]]] = []
+        for key, value in data.items():
+            if isinstance(value, list):
+                pairs.append((key, value))
+            else:
+                pairs.append((key, [value]))
+        return pairs
+    return []
+
+
+def _assign_path(container: Any, path: List[str], values: List[Any]) -> None:
+    segment = path[0]
+    is_last = len(path) == 1
+    value: Any = values if len(values) > 1 else values[0]
+
+    if isinstance(container, list):
+        if not segment.isdigit():
+            return
+        index = int(segment)
+        while len(container) <= index:
+            container.append(None)
+        if is_last:
+            container[index] = value
+            return
+        next_segment = path[1]
+        child = container[index]
+        if child is None or (next_segment.isdigit() and not isinstance(child, list)) or (not next_segment.isdigit() and not isinstance(child, dict)):
+            container[index] = [] if next_segment.isdigit() else {}
+        _assign_path(container[index], path[1:], values)
+        return
+
+    if is_last:
+        container[segment] = value
+        return
+
+    next_segment = path[1]
+    child = container.get(segment)
+    if child is None or (next_segment.isdigit() and not isinstance(child, list)) or (not next_segment.isdigit() and not isinstance(child, dict)):
+        container[segment] = [] if next_segment.isdigit() else {}
+    _assign_path(container[segment], path[1:], values)
+
+
+def _assign_nested_item(buckets: dict[int, dict[str, Any]], key: str, values: List[Any]) -> None:
+    prefix = "item_responses["
+    remainder = key[len(prefix) :]
+    remainder = remainder.rstrip("]")
+    if not remainder:
+        return
+    segments = remainder.split("][")
+    try:
+        index = int(segments[0])
+    except ValueError:
+        return
+    path = segments[1:]
+    if not path:
+        return
+    bucket = buckets.setdefault(index, {})
+    _assign_path(bucket, path, values)
+
+
+def _normalize_inspection_payload(data: Any) -> dict[str, Any]:
+    base_payload: dict[str, Any] = {}
+    nested_items: dict[int, dict[str, Any]] = {}
+
+    for key, values in _extract_data_pairs(data):
+        if key.startswith("item_responses["):
+            _assign_nested_item(nested_items, key, values)
+            continue
+        if key == "item_responses" and len(values) == 1 and isinstance(values[0], str):
+            try:
+                base_payload[key] = json.loads(values[0])
+            except json.JSONDecodeError:
+                base_payload[key] = []
+            continue
+        base_payload[key] = values[0] if len(values) == 1 else values
+
+    if "item_responses" not in base_payload:
+        if nested_items:
+            base_payload["item_responses"] = [nested_items[index] for index in sorted(nested_items)]
+        else:
+            base_payload["item_responses"] = []
+    else:
+        responses = base_payload["item_responses"]
+        if isinstance(responses, str):
+            try:
+                base_payload["item_responses"] = json.loads(responses)
+            except json.JSONDecodeError:
+                base_payload["item_responses"] = []
+        elif isinstance(responses, list):
+            base_payload["item_responses"] = [item for item in responses if isinstance(item, dict)]
+
+    return base_payload
 
 
 class AuthTokenView(ObtainAuthToken):
@@ -177,6 +279,7 @@ class InspectionViewSet(viewsets.ModelViewSet):
         "inspector__profile",
         "inspector__profile__user",
         "customer",
+        "customer_report",
     ).prefetch_related(
         Prefetch(
             "item_responses",
@@ -203,6 +306,28 @@ class InspectionViewSet(viewsets.ModelViewSet):
         if customer_profile:
             return queryset.filter(customer=customer_profile)
         return queryset.none()
+
+    def _prepare_payload(self, request):
+        return _normalize_inspection_payload(request.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=self._prepare_payload(request))
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=self._prepare_payload(request), partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs["partial"] = True
+        return self.update(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         profile = get_portal_profile(self.request.user)

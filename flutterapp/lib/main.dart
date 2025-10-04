@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/api/api_client.dart';
 import 'core/config/app_config.dart';
+import 'core/config/locale_controller.dart';
 import 'core/storage/offline_queue.dart';
 import 'core/storage/token_store.dart';
+import 'core/ui/language_menu.dart';
+import 'core/utils/localization_extensions.dart';
 import 'features/auth/data/auth_repository.dart';
 import 'features/auth/presentation/login_screen.dart';
 import 'features/auth/presentation/session_controller.dart';
@@ -19,12 +24,15 @@ Future<void> main() async {
   final tokenStore = TokenStore();
   final apiClient = ApiClient(config: config, tokenStore: tokenStore);
   final offlineQueue = await OfflineQueueService.init();
+  final preferences = await SharedPreferences.getInstance();
+  final localeController = LocaleController(preferences: preferences);
 
   runApp(AppRoot(
     config: config,
     tokenStore: tokenStore,
     apiClient: apiClient,
     offlineQueue: offlineQueue,
+    localeController: localeController,
   ));
 }
 
@@ -34,6 +42,7 @@ class AppRoot extends StatelessWidget {
     required this.tokenStore,
     required this.apiClient,
     required this.offlineQueue,
+    required this.localeController,
     super.key,
   });
 
@@ -41,6 +50,7 @@ class AppRoot extends StatelessWidget {
   final TokenStore tokenStore;
   final ApiClient apiClient;
   final OfflineQueueService offlineQueue;
+  final LocaleController localeController;
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +60,7 @@ class AppRoot extends StatelessWidget {
         Provider<TokenStore>.value(value: tokenStore),
         Provider<ApiClient>.value(value: apiClient),
         Provider<OfflineQueueService>.value(value: offlineQueue),
+        ChangeNotifierProvider<LocaleController>.value(value: localeController),
         ProxyProvider2<ApiClient, OfflineQueueService, InspectionsRepository>(
           update: (_, api, queue, __) => InspectionsRepository(apiClient: api, offlineQueueService: queue),
         ),
@@ -61,7 +72,10 @@ class AppRoot extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Fleet Inspection',
+        onGenerateTitle: (context) => context.l10n.appTitle,
+        locale: context.watch<LocaleController>().locale,
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(
@@ -130,7 +144,10 @@ class _UnsupportedRoleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Fleet Inspection')),
+      appBar: AppBar(
+        title: Text(context.l10n.appTitleShort),
+        actions: const [LanguageMenu()],
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -139,17 +156,20 @@ class _UnsupportedRoleScreen extends StatelessWidget {
             children: [
               const Icon(Icons.desktop_windows_outlined, size: 48),
               const SizedBox(height: 12),
-              Text('Hello ${profile.fullName}', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                context.l10n.unsupportedGreeting(profile.fullName),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 8),
-              const Text(
-                'Admin features are available on the web portal.\nPlease use the inspector or customer role in the app.',
+              Text(
+                context.l10n.unsupportedMessage,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
                 onPressed: () => context.read<SessionController>().logout(),
                 icon: const Icon(Icons.logout),
-                label: const Text('Sign out'),
+                label: Text(context.l10n.commonSignOut),
               ),
             ],
           ),

@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../../../core/exceptions/app_exception.dart';
 import '../../../core/ui/animated_background.dart';
+import '../../../core/ui/language_menu.dart';
+import '../../../core/utils/localization_extensions.dart';
 import 'session_controller.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -31,6 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final session = context.watch<SessionController>();
     final isLoading = session.isLoading;
     final error = session.error;
+    final l10n = context.l10n;
 
     return Scaffold(
       body: Stack(
@@ -48,10 +51,17 @@ class _LoginScreenState extends State<LoginScreen> {
           const TopWaves(),
           const AnimatedParticlesBackground(),
           SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: ConstrainedBox(
+            child: Stack(
+              children: [
+                const Positioned(
+                  top: 12,
+                  right: 12,
+                  child: LanguageMenu(iconColor: Colors.white),
+                ),
+                Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 400),
@@ -91,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'Fleet Inspection Portal',
+                                l10n.loginTitle,
                                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                       fontWeight: FontWeight.w700,
                                       color: const Color(0xFF22313F),
@@ -99,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Log in to coordinate inspections, capture field evidence, and deliver customer-ready reports.',
+                                l10n.loginSubtitle,
                                 textAlign: TextAlign.center,
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: const Color(0xFF4A6572),
@@ -112,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller: _usernameController,
                             textInputAction: TextInputAction.next,
                             decoration: InputDecoration(
-                              labelText: 'Username',
+                              labelText: l10n.loginUsernameLabel,
                               prefixIcon: const Icon(Icons.person_outline),
                               filled: true,
                               fillColor: const Color(0xFFF4F7FB),
@@ -120,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Enter your username';
+                                return l10n.loginUsernameRequired;
                               }
                               return null;
                             },
@@ -130,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller: _passwordController,
                             obscureText: !_passwordVisible,
                             decoration: InputDecoration(
-                              labelText: 'Password',
+                              labelText: l10n.loginPasswordLabel,
                               prefixIcon: const Icon(Icons.lock_outline),
                               suffixIcon: IconButton(
                                 icon: Icon(_passwordVisible ? Icons.visibility_off : Icons.visibility),
@@ -143,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             onFieldSubmitted: (_) => _submit(context),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Enter your password';
+                                return l10n.loginPasswordRequired;
                               }
                               return null;
                             },
@@ -167,14 +177,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                     width: 22,
                                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                   )
-                                : const Text('Sign in'),
+                                : Text(l10n.commonSignIn),
                           ),
                         ],
                       ),
-                    ),
-                  ),
                 ),
-              ),
+              ],
+            ),
+          ),
             ),
           ),
         ],

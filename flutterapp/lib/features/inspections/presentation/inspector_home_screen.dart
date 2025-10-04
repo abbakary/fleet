@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/ui/animated_background.dart';
+import '../../../core/ui/language_menu.dart';
+import '../../../core/utils/localization_extensions.dart';
 import '../../auth/presentation/session_controller.dart';
 import '../data/checklist_blueprint.dart';
 import '../data/inspections_repository.dart';

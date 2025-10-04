@@ -5,5 +5,24 @@
   "languageMenuTooltip": "Badilisha lugha",
   "languageMenuSystem": "Chaguo la mfumo",
   "languageMenuEnglish": "Kiingereza",
-  "languageMenuSwahili": "Kiswahili"
+  "languageMenuSwahili": "Kiswahili",
+  "loginTitle": "Ingia kwenye akaunti yako",
+  "loginSubtitle": "Weka taarifa zako ili kuendelea",
+  "loginUsernameLabel": "Jina la mtumiaji",
+  "loginUsernameRequired": "Jina la mtumiaji linahitajika",
+  "loginPasswordLabel": "Nywila",
+  "loginPasswordRequired": "Nywila inahitajika",
+  "commonSignIn": "Ingia",
+  "commonSignOut": "Toka",
+  "unsupportedGreeting": "Habari {name}",
+  "@unsupportedGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Jane Doe"
+      }
+    },
+    "description": "Salamu kwenye ukurasa wa jukumu lisilo tolewa kwenye app ya simu"
+  },
+  "unsupportedMessage": "Aina ya akaunti yako haiungwi mkono kwenye programu ya simu. Tafadhali tumia tovuti."
 }

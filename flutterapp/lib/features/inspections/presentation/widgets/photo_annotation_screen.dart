@@ -185,7 +185,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
             FilledButton.icon(
               onPressed: _save,
               icon: const Icon(Icons.save_alt),
-              label: const Text('Save'),
+              label: Text(context.l10n.saveLabelShort),
             ),
           ],
         ),

@@ -147,6 +147,10 @@
   "composeNotesIdentificationVerified": "Utambulisho wa gari umehakikiwa: {yesNo}",
   "@composeNotesIdentificationVerified": { "placeholders": { "yesNo": {"type":"String"} } },
 
+  "checklistGuideTitle": "Mpango wa ukaguzi wa magari",
+  "recentInspectionsTitle": "Ukaguzi zilizopita",
+  "noInspectionsSubmitted": "Hakuna ukaguzi uliotumwa bado.",
+
   "step_pre_trip_documentation_title": "Nyaraka za Kabla ya Safari",
   "step_pre_trip_documentation_summary": "Thibitisha utambulisho wa gari, pata kusoma za msingi, na andika hali yoyote iliyopo kabla ya kuanza ukaguzi wa kimwili.",
   "step_pre_trip_documentation_instruction_1": "Skana VIN au nambari ya usajili kutumia overlay ya skana.",

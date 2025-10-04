@@ -56,6 +56,15 @@ class ApiClient {
     }
   }
 
+  Future<List<int>> getBytes(String path, {Map<String, dynamic>? queryParameters}) async {
+    try {
+      final response = await _dio.get<List<int>>(path, queryParameters: queryParameters, options: Options(responseType: ResponseType.bytes));
+      return response.data ?? <int>[];
+    } on DioException catch (error) {
+      throw AppException('GET(bytes) $path failed', cause: error);
+    }
+  }
+
   Future<Response<T>> post<T>(String path, {Object? data, Map<String, dynamic>? queryParameters}) async {
     try {
       return await _dio.post<T>(path, data: data, queryParameters: queryParameters);

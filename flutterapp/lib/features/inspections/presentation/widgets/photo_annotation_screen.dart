@@ -170,7 +170,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Stroke width: ${_strokeWidth.toStringAsFixed(0)}', style: theme.textTheme.bodySmall),
+                  Text(context.l10n.strokeWidthLabel(_strokeWidth.toInt()), style: theme.textTheme.bodySmall),
                   Slider(
                     value: _strokeWidth,
                     min: 2,

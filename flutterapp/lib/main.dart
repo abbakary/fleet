@@ -71,7 +71,10 @@ class AppRoot extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Fleet Inspection',
+        onGenerateTitle: (context) => context.l10n.appTitle,
+        locale: context.watch<LocaleController>().locale,
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(

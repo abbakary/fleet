@@ -278,7 +278,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
         if (_fabOpen) ...[
           _MiniFab(
             icon: Icons.add_task,
-            label: 'New inspection',
+            label: l10n.quickActionsNewInspection,
             onTap: controller.vehicles.isEmpty ? null : () => _startAdHocInspection(context, controller),
           ),
           const SizedBox(height: 10),

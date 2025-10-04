@@ -15,6 +15,8 @@ from .forms import (
     PortalUserUpdateForm,
     VehicleAssignmentForm,
     VehicleForm,
+    VehicleMakeForm,
+    VehicleModelNameForm,
 )
 from .models import (
     ChecklistItem,
@@ -25,6 +27,8 @@ from .models import (
     PortalUser,
     Vehicle,
     VehicleAssignment,
+    VehicleMake,
+    VehicleModelName,
 )
 from .permissions import get_portal_profile
 

@@ -9,6 +9,7 @@ class ApiEndpoints {
   static const inspections = 'inspections/';
   static const inspectionSubmit = 'submit/';
   static const inspectionApprove = 'approve/';
+  static const inspectionReportPdf = 'report_pdf/';
   static const categories = 'categories/';
   static const checklistItems = 'checklist-items/';
   static const vehicleMakes = 'vehicle-makes/';

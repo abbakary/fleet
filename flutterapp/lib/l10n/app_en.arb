@@ -1,0 +1,9 @@
+{
+  "@@locale": "en",
+  "appTitle": "Fleet Inspection",
+  "appTitleShort": "Fleet Inspection",
+  "languageMenuTooltip": "Change language",
+  "languageMenuSystem": "System default",
+  "languageMenuEnglish": "English",
+  "languageMenuSwahili": "Kiswahili"
+}

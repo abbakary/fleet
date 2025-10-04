@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../../../core/exceptions/app_exception.dart';
 import '../../../core/ui/animated_background.dart';
+import '../../../core/ui/language_menu.dart';
+import '../../../core/utils/localization_extensions.dart';
 import 'session_controller.dart';
 
 class LoginScreen extends StatefulWidget {

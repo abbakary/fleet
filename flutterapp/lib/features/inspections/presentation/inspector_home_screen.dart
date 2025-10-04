@@ -10,6 +10,7 @@ import '../data/models.dart';
 import 'controllers/inspector_dashboard_controller.dart';
 import 'inspection_detail_screen.dart';
 import 'inspection_form_screen.dart';
+import 'widgets/make_model_selector.dart';
 
 class InspectorHomeScreen extends StatelessWidget {
   const InspectorHomeScreen({required this.profile, super.key});

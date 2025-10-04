@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 import '../../../core/ui/animated_background.dart';
+import '../../../core/utils/localization_extensions.dart';
 
 import '../data/guided_steps.dart';
 import '../data/inspections_repository.dart';

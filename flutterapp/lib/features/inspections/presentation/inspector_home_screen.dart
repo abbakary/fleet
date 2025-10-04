@@ -284,7 +284,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
           const SizedBox(height: 10),
           _MiniFab(
             icon: Icons.sync,
-            label: controller.isSyncing ? 'Syncing…' : 'Sync offline',
+            label: controller.isSyncing ? l10n.syncingShort : l10n.quickActionsSyncOffline,
             onTap: controller.isSyncing
                 ? null
                 : () async {

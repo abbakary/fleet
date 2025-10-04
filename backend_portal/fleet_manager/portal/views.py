@@ -31,6 +31,8 @@ from .serializers import (
     PortalUserSerializer,
     VehicleAssignmentSerializer,
     VehicleSerializer,
+    VehicleMakeSerializer,
+    VehicleModelNameSerializer,
 )
 from .services import generate_customer_report
 

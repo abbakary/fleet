@@ -384,9 +384,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(
-          result.isSubmitted
-              ? 'Inspection submitted successfully.'
-              : 'Inspection saved offline and will sync when online.',
+          result.isSubmitted ? l10n.inspectionSubmitted : l10n.inspectionSavedOffline,
         ),
       ),
     );

@@ -117,7 +117,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                                       child: CircularProgressIndicator(strokeWidth: 2),
                                     ),
                                     SizedBox(width: 8),
-                                    Text('Syncing offline inspections…'),
+                                    Text(l10n.syncingShort),
                                   ],
                                 ),
                               ),

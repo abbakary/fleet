@@ -96,6 +96,16 @@ class InspectionsRepository {
     return '';
   }
 
+  Future<String?> downloadReportPdf(int id) async {
+    final bytes = await _apiClient.getBytes('${ApiEndpoints.inspections}$id/${ApiEndpoints.inspectionReportPdf}');
+    if (bytes.isEmpty) return null;
+    final dir = await getApplicationDocumentsDirectory();
+    final filename = 'inspection_${id}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    final file = File('${dir.path}/$filename');
+    await file.writeAsBytes(bytes, flush: true);
+    return file.path;
+  }
+
   Future<int?> createVehicle({
     required int customerId,
     required String vin,

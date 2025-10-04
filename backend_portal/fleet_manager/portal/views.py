@@ -306,6 +306,28 @@ class InspectionViewSet(viewsets.ModelViewSet):
             return queryset.filter(customer=customer_profile)
         return queryset.none()
 
+    def _prepare_payload(self, request):
+        return _normalize_inspection_payload(request.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=self._prepare_payload(request))
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=self._prepare_payload(request), partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs["partial"] = True
+        return self.update(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         profile = get_portal_profile(self.request.user)
         inspector_profile = getattr(profile, "inspector_profile", None) if profile else None

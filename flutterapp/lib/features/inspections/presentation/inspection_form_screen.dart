@@ -326,6 +326,36 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
             ),
           ),
           const SizedBox(height: 24),
+          // Render checklist items for pre-trip step the same way as other checklist steps
+          ...(() {
+            final items = step.items;
+            if (items.isEmpty) {
+              return <Widget>[
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(l10n.stepNoChecklistItems),
+                  ),
+                ),
+              ];
+            }
+            return items
+                .map(
+                  (item) => _ChecklistItemEditor(
+                    key: ValueKey<int>(item.id),
+                    item: item,
+                    response: _responses[item.id]!,
+                    photos: _photoPaths[item.id] ?? const <String>[],
+                    onResultChanged: (result) => _updateResponse(item.id, result: result),
+                    onSeverityChanged: (severity) => _updateResponse(item.id, severity: severity.round()),
+                    onNotesChanged: (notes) => _updateResponse(item.id, notes: notes),
+                    onAddPhoto: () => _addPhotoForItem(step, item),
+                    onRemovePhoto: (path) => _removePhotoForItem(step, item, path),
+                  ),
+                )
+                .toList();
+          })(),
+          const SizedBox(height: 24),
           _buildGeneralPhotoSection(step, requiresPhoto: true, helperText: l10n.captureBaselinePhoto),
           const SizedBox(height: 24),
           _buildStepNotesField(step, hintText: l10n.captureBaselinePhoto),

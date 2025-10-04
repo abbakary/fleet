@@ -309,7 +309,7 @@ class CustomerReportSerializer(serializers.ModelSerializer):
 
 class InspectionSerializer(serializers.ModelSerializer):
     item_responses = InspectionItemResponseSerializer(many=True)
-    inspector = serializers.PrimaryKeyRelatedField(queryset=InspectorProfile.objects.filter(is_active=True))
+    inspector = serializers.PrimaryKeyRelatedField(queryset=InspectorProfile.objects.filter(is_active=True), required=False)
     vehicle = serializers.PrimaryKeyRelatedField(queryset=Vehicle.objects.all())
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), required=False)
     customer_report = CustomerReportSerializer(read_only=True)

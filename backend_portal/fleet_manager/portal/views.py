@@ -279,6 +279,7 @@ class InspectionViewSet(viewsets.ModelViewSet):
         "inspector__profile",
         "inspector__profile__user",
         "customer",
+        "customer_report",
     ).prefetch_related(
         Prefetch(
             "item_responses",

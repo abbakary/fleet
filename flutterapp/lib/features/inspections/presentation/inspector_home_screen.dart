@@ -52,9 +52,10 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
           appBar: AppBar(
             title: Text('Inspector • ${widget.profile.fullName}'),
             actions: [
+              const LanguageMenu(),
               IconButton(
                 icon: const Icon(Icons.logout),
-                tooltip: 'Sign out',
+                tooltip: l10n.commonSignOut,
                 onPressed: () async {
                   await controller.signOut();
                 },
@@ -84,8 +85,8 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                                       final processed = await controller.syncOfflineInspections();
                                       if (!context.mounted) return;
                                       final message = processed > 0
-                                          ? 'Synced $processed inspection(s).'
-                                          : 'No inspections waiting for sync.';
+                                          ? l10n.syncedCount(processed)
+                                          : l10n.syncedNone;
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(content: Text(message)),
                                       );
@@ -116,14 +117,14 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                                       child: CircularProgressIndicator(strokeWidth: 2),
                                     ),
                                     SizedBox(width: 8),
-                                    Text('Syncing offline inspections…'),
+                                    Text(l10n.syncingShort),
                                   ],
                                 ),
                               ),
                             ..._buildAssignmentSections(context, controller),
                             if (controller.checklistGuide.isNotEmpty) ...[
                               Text(
-                                'Fleet inspection playbook',
+                                l10n.checklistGuideTitle,
                                 style: Theme.of(context).textTheme.titleLarge,
                               ),
                               const SizedBox(height: 12),
@@ -132,15 +133,15 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                             ] else
                               const SizedBox(height: 24),
                             Text(
-                              'Recent inspections',
+                              l10n.recentInspectionsTitle,
                               style: Theme.of(context).textTheme.titleLarge,
                             ),
                             const SizedBox(height: 12),
                             if (controller.recentInspections.isEmpty)
-                              const Card(
+                              Card(
                                 child: Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Text('No inspections submitted yet.'),
+                                  padding: const EdgeInsets.all(16),
+                                  child: Text(l10n.noInspectionsSubmitted),
                                 ),
                               )
                             else
@@ -277,21 +278,21 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
         if (_fabOpen) ...[
           _MiniFab(
             icon: Icons.add_task,
-            label: 'New inspection',
+            label: l10n.quickActionsNewInspection,
             onTap: controller.vehicles.isEmpty ? null : () => _startAdHocInspection(context, controller),
           ),
           const SizedBox(height: 10),
           _MiniFab(
             icon: Icons.sync,
-            label: controller.isSyncing ? 'Syncing…' : 'Sync offline',
+            label: controller.isSyncing ? l10n.syncingShort : l10n.quickActionsSyncOffline,
             onTap: controller.isSyncing
                 ? null
                 : () async {
                     final processed = await controller.syncOfflineInspections();
                     if (!context.mounted) return;
                     final message = processed > 0
-                        ? 'Synced $processed inspection(s).'
-                        : 'No inspections waiting for sync.';
+                        ? l10n.syncedCount(processed)
+                        : l10n.syncedNone;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(message)),
                     );
@@ -383,9 +384,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(
-          result.isSubmitted
-              ? 'Inspection submitted successfully.'
-              : 'Inspection saved offline and will sync when online.',
+          result.isSubmitted ? l10n.inspectionSubmitted : l10n.inspectionSavedOffline,
         ),
       ),
     );
@@ -410,7 +409,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
     final saved = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add vehicle'),
+        title: Text(l10n.addVehicleTitle),
         content: Form(
           key: formKey,
           child: SingleChildScrollView(
@@ -419,12 +418,12 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
               children: [
                 TextFormField(
                   controller: plate,
-                  decoration: const InputDecoration(labelText: 'License plate'),
+                  decoration: InputDecoration(labelText: l10n.licensePlateLabelShort),
                   validator: _req,
                 ),
                 TextFormField(
                   controller: vin,
-                  decoration: const InputDecoration(labelText: 'VIN'),
+                  decoration: InputDecoration(labelText: l10n.vinLabelShort),
                   validator: _req,
                 ),
                 MakeModelSelector(
@@ -438,7 +437,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                     Expanded(
                       child: TextFormField(
                         controller: year,
-                        decoration: const InputDecoration(labelText: 'Year'),
+                        decoration: InputDecoration(labelText: l10n.yearLabel),
                         keyboardType: TextInputType.number,
                         validator: _req,
                       ),
@@ -447,7 +446,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                     Expanded(
                       child: TextFormField(
                         controller: type,
-                        decoration: const InputDecoration(labelText: 'Vehicle type'),
+                        decoration: InputDecoration(labelText: l10n.vehicleTypeLabel),
                         validator: _req,
                       ),
                     ),
@@ -458,7 +457,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                     Expanded(
                       child: TextFormField(
                         controller: mileage,
-                        decoration: const InputDecoration(labelText: 'Mileage'),
+                        decoration: InputDecoration(labelText: l10n.mileageLabel),
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -466,7 +465,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                     Expanded(
                       child: TextFormField(
                         controller: notes,
-                        decoration: const InputDecoration(labelText: 'Notes'),
+                        decoration: InputDecoration(labelText: l10n.notesLabel),
                       ),
                     ),
                   ],
@@ -478,7 +477,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancelLabel),
           ),
           FilledButton(
             onPressed: () async {
@@ -502,11 +501,11 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
               if (id != null) {
                 Navigator.of(context).pop(true);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Vehicle added.')),
+                  SnackBar(content: Text(l10n.vehicleAdded)),
                 );
               }
             },
-            child: const Text('Save'),
+            child: Text(l10n.saveLabel),
           ),
         ],
       ),
@@ -550,7 +549,7 @@ class _QuickActionsBar extends StatelessWidget {
             child: FilledButton.icon(
               onPressed: onNewInspection,
               icon: const Icon(Icons.add_task),
-              label: const Text('New inspection'),
+              label: Text(l10n.quickActionsNewInspection),
             ),
           ),
           const SizedBox(width: 10),
@@ -558,7 +557,7 @@ class _QuickActionsBar extends StatelessWidget {
             child: FilledButton.icon(
               onPressed: onSync,
               icon: const Icon(Icons.sync),
-              label: const Text('Sync offline'),
+              label: Text(l10n.quickActionsSyncOffline),
             ),
           ),
           const SizedBox(width: 10),
@@ -566,7 +565,7 @@ class _QuickActionsBar extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: onRefresh,
               icon: const Icon(Icons.refresh),
-              label: const Text('Refresh'),
+              label: Text(l10n.quickActionsRefresh),
             ),
           ),
         ],

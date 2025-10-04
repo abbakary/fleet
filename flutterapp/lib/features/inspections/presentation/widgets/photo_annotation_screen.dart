@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+import '../../../core/utils/localization_extensions.dart';
 
 class PhotoAnnotationScreen extends StatefulWidget {
   const PhotoAnnotationScreen({
@@ -59,10 +60,10 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Annotate ${widget.contextTitle}'),
+        title: Text(context.l10n.photoAnnotateTitle(widget.contextTitle)),
         actions: [
           IconButton(
-            tooltip: 'Clear all',
+            tooltip: context.l10n.clearAllTooltip,
             icon: const Icon(Icons.clear_all),
             onPressed: _strokes.isEmpty
                 ? null
@@ -73,7 +74,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
                   },
           ),
           IconButton(
-            tooltip: 'Undo',
+            tooltip: context.l10n.undoTooltip,
             icon: const Icon(Icons.undo),
             onPressed: _strokes.isEmpty
                 ? null
@@ -88,7 +89,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _image == null
-              ? const Center(child: Text('Unable to load image.'))
+              ? Center(child: Text(context.l10n.unableToLoadImage))
               : Column(
                   children: [
                     Expanded(
@@ -170,7 +171,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Stroke width: ${_strokeWidth.toStringAsFixed(0)}', style: theme.textTheme.bodySmall),
+                  Text(context.l10n.strokeWidthLabel(_strokeWidth.toInt()), style: theme.textTheme.bodySmall),
                   Slider(
                     value: _strokeWidth,
                     min: 2,
@@ -185,7 +186,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
             FilledButton.icon(
               onPressed: _save,
               icon: const Icon(Icons.save_alt),
-              label: const Text('Save'),
+              label: Text(context.l10n.saveLabelShort),
             ),
           ],
         ),
@@ -259,7 +260,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
     }
     if (annotatedPath == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to save annotated photo.')),
+        SnackBar(content: Text(context.l10n.unableToSaveAnnotatedPhoto)),
       );
       return;
     }

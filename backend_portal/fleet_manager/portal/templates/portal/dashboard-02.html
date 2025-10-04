@@ -1,613 +1,176 @@
 {% extends "portal/base.html" %}
 {% load static %}
-{% block title %}Fleet Manager Dashboard{% endblock %}
 
-{% block extra_head %}
-<style>
-  .dashboard-shell {
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-  }
-
-  .dashboard-hero {
-    position: relative;
-    overflow: hidden;
-    border-radius: 24px;
-    padding: 36px;
-    background: linear-gradient(135deg, #1d4ed8 0%, #312e81 45%, #7c3aed 100%);
-    color: white;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 32px;
-    align-items: center;
-  }
-
-  .dashboard-hero::before {
-    content: '';
-    position: absolute;
-    top: -60px;
-    right: -120px;
-    width: 340px;
-    height: 340px;
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.28) 0%, rgba(59, 130, 246, 0) 70%);
-  }
-
-  .dashboard-hero::after {
-    content: '';
-    position: absolute;
-    bottom: -140px;
-    left: -60px;
-    width: 260px;
-    height: 260px;
-    background: radial-gradient(circle at center, rgba(14, 165, 233, 0.35) 0%, rgba(14, 165, 233, 0) 70%);
-    opacity: 0.8;
-  }
-
-  .dashboard-hero-content,
-  .dashboard-hero-metrics {
-    position: relative;
-    z-index: 1;
-  }
-
-  .dashboard-hero-content {
-    flex: 1 1 320px;
-  }
-
-  .dashboard-hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.28);
-    text-transform: uppercase;
-    letter-spacing: 0.26em;
-    font-size: 10px;
-    font-weight: 600;
-    color: rgba(226, 232, 240, 0.85);
-    margin-bottom: 18px;
-  }
-
-  .dashboard-hero-badge i {
-    font-size: 12px;
-  }
-
-  .dashboard-hero-content h1 {
-    font-size: 36px;
-    margin-bottom: 14px;
-    font-weight: 700;
-  }
-
-  .dashboard-hero-content p {
-    margin: 0;
-    max-width: 520px;
-    line-height: 1.7;
-    color: rgba(226, 232, 240, 0.92);
-    font-size: 15px;
-  }
-
-  .dashboard-hero-actions {
-    margin-top: 26px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-
-  .hero-action {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 22px;
-    border-radius: 999px;
-    font-weight: 600;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-  }
-
-  .hero-action.primary {
-    background: white;
-    color: #1d4ed8;
-    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.25);
-  }
-
-  .hero-action.ghost {
-    background: rgba(15, 23, 42, 0.3);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.24);
-  }
-
-  .hero-action:hover {
-    transform: translateY(-3px);
-  }
-
-  .dashboard-hero-metrics {
-    flex: 1 1 260px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    justify-content: flex-end;
-  }
-
-  .hero-stat {
-    min-width: 160px;
-    padding: 18px 20px;
-    border-radius: 18px;
-    background: rgba(15, 23, 42, 0.28);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-  }
-
-  .hero-stat-label {
-    display: block;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    font-size: 11px;
-    color: rgba(226, 232, 240, 0.78);
-    font-weight: 600;
-  }
-
-  .hero-stat-value {
-    display: block;
-    font-size: 32px;
-    font-weight: 700;
-    margin: 6px 0 2px;
-  }
-
-  .hero-stat-caption {
-    display: block;
-    font-size: 12px;
-    color: rgba(212, 220, 233, 0.85);
-  }
-
-  .dashboard-kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-  }
-
-  .kpi-card {
-    position: relative;
-    background: white;
-    border-radius: 20px;
-    padding: 24px;
-    border: 1px solid rgba(148, 163, 184, 0.22);
-    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.12);
-    overflow: hidden;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-  }
-
-  .kpi-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-  }
-
-  .kpi-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 24px 44px rgba(15, 23, 42, 0.18);
-  }
-
-  .kpi-content {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 20px;
-  }
-
-  .kpi-text {
-    flex: 1;
-  }
-
-  .kpi-label {
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: 11px;
-    font-weight: 600;
-    color: #64748b;
-  }
-
-  .kpi-value {
-    font-size: 30px;
-    font-weight: 700;
-    margin: 10px 0 6px;
-    color: #0f172a;
-  }
-
-  .kpi-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 600;
-  }
-
-  .kpi-chip i {
-    font-size: 13px;
-  }
-
-  .kpi-chip.positive {
-    color: #047857;
-  }
-
-  .kpi-chip.attention {
-    color: #b45309;
-  }
-
-  .kpi-chip.neutral {
-    color: #1d4ed8;
-  }
-
-  .kpi-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    color: white;
-    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-    box-shadow: 0 12px 28px rgba(59, 130, 246, 0.28);
-  }
-
-  .kpi-card.primary { --gradient-start: #3b82f6; --gradient-end: #1d4ed8; }
-  .kpi-card.secondary { --gradient-start: #8b5cf6; --gradient-end: #7c3aed; }
-  .kpi-card.success { --gradient-start: #10b981; --gradient-end: #059669; }
-  .kpi-card.warning { --gradient-start: #f97316; --gradient-end: #ea580c; }
-  .kpi-card.danger { --gradient-start: #ef4444; --gradient-end: #dc2626; }
-  .kpi-card.info { --gradient-start: #0ea5e9; --gradient-end: #0284c7; }
-  .kpi-card.accent { --gradient-start: #ec4899; --gradient-end: #db2777; }
-  .kpi-card.slate { --gradient-start: #475569; --gradient-end: #1f2937; }
-
-  .dashboard-panel-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 24px;
-  }
-
-  .dashboard-card {
-    background: white;
-    border-radius: 22px;
-    border: 1px solid rgba(148, 163, 184, 0.16);
-    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.14);
-    display: flex;
-    flex-direction: column;
-  }
-
-  .dashboard-card .card-header {
-    background: transparent;
-    border: none;
-    padding: 24px 26px 0;
-    margin: 0;
-  }
-
-  .dashboard-card .card-header h5 {
-    font-weight: 600;
-    color: #0f172a;
-  }
-
-  .dashboard-card .card-body {
-    padding: 22px 26px 28px;
-  }
-
-  .status-card .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    padding-bottom: 10px;
-  }
-
-  .status-list {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .status-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .status-info {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .status-badge {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18);
-  }
-
-  .status-badge.primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-  .status-badge.success { background: linear-gradient(135deg, #10b981, #059669); }
-  .status-badge.warning { background: linear-gradient(135deg, #f97316, #d97706); }
-  .status-badge.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
-  .status-badge.secondary { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
-
-  .status-text {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .status-title {
-    font-weight: 600;
-    color: #0f172a;
-  }
-
-  .status-subtitle {
-    font-size: 12px;
-    color: #64748b;
-  }
-
-  .status-percent {
-    font-weight: 700;
-    color: #1d4ed8;
-  }
-
-  .status-progress {
-    height: 8px;
-    border-radius: 10px;
-    background: rgba(226, 232, 240, 0.8);
-    overflow: hidden;
-  }
-
-  .status-progress-bar {
-    height: 100%;
-    border-radius: 10px;
-    transition: width 0.8s ease;
-  }
-
-  .status-progress-bar.primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-  .status-progress-bar.success { background: linear-gradient(135deg, #10b981, #047857); }
-  .status-progress-bar.warning { background: linear-gradient(135deg, #f97316, #b45309); }
-  .status-progress-bar.danger { background: linear-gradient(135deg, #ef4444, #b91c1c); }
-  .status-progress-bar.secondary { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
-
-  .snapshot-list {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-  }
-
-  .snapshot-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .snapshot-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .snapshot-label {
-    font-weight: 600;
-    color: #0f172a;
-  }
-
-  .snapshot-caption {
-    font-size: 12px;
-    color: #64748b;
-  }
-
-  .snapshot-value {
-    font-size: 26px;
-    font-weight: 700;
-    color: #1d4ed8;
-  }
-
-  .dashboard-data-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-    gap: 24px;
-  }
-
-  .dashboard-table thead th {
-    background: rgba(226, 232, 240, 0.6);
-    border: none;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: 12px;
-  }
-
-  .dashboard-table tbody td {
-    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
-    vertical-align: middle;
-  }
-
-  .dashboard-table tbody tr:last-child td {
-    border-bottom: none;
-  }
-
-  .dashboard-table .badge {
-    border-radius: 999px;
-    font-weight: 600;
-    padding: 6px 12px;
-  }
-
-  .stretch-card .card-body {
-    padding: 0;
-  }
-
-  .stretch-card .table-responsive {
-    border-radius: 0 0 22px 22px;
-  }
-
-  .customer-list {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-  }
-
-  .customer-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-  }
-
-  .customer-info {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .customer-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    background: rgba(59, 130, 246, 0.16);
-    color: #1d4ed8;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-  }
-
-  .customer-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .customer-meta h6 {
-    margin: 0;
-    font-weight: 600;
-    color: #0f172a;
-  }
-
-  .customer-meta span,
-  .customer-meta small {
-    color: #64748b;
-  }
-
-  .customer-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: rgba(59, 130, 246, 0.12);
-    color: #1d4ed8;
-    font-weight: 600;
-    font-size: 12px;
-  }
-
-  .dashboard-empty {
-    text-align: center;
-    padding: 48px 32px;
-    border-radius: 22px;
-    border: 1px dashed rgba(59, 130, 246, 0.24);
-    background: rgba(248, 250, 252, 0.6);
-  }
-
-  .dashboard-empty i {
-    color: #3b82f6;
-  }
-
-  .dashboard-empty h3 {
-    margin-top: 22px;
-    font-weight: 700;
-    color: #0f172a;
-  }
-
-  .dashboard-empty p {
-    color: #475569;
-    margin: 12px 0 24px;
-  }
-
-  @media (max-width: 991.98px) {
-    .dashboard-hero {
-      padding: 32px 28px;
-    }
-
-    .dashboard-hero-content h1 {
-      font-size: 32px;
-    }
-
-    .dashboard-hero-metrics {
-      justify-content: flex-start;
-    }
-  }
-
-  @media (max-width: 767.98px) {
-    .dashboard-shell {
-      gap: 22px;
-    }
-
-    .dashboard-hero {
-      padding: 28px 24px;
-    }
-
-    .dashboard-hero-content h1 {
-      font-size: 28px;
-    }
-
-    .dashboard-hero-actions {
-      width: 100%;
-    }
-
-    .dashboard-kpi-grid {
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    }
-
-    .dashboard-panel-grid,
-    .dashboard-data-grid {
-      gap: 20px;
-    }
-  }
-
-  @media (max-width: 575.98px) {
-    .dashboard-hero {
-      padding: 24px;
-    }
-
-    .hero-stat {
-      min-width: 140px;
-    }
-  }
-</style>
-{% endblock %}
+{% block title %}Dashboard — Fleet Manager{% endblock %}
 
 {% block content %}
-  {% include "portal/partials/dashboard_overview.html" %}
+<div class="dashboard-shell">
+  <section class="dashboard-hero">
+    <div class="dashboard-hero-content">
+      <div class="dashboard-hero-badge"><i class="fas fa-bolt"></i> Control Center</div>
+      <h1>Welcome back{% if profile and profile.user.first_name %}, {% endif %}{% if profile %}{{ profile.user.get_full_name|default:profile.user.username }}{% else %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}</h1>
+      <p>Manage customers, vehicles, assignments and inspections from a unified dashboard. Quick actions and insights help you keep operations moving.</p>
+      <div class="dashboard-hero-actions">
+        <a class="hero-action primary" href="{% url 'portal-assignments-new' %}" hx-get="{% url 'portal-assignments-new' %}" hx-target="#portalDynamic" hx-swap="innerHTML" hx-push-url="true"><i class="fas fa-plus-circle"></i> New Assignment</a>
+        <a class="hero-action ghost" href="{% url 'portal-inspections' %}"><i class="fas fa-clipboard-list"></i> All Inspections</a>
+      </div>
+    </div>
+    <div class="dashboard-hero-metrics">
+      <div class="hero-stat">
+        <span class="hero-stat-label">Inspections</span>
+        <span class="hero-stat-value">{{ kpi_inspections }}</span>
+        <span class="hero-stat-caption">Total inspections</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-label">Active Assignments</span>
+        <span class="hero-stat-value">{{ kpi_pending_assignments }}</span>
+        <span class="hero-stat-caption">Pending assignments</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="dashboard-kpi-grid">
+    <div class="kpi-card primary">
+      <div class="kpi-content">
+        <div class="kpi-text">
+          <div class="kpi-label">Customers</div>
+          <div class="kpi-value">{{ kpi_customers }}</div>
+          <div class="kpi-chip neutral"><i class="fas fa-users"></i> Registered</div>
+        </div>
+        <div class="kpi-icon"><i class="fas fa-users"></i></div>
+      </div>
+    </div>
+
+    <div class="kpi-card secondary">
+      <div class="kpi-content">
+        <div class="kpi-text">
+          <div class="kpi-label">Vehicles</div>
+          <div class="kpi-value">{{ kpi_vehicles }}</div>
+          <div class="kpi-chip neutral"><i class="fas fa-truck"></i> Fleet</div>
+        </div>
+        <div class="kpi-icon"><i class="fas fa-truck"></i></div>
+      </div>
+    </div>
+
+    <div class="kpi-card success">
+      <div class="kpi-content">
+        <div class="kpi-text">
+          <div class="kpi-label">Inspectors</div>
+          <div class="kpi-value">{{ kpi_inspectors }}</div>
+          <div class="kpi-chip positive"><i class="fas fa-user-check"></i> Active</div>
+        </div>
+        <div class="kpi-icon"><i class="fas fa-user-check"></i></div>
+      </div>
+    </div>
+
+    <div class="kpi-card warning">
+      <div class="kpi-content">
+        <div class="kpi-text">
+          <div class="kpi-label">Assignments</div>
+          <div class="kpi-value">{{ kpi_assignments }}</div>
+          <div class="kpi-chip attention"><i class="fas fa-tasks"></i> Scheduled</div>
+        </div>
+        <div class="kpi-icon"><i class="fas fa-tasks"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-panel-grid mt-3">
+    <div class="dashboard-card">
+      <div class="card-header">
+        <h5>Inspection Overview</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="inspectionOverviewChart" height="180" aria-label="Inspection overview chart" role="img"></canvas>
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5>Recent Inspections</h5>
+        <input id="recentSearch" class="form-control form-control-sm" placeholder="Filter by license plate" hx-get="{% url 'portal-recent-inspections-partial' %}" hx-target="#recentTableBody" hx-trigger="keyup changed delay:500ms" name="q">
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr><th>Vehicle</th><th>Inspector</th><th>Status</th><th>Date</th></tr>
+            </thead>
+            <tbody id="recentTableBody">
+              {% include 'portal/partials/recent_inspections_table.html' %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="card-header">
+        <h5>Upcoming Assignments</h5>
+      </div>
+      <div class="card-body">
+        <ul class="list-unstyled snapshot-list">
+          {% for a in upcoming_assignments %}
+          <li class="snapshot-item">
+            <div class="snapshot-meta">
+              <span class="snapshot-label">{{ a.vehicle.license_plate|default:a.vehicle.vin }}</span>
+              <span class="snapshot-caption">{{ a.scheduled_for|date:"Y-m-d" }} — {{ a.inspector.profile.user.get_full_name|default:a.inspector.profile.user.username }}</span>
+            </div>
+            <div class="text-muted small">{{ a.get_status_display }}</div>
+          </li>
+          {% empty %}
+          <li class="text-center text-muted">No upcoming assignments</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="card-header">
+        <h5>Recent Customers</h5>
+      </div>
+      <div class="card-body">
+        <ul class="list-unstyled snapshot-list">
+          {% for c in recent_customers %}
+          <li class="snapshot-item">
+            <div class="snapshot-meta">
+              <span class="snapshot-label">{{ c.profile.user.get_full_name|default:c.profile.user.username }}</span>
+              <span class="snapshot-caption">{{ c.organization|default:'—' }}</span>
+            </div>
+            <div class="text-muted small">{{ c.created_at|date:"Y-m-d" }}</div>
+          </li>
+          {% empty %}
+          <li class="text-center text-muted">No recent customers</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{ inspection_status_cards|json_script:"inspection_status_data" }}
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const kpiCards = document.querySelectorAll('.kpi-card');
-    kpiCards.forEach(function (card, index) {
-      card.style.animationDelay = `${index * 0.08}s`;
-      card.classList.add('animate__animated', 'animate__fadeInUp');
-    });
+document.addEventListener('DOMContentLoaded', function(){
+  const statusData = JSON.parse(document.getElementById('inspection_status_data').textContent || '[]');
+  const labels = statusData.map(s => s.label);
+  const values = statusData.map(s => s.count);
+  const colors = ['#3b82f6','#10b981','#f59e0b','#ef4444'];
 
-    const progressBars = document.querySelectorAll('.status-progress-bar');
-    progressBars.forEach(function (bar) {
-      const width = bar.style.width;
-      bar.style.width = '0';
-      setTimeout(function () {
-        bar.style.width = width;
-      }, 220);
-    });
-
-    document.querySelectorAll('.hero-stat').forEach(function (stat, index) {
-      stat.style.animationDelay = `${index * 0.1}s`;
-      stat.classList.add('animate__animated', 'animate__fadeIn');
-    });
+  const ctx = document.getElementById('inspectionOverviewChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels: labels, datasets: [{ data: values, backgroundColor: colors.slice(0, values.length) }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
   });
+
+  // small animation for cards
+  document.querySelectorAll('.dashboard-card, .kpi-card, .hero-stat').forEach((el, i)=>{
+    el.style.transitionDelay = (i*40)+'ms';
+    el.classList.add('animate__animated','animate__fadeInUp');
+  });
+});
 </script>
 {% endblock %}

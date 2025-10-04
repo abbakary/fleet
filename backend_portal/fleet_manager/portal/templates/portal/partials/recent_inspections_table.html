@@ -1,0 +1,16 @@
+{% for insp in recent_inspections %}
+<tr>
+  <td>
+    {% if insp.vehicle.license_plate %}
+      {{ insp.vehicle.license_plate }} • {{ insp.vehicle.make }} {{ insp.vehicle.model }}
+    {% else %}
+      {{ insp.vehicle.vin }}
+    {% endif %}
+  </td>
+  <td>{{ insp.inspector.profile.user.get_full_name|default:insp.inspector.profile.user.username }}</td>
+  <td>{{ insp.get_status_display }}</td>
+  <td>{{ insp.created_at|date:"Y-m-d H:i" }}</td>
+</tr>
+{% empty %}
+<tr><td colspan="4" class="text-center text-muted">No recent inspections</td></tr>
+{% endfor %}

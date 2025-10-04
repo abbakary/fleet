@@ -567,7 +567,7 @@ class _QuickActionsBar extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: onRefresh,
               icon: const Icon(Icons.refresh),
-              label: const Text('Refresh'),
+              label: Text(l10n.quickActionsRefresh),
             ),
           ),
         ],

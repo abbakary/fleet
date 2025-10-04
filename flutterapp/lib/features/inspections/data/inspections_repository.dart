@@ -83,6 +83,19 @@ class InspectionsRepository {
     return InspectionDetailModel.fromJson(json);
   }
 
+  Future<String> fetchReportHtml(int id) async {
+    final response = await _apiClient.get<dynamic>('${ApiEndpoints.inspections}$id/report/');
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      final html = data['html'];
+      if (html is String) return html;
+    }
+    if (data is String) {
+      return data;
+    }
+    return '';
+  }
+
   Future<int?> createVehicle({
     required int customerId,
     required String vin,

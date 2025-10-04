@@ -140,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller: _passwordController,
                             obscureText: !_passwordVisible,
                             decoration: InputDecoration(
-                              labelText: 'Password',
+                              labelText: l10n.loginPasswordLabel,
                               prefixIcon: const Icon(Icons.lock_outline),
                               suffixIcon: IconButton(
                                 icon: Icon(_passwordVisible ? Icons.visibility_off : Icons.visibility),
@@ -153,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             onFieldSubmitted: (_) => _submit(context),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Enter your password';
+                                return l10n.loginPasswordRequired;
                               }
                               return null;
                             },

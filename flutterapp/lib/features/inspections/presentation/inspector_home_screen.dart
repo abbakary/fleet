@@ -124,7 +124,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                             ..._buildAssignmentSections(context, controller),
                             if (controller.checklistGuide.isNotEmpty) ...[
                               Text(
-                                'Fleet inspection playbook',
+                                l10n.checklistGuideTitle,
                                 style: Theme.of(context).textTheme.titleLarge,
                               ),
                               const SizedBox(height: 12),

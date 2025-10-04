@@ -23,12 +23,15 @@ Future<void> main() async {
   final tokenStore = TokenStore();
   final apiClient = ApiClient(config: config, tokenStore: tokenStore);
   final offlineQueue = await OfflineQueueService.init();
+  final preferences = await SharedPreferences.getInstance();
+  final localeController = LocaleController(preferences: preferences);
 
   runApp(AppRoot(
     config: config,
     tokenStore: tokenStore,
     apiClient: apiClient,
     offlineQueue: offlineQueue,
+    localeController: localeController,
   ));
 }
 

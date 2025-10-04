@@ -11,6 +11,8 @@ from .views import (
     InspectorProfileViewSet,
     VehicleAssignmentViewSet,
     VehicleViewSet,
+    VehicleMakeViewSet,
+    VehicleModelNameViewSet,
 )
 from . import views_web
 

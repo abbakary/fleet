@@ -1415,8 +1415,8 @@ class _PhotoGallery extends StatelessWidget {
               child: Text(
                 helperText ??
                     (requiresPhoto
-                        ? 'Capture at least one photo when documenting a defect.'
-                        : 'Optional — attach supporting photos for this step.'),
+                        ? context.l10n.captureAtLeastOneAnnotatedPhoto
+                        : context.l10n.optionalAttachReferencePhotos),
                 style: theme.textTheme.bodySmall,
               ),
             ),

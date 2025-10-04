@@ -5,5 +5,24 @@
   "languageMenuTooltip": "Change language",
   "languageMenuSystem": "System default",
   "languageMenuEnglish": "English",
-  "languageMenuSwahili": "Kiswahili"
+  "languageMenuSwahili": "Kiswahili",
+  "loginTitle": "Sign in to your account",
+  "loginSubtitle": "Enter your credentials to continue",
+  "loginUsernameLabel": "Username",
+  "loginUsernameRequired": "Username is required",
+  "loginPasswordLabel": "Password",
+  "loginPasswordRequired": "Password is required",
+  "commonSignIn": "Sign in",
+  "commonSignOut": "Sign out",
+  "unsupportedGreeting": "Hello {name}",
+  "@unsupportedGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Jane Doe"
+      }
+    },
+    "description": "Greeting shown in unsupported role screen"
+  },
+  "unsupportedMessage": "Your account role is not supported in the mobile app. Please use the web portal."
 }

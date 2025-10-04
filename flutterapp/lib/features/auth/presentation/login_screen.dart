@@ -50,10 +50,17 @@ class _LoginScreenState extends State<LoginScreen> {
           const TopWaves(),
           const AnimatedParticlesBackground(),
           SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: ConstrainedBox(
+            child: Stack(
+              children: [
+                const Positioned(
+                  top: 12,
+                  right: 12,
+                  child: LanguageMenu(iconColor: Colors.white),
+                ),
+                Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 400),
@@ -173,10 +180,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ],
                       ),
-                    ),
-                  ),
                 ),
-              ),
+              ],
+            ),
+          ),
             ),
           ),
         ],

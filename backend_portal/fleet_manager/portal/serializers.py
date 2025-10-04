@@ -187,6 +187,20 @@ class VehicleSerializer(serializers.ModelSerializer):
     def get_customer_display(self, obj):
         return obj.customer.legal_name
 
+    @transaction.atomic
+    def create(self, validated_data):
+        instance = Vehicle.objects.create(**validated_data)
+        _ensure_make_model_catalog(instance.make, instance.model)
+        return instance
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        _ensure_make_model_catalog(instance.make, instance.model)
+        return instance
+
 
 class VehicleAssignmentSerializer(serializers.ModelSerializer):
     vehicle = serializers.PrimaryKeyRelatedField(queryset=Vehicle.objects.all())

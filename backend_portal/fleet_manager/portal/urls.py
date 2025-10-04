@@ -22,6 +22,8 @@ router.register(r'assignments', VehicleAssignmentViewSet, basename='assignment')
 router.register(r'inspections', InspectionViewSet, basename='inspection')
 router.register(r'categories', InspectionCategoryViewSet, basename='category')
 router.register(r'checklist-items', ChecklistItemViewSet, basename='checklist-item')
+router.register(r'vehicle-makes', VehicleMakeViewSet, basename='vehicle-make')
+router.register(r'vehicle-models', VehicleModelNameViewSet, basename='vehicle-model')
 
 urlpatterns = [
     # Web admin shell and partials (HTMX)

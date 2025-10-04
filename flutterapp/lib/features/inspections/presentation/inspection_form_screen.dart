@@ -839,7 +839,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
       return true;
     }
     if (!_areInstructionsComplete(step)) {
-      _showError('Complete the guided actions for ${step.definition.title} before continuing.');
+      _showError(context.l10n.completeGuidedActions(_stepTitle(context, step.definition.code)));
       return false;
     }
     return true;

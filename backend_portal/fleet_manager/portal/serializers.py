@@ -281,6 +281,15 @@ class InspectionItemResponseSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "checklist_item_detail", "created_at", "updated_at"]
 
+    def validate(self, attrs):
+        checklist_item = attrs.get("checklist_item")
+        result = attrs.get("result")
+        photos = attrs.get("photos")
+        if result == InspectionItemResponse.RESULT_FAIL and checklist_item and getattr(checklist_item, "requires_photo", False):
+            if not photos or (isinstance(photos, list) and len(photos) == 0):
+                raise serializers.ValidationError("Photo evidence is required for failed items that require a photo.")
+        return attrs
+
     def create(self, validated_data):
         photos_data = validated_data.pop("photos", [])
         response = InspectionItemResponse.objects.create(**validated_data)

@@ -1137,7 +1137,7 @@ class _StepIntroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final instructions = step.definition.instructions;
+    final instructions = _stepInstructions(context, step.definition.code);
     final completedCount = completedIndices.length.clamp(0, instructions.length).toInt();
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -1147,16 +1147,16 @@ class _StepIntroCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(step.definition.title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            Text(_stepTitle(context, step.definition.code), style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
-            Text(step.definition.summary, style: theme.textTheme.bodyMedium),
+            Text(_stepSummary(context, step.definition.code), style: theme.textTheme.bodyMedium),
             if (instructions.isNotEmpty) ...[
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Text('Guided actions', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+                  Text(context.l10n.guidedActionsLabel, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
                   const Spacer(),
-                  Text('$completedCount of ${instructions.length} completed', style: theme.textTheme.labelMedium),
+                  Text(context.l10n.guidedActionsProgress(completedCount, instructions.length), style: theme.textTheme.labelMedium),
                 ],
               ),
               const SizedBox(height: 12),
@@ -1165,8 +1165,8 @@ class _StepIntroCard extends StatelessWidget {
                 (index) => CheckboxListTile(
                   value: completedIndices.contains(index),
                   onChanged: enabled
-                      ? (value) => onToggle(index, value ?? false)
-                      : null,
+  ? (value) => onToggle(index, value ?? false)
+  : null,
                   controlAffinity: ListTileControlAffinity.leading,
                   dense: true,
                   contentPadding: EdgeInsets.zero,
@@ -1176,7 +1176,7 @@ class _StepIntroCard extends StatelessWidget {
             ],
             if (!enabled) ...[
               const SizedBox(height: 12),
-              Text('Step marked as not applicable for this inspection.',
+              Text(context.l10n.stepMarkedNotApplicable,
                   style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
             ],
           ],

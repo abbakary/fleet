@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/api/endpoints.dart';
@@ -81,6 +82,29 @@ class InspectionsRepository {
     final response = await _apiClient.get<dynamic>('${ApiEndpoints.inspections}$id/');
     final json = _extractMap(response.data);
     return InspectionDetailModel.fromJson(json);
+  }
+
+  Future<String> fetchReportHtml(int id) async {
+    final response = await _apiClient.get<dynamic>('${ApiEndpoints.inspections}$id/report/');
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      final html = data['html'];
+      if (html is String) return html;
+    }
+    if (data is String) {
+      return data;
+    }
+    return '';
+  }
+
+  Future<String?> downloadReportPdf(int id) async {
+    final bytes = await _apiClient.getBytes('${ApiEndpoints.inspections}$id/${ApiEndpoints.inspectionReportPdf}');
+    if (bytes.isEmpty) return null;
+    final dir = await getApplicationDocumentsDirectory();
+    final filename = 'inspection_${id}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    final file = File('${dir.path}/$filename');
+    await file.writeAsBytes(bytes, flush: true);
+    return file.path;
   }
 
   Future<int?> createVehicle({

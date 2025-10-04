@@ -281,6 +281,15 @@ class InspectionItemResponseSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "checklist_item_detail", "created_at", "updated_at"]
 
+    def validate(self, attrs):
+        checklist_item = attrs.get("checklist_item")
+        result = attrs.get("result")
+        photos = attrs.get("photos")
+        if result == InspectionItemResponse.RESULT_FAIL and checklist_item and getattr(checklist_item, "requires_photo", False):
+            if not photos or (isinstance(photos, list) and len(photos) == 0):
+                raise serializers.ValidationError("Photo evidence is required for failed items that require a photo.")
+        return attrs
+
     def create(self, validated_data):
         photos_data = validated_data.pop("photos", [])
         response = InspectionItemResponse.objects.create(**validated_data)
@@ -309,7 +318,7 @@ class CustomerReportSerializer(serializers.ModelSerializer):
 
 class InspectionSerializer(serializers.ModelSerializer):
     item_responses = InspectionItemResponseSerializer(many=True)
-    inspector = serializers.PrimaryKeyRelatedField(queryset=InspectorProfile.objects.filter(is_active=True))
+    inspector = serializers.PrimaryKeyRelatedField(queryset=InspectorProfile.objects.filter(is_active=True), required=False)
     vehicle = serializers.PrimaryKeyRelatedField(queryset=Vehicle.objects.all())
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), required=False)
     customer_report = CustomerReportSerializer(read_only=True)
@@ -336,6 +345,15 @@ class InspectionSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "reference", "created_at", "updated_at", "customer", "customer_report"]
 
     def validate(self, attrs):
+        request = self.context.get("request")
+        if attrs.get("inspector") is None and request is not None:
+            try:
+                portal = getattr(request.user, "portal_profile", None)
+                inferred = getattr(portal, "inspector_profile", None)
+            except Exception:
+                inferred = None
+            if inferred is not None:
+                attrs["inspector"] = inferred
         vehicle = attrs.get("vehicle")
         inspector = attrs.get("inspector")
         assignment = attrs.get("assignment")

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:open_filex/open_filex.dart';
 
 import '../../auth/presentation/session_controller.dart';
 import '../data/inspections_repository.dart';
@@ -34,6 +35,18 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inspection Details'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.description_outlined),
+            tooltip: 'View HTML report',
+            onPressed: () => _openReport(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf_outlined),
+            tooltip: 'Download PDF',
+            onPressed: () => _downloadPdf(context),
+          ),
+        ],
       ),
       body: SafeArea(
         child: FutureBuilder<InspectionDetailModel>(
@@ -48,6 +61,52 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
             final detail = snapshot.data!;
             return _DetailView(detail: detail);
           },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openReport(BuildContext context) async {
+    final repo = context.read<InspectionsRepository>();
+    final html = await repo.fetchReportHtml(widget.summary.id);
+    if (!context.mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _ReportHtmlScreen(html: html),
+      ),
+    );
+  }
+
+  Future<void> _downloadPdf(BuildContext context) async {
+    final repo = context.read<InspectionsRepository>();
+    try {
+      final path = await repo.downloadReportPdf(widget.summary.id);
+      if (!context.mounted) return;
+      if (path == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No PDF available.')));
+        return;
+      }
+      await OpenFilex.open(path);
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to download PDF')));
+    }
+  }
+}
+
+class _ReportHtmlScreen extends StatelessWidget {
+  const _ReportHtmlScreen({required this.html});
+
+  final String html;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Report')),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: SelectableText(html.isEmpty ? 'No report available.' : html),
         ),
       ),
     );

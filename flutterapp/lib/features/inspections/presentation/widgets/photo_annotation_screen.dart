@@ -259,7 +259,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
     }
     if (annotatedPath == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to save annotated photo.')),
+        SnackBar(content: Text(context.l10n.unableToSaveAnnotatedPhoto)),
       );
       return;
     }

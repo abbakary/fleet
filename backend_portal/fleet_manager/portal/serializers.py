@@ -223,6 +223,16 @@ class VehicleAssignmentSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
+def _ensure_make_model_catalog(make_name: str, model_name: str) -> None:
+    make_name = (make_name or "").strip()
+    model_name = (model_name or "").strip()
+    if not make_name:
+        return
+    make, _ = VehicleMake.objects.get_or_create(name=make_name)
+    if model_name:
+        VehicleModelName.objects.get_or_create(make=make, name=model_name)
+
+
 class InspectionPhotoSerializer(serializers.ModelSerializer):
     class Meta:
         model = InspectionPhoto

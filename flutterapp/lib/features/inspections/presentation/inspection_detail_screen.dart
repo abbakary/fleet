@@ -52,6 +52,36 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
       ),
     );
   }
+
+  Future<void> _openReport(BuildContext context) async {
+    final repo = context.read<InspectionsRepository>();
+    final html = await repo.fetchReportHtml(widget.summary.id);
+    if (!context.mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _ReportHtmlScreen(html: html),
+      ),
+    );
+  }
+}
+
+class _ReportHtmlScreen extends StatelessWidget {
+  const _ReportHtmlScreen({required this.html});
+
+  final String html;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Report')),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: SelectableText(html.isEmpty ? 'No report available.' : html),
+        ),
+      ),
+    );
+  }
 }
 
 class _DetailView extends StatelessWidget {

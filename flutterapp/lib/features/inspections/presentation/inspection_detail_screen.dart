@@ -34,6 +34,13 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inspection Details'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.description_outlined),
+            tooltip: 'View HTML report',
+            onPressed: () => _openReport(context),
+          ),
+        ],
       ),
       body: SafeArea(
         child: FutureBuilder<InspectionDetailModel>(

@@ -133,7 +133,7 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
                             ] else
                               const SizedBox(height: 24),
                             Text(
-                              'Recent inspections',
+                              l10n.recentInspectionsTitle,
                               style: Theme.of(context).textTheme.titleLarge,
                             ),
                             const SizedBox(height: 12),

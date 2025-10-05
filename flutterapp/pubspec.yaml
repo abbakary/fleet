@@ -27,10 +27,3 @@ dependencies:
 flutter:
   uses-material-design: true
   generate: true
-  gen-l10n:
-    arb-dir: l10n
-    template-arb-file: app_en.arb
-    output-dir: lib/l10n
-    output-class: AppLocalizations
-    synthetic-package: false
-    nullable-getter: false

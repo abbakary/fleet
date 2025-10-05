@@ -10,15 +10,15 @@
     </div>
   </div>
   <div class="card-body">
-    <div class="row g-3">
+    <div class="categories-grid">
       {% for c in categories %}
-        <div class="col-xl-6">
+        <div class="category-col">
           <div class="card height-equal">
             <div class="card-header pb-0">
               <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div>
                   <h6 class="mb-0">{{ c.name }}</h6>
-                  <small class="text-muted">Code: {{ c.code }}</small>
+                  <span class="code-badge">Code: {{ c.code }}</span>
                 </div>
                 <div class="d-flex gap-2">
                   <a class="btn btn-outline-primary btn-sm" href="{% url 'portal-categories-edit' c.pk %}">Edit</a>
@@ -35,30 +35,41 @@
                 <h6 class="mb-0">Items</h6>
                 <a class="btn btn-outline-primary btn-sm" href="{% url 'portal-checklist-items-new' %}?category={{ c.pk }}">Add Item</a>
               </div>
-              <ul class="list-group list-group-flush">
-                {% for item in c.items.all %}
-                  <li class="list-group-item d-flex align-items-center justify-content-between">
-                    <div>
-                      <div class="fw-semibold">{{ item.title }}</div>
-                      <small class="text-muted">Code: {{ item.code }}{% if item.requires_photo %} · Photo required{% endif %}</small>
-                    </div>
-                    <div class="d-flex gap-2">
-                      <a class="btn btn-outline-primary btn-sm" href="{% url 'portal-checklist-items-edit' item.pk %}">Edit</a>
-                      <form action="{% url 'portal-checklist-items-delete' item.pk %}" method="post" onsubmit="return confirm('Delete item {{ item.title|escapejs }}?');">
-                        {% csrf_token %}
-                        <button class="btn btn-outline-danger btn-sm" type="submit">Delete</button>
-                      </form>
-                    </div>
-                  </li>
-                {% empty %}
-                  <li class="list-group-item text-center">No items in this category.</li>
-                {% endfor %}
-              </ul>
+              <div class="table-responsive">
+                <table class="table mb-0">
+                  <thead>
+                    <tr>
+                      <th style="width:45%">Item</th>
+                      <th style="width:20%">Code</th>
+                      <th style="width:15%">Photo</th>
+                      <th style="width:20%; text-align:right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in c.items.all %}
+                      <tr>
+                        <td><strong>{{ item.title }}</strong></td>
+                        <td><span class="code-badge">{{ item.code }}</span></td>
+                        <td>{% if item.requires_photo %}<span class="requires-photo">Required</span>{% else %}<span class="text-muted">Optional</span>{% endif %}</td>
+                        <td style="text-align:right">
+                          <a class="btn btn-outline-primary btn-sm" href="{% url 'portal-checklist-items-edit' item.pk %}">Edit</a>
+                          <form class="d-inline" action="{% url 'portal-checklist-items-delete' item.pk %}" method="post" onsubmit="return confirm('Delete item {{ item.title|escapejs }}?');">
+                            {% csrf_token %}
+                            <button class="btn btn-outline-danger btn-sm" type="submit">Delete</button>
+                          </form>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="4" class="text-center">No items in this category.</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
       {% empty %}
-        <div class="col-12">
+        <div>
           <div class="alert alert-secondary" role="alert">No categories found.</div>
         </div>
       {% endfor %}

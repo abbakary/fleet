@@ -1143,6 +1143,152 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
   }
 }
 
+// Top-level localization helpers so they are available across widgets
+String _stepTitle(BuildContext context, String code) {
+  final l10n = context.l10n;
+  switch (code) {
+    case 'pre_trip_documentation':
+      return l10n.stepPreTripDocumentationTitle;
+    case 'exterior_structure':
+      return l10n.stepExteriorStructureTitle;
+    case 'tires_wheels_axles':
+      return l10n.stepTiresWheelsAxlesTitle;
+    case 'braking_system':
+      return l10n.stepBrakingSystemTitle;
+    case 'suspension_steering':
+      return l10n.stepSuspensionSteeringTitle;
+    case 'engine_powertrain':
+      return l10n.stepEnginePowertrainTitle;
+    case 'electrical_lighting':
+      return l10n.stepElectricalLightingTitle;
+    case 'cabin_interior':
+      return l10n.stepCabinInteriorTitle;
+    case 'coupling_connections':
+      return l10n.stepCouplingConnectionsTitle;
+    case 'safety_equipment':
+      return l10n.stepSafetyEquipmentTitle;
+    case 'operational_tests':
+      return l10n.stepOperationalTestsTitle;
+    default:
+      return code;
+  }
+}
+
+String _stepSummary(BuildContext context, String code) {
+  final l10n = context.l10n;
+  switch (code) {
+    case 'pre_trip_documentation':
+      return l10n.stepPreTripDocumentationSummary;
+    case 'exterior_structure':
+      return l10n.stepExteriorStructureSummary;
+    case 'tires_wheels_axles':
+      return l10n.stepTiresWheelsAxlesSummary;
+    case 'braking_system':
+      return l10n.stepBrakingSystemSummary;
+    case 'suspension_steering':
+      return l10n.stepSuspensionSteeringSummary;
+    case 'engine_powertrain':
+      return l10n.stepEnginePowertrainSummary;
+    case 'electrical_lighting':
+      return l10n.stepElectricalLightingSummary;
+    case 'cabin_interior':
+      return l10n.stepCabinInteriorSummary;
+    case 'coupling_connections':
+      return l10n.stepCouplingConnectionsSummary;
+    case 'safety_equipment':
+      return l10n.stepSafetyEquipmentSummary;
+    case 'operational_tests':
+      return l10n.stepOperationalTestsSummary;
+    default:
+      return '';
+  }
+}
+
+List<String> _stepInstructions(BuildContext context, String code) {
+  final l10n = context.l10n;
+  switch (code) {
+    case 'pre_trip_documentation':
+      return [
+        l10n.stepPreTripDocumentationInstruction1,
+        l10n.stepPreTripDocumentationInstruction2,
+        l10n.stepPreTripDocumentationInstruction3,
+        l10n.stepPreTripDocumentationInstruction4,
+      ];
+    case 'exterior_structure':
+      return [
+        l10n.stepExteriorStructureInstruction1,
+        l10n.stepExteriorStructureInstruction2,
+        l10n.stepExteriorStructureInstruction3,
+        l10n.stepExteriorStructureInstruction4,
+      ];
+    case 'tires_wheels_axles':
+      return [
+        l10n.stepTiresWheelsAxlesInstruction1,
+        l10n.stepTiresWheelsAxlesInstruction2,
+        l10n.stepTiresWheelsAxlesInstruction3,
+        l10n.stepTiresWheelsAxlesInstruction4,
+      ];
+    case 'braking_system':
+      return [
+        l10n.stepBrakingSystemInstruction1,
+        l10n.stepBrakingSystemInstruction2,
+        l10n.stepBrakingSystemInstruction3,
+        l10n.stepBrakingSystemInstruction4,
+      ];
+    case 'suspension_steering':
+      return [
+        l10n.stepSuspensionSteeringInstruction1,
+        l10n.stepSuspensionSteeringInstruction2,
+        l10n.stepSuspensionSteeringInstruction3,
+        l10n.stepSuspensionSteeringInstruction4,
+      ];
+    case 'engine_powertrain':
+      return [
+        l10n.stepEnginePowertrainInstruction1,
+        l10n.stepEnginePowertrainInstruction2,
+        l10n.stepEnginePowertrainInstruction3,
+        l10n.stepEnginePowertrainInstruction4,
+      ];
+    case 'electrical_lighting':
+      return [
+        l10n.stepElectricalLightingInstruction1,
+        l10n.stepElectricalLightingInstruction2,
+        l10n.stepElectricalLightingInstruction3,
+        l10n.stepElectricalLightingInstruction4,
+      ];
+    case 'cabin_interior':
+      return [
+        l10n.stepCabinInteriorInstruction1,
+        l10n.stepCabinInteriorInstruction2,
+        l10n.stepCabinInteriorInstruction3,
+        l10n.stepCabinInteriorInstruction4,
+      ];
+    case 'coupling_connections':
+      return [
+        l10n.stepCouplingConnectionsInstruction1,
+        l10n.stepCouplingConnectionsInstruction2,
+        l10n.stepCouplingConnectionsInstruction3,
+        l10n.stepCouplingConnectionsInstruction4,
+      ];
+    case 'safety_equipment':
+      return [
+        l10n.stepSafetyEquipmentInstruction1,
+        l10n.stepSafetyEquipmentInstruction2,
+        l10n.stepSafetyEquipmentInstruction3,
+        l10n.stepSafetyEquipmentInstruction4,
+      ];
+    case 'operational_tests':
+      return [
+        l10n.stepOperationalTestsInstruction1,
+        l10n.stepOperationalTestsInstruction2,
+        l10n.stepOperationalTestsInstruction3,
+        l10n.stepOperationalTestsInstruction4,
+      ];
+    default:
+      return const <String>[];
+  }
+}
+
 class _GuidedStep {
   _GuidedStep({required this.definition, required this.category});
 

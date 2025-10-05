@@ -62,131 +62,130 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                     child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 420),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 400),
-                    curve: Curves.easeOutCubic,
-                    padding: const EdgeInsets.all(28),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x33000000),
-                          blurRadius: 20,
-                          offset: Offset(0, 12),
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.easeOutCubic,
+                        padding: const EdgeInsets.all(28),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x33000000),
+                              blurRadius: 20,
+                              offset: Offset(0, 12),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Container(
-                                width: 72,
-                                height: 72,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    colors: [Color(0xFF2B5876), Color(0xFF4E4376)],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 72,
+                                    height: 72,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        colors: [Color(0xFF2B5876), Color(0xFF4E4376)],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                    ),
+                                    child: const Icon(Icons.local_shipping_outlined, color: Colors.white, size: 36),
                                   ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    l10n.loginTitle,
+                                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFF22313F),
+                                        ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    l10n.loginSubtitle,
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          color: const Color(0xFF4A6572),
+                                        ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 32),
+                              TextFormField(
+                                controller: _usernameController,
+                                textInputAction: TextInputAction.next,
+                                decoration: InputDecoration(
+                                  labelText: l10n.loginUsernameLabel,
+                                  prefixIcon: const Icon(Icons.person_outline),
+                                  filled: true,
+                                  fillColor: const Color(0xFFF4F7FB),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                                 ),
-                                child: const Icon(Icons.local_shipping_outlined, color: Colors.white, size: 36),
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return l10n.loginUsernameRequired;
+                                  }
+                                  return null;
+                                },
                               ),
-                              const SizedBox(height: 16),
-                              Text(
-                                l10n.loginTitle,
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF22313F),
-                                    ),
+                              const SizedBox(height: 20),
+                              TextFormField(
+                                controller: _passwordController,
+                                obscureText: !_passwordVisible,
+                                decoration: InputDecoration(
+                                  labelText: l10n.loginPasswordLabel,
+                                  prefixIcon: const Icon(Icons.lock_outline),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(_passwordVisible ? Icons.visibility_off : Icons.visibility),
+                                    onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
+                                  ),
+                                  filled: true,
+                                  fillColor: const Color(0xFFF4F7FB),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                                ),
+                                onFieldSubmitted: (_) => _submit(context),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return l10n.loginPasswordRequired;
+                                  }
+                                  return null;
+                                },
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                l10n.loginSubtitle,
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: const Color(0xFF4A6572),
-                                    ),
+                              const SizedBox(height: 18),
+                              if (error != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: _ErrorBanner(message: _formatError(error)),
+                                ),
+                              FilledButton(
+                                onPressed: isLoading ? null : () => _submit(context),
+                                style: FilledButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                                ),
+                                child: isLoading
+                                    ? const SizedBox(
+                                        height: 22,
+                                        width: 22,
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                      )
+                                    : Text(l10n.commonSignIn),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 32),
-                          TextFormField(
-                            controller: _usernameController,
-                            textInputAction: TextInputAction.next,
-                            decoration: InputDecoration(
-                              labelText: l10n.loginUsernameLabel,
-                              prefixIcon: const Icon(Icons.person_outline),
-                              filled: true,
-                              fillColor: const Color(0xFFF4F7FB),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return l10n.loginUsernameRequired;
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 20),
-                          TextFormField(
-                            controller: _passwordController,
-                            obscureText: !_passwordVisible,
-                            decoration: InputDecoration(
-                              labelText: l10n.loginPasswordLabel,
-                              prefixIcon: const Icon(Icons.lock_outline),
-                              suffixIcon: IconButton(
-                                icon: Icon(_passwordVisible ? Icons.visibility_off : Icons.visibility),
-                                onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFFF4F7FB),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                            onFieldSubmitted: (_) => _submit(context),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return l10n.loginPasswordRequired;
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 18),
-                          if (error != null)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: _ErrorBanner(message: _formatError(error)),
-                            ),
-                          FilledButton(
-                            onPressed: isLoading ? null : () => _submit(context),
-                            style: FilledButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              textStyle: const TextStyle(fontWeight: FontWeight.w600),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                            ),
-                            child: isLoading
-                                ? const SizedBox(
-                                    height: 22,
-                                    width: 22,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                  )
-                                : Text(l10n.commonSignIn),
-                          ),
-                        ],
+                        ),
                       ),
+                    ),
+                  ),
                 ),
-              ],
-            ),
-          ),
-            ),
-          ),
         ],
       ),
     );

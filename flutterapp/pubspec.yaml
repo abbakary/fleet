@@ -27,6 +27,10 @@ dependencies:
 flutter:
   uses-material-design: true
   generate: true
-  # Localization (uses lib/l10n/*.arb)
-  # By enabling `generate: true`, Flutter will generate
-  # package:flutter_gen/gen_l10n/app_localizations.dart
+  gen-l10n:
+    arb-dir: l10n
+    template-arb-file: app_en.arb
+    output-dir: lib/l10n
+    output-class: AppLocalizations
+    synthetic-package: false
+    nullable-getter: false

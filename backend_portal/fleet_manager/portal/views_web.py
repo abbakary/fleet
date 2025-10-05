@@ -251,7 +251,7 @@ def customers_view(request: HttpRequest) -> HttpResponse:
     customers = Customer.objects.select_related("profile", "profile__user").order_by("-created_at")[:200]
     if _is_htmx(request):
         return render(request, "portal/partials/customers.html", {"customers": customers})
-    return render(request, "portal/pages/customers.html", {"profile": profile, "customers": customers})
+    return render(request, "portal/pages/customers.html", {"profile": profile, "customers": customers, "active_tab": "customers"})
 
 
 @login_required
@@ -264,7 +264,7 @@ def vehicles_view(request: HttpRequest) -> HttpResponse:
     )[:200]
     if _is_htmx(request):
         return render(request, "portal/partials/vehicles.html", {"vehicles": vehicles})
-    return render(request, "portal/pages/vehicles.html", {"profile": profile, "vehicles": vehicles})
+    return render(request, "portal/pages/vehicles.html", {"profile": profile, "vehicles": vehicles, "active_tab": "vehicles"})
 
 
 @login_required
@@ -275,7 +275,7 @@ def inspectors_view(request: HttpRequest) -> HttpResponse:
     inspectors = InspectorProfile.objects.select_related("profile", "profile__user").order_by("-created_at")[:200]
     if _is_htmx(request):
         return render(request, "portal/partials/inspectors.html", {"inspectors": inspectors})
-    return render(request, "portal/pages/inspectors.html", {"profile": profile, "inspectors": inspectors})
+    return render(request, "portal/pages/inspectors.html", {"profile": profile, "inspectors": inspectors, "active_tab": "inspectors"})
 
 
 @login_required
@@ -295,7 +295,7 @@ def assignments_view(request: HttpRequest) -> HttpResponse:
     )
     if _is_htmx(request):
         return render(request, "portal/partials/assignments.html", {"assignments": assignments})
-    return render(request, "portal/pages/assignments.html", {"profile": profile, "assignments": assignments})
+    return render(request, "portal/pages/assignments.html", {"profile": profile, "assignments": assignments, "active_tab": "assignments"})
 
 
 @login_required
@@ -315,7 +315,7 @@ def inspections_view(request: HttpRequest) -> HttpResponse:
     )
     if _is_htmx(request):
         return render(request, "portal/partials/inspections.html", {"inspections": inspections})
-    return render(request, "portal/pages/inspections.html", {"profile": profile, "inspections": inspections})
+    return render(request, "portal/pages/inspections.html", {"profile": profile, "inspections": inspections, "active_tab": "inspections"})
 
 
 @login_required
@@ -326,7 +326,7 @@ def categories_view(request: HttpRequest) -> HttpResponse:
     categories = InspectionCategory.objects.prefetch_related("items").order_by("display_order", "name")
     if _is_htmx(request):
         return render(request, "portal/partials/categories.html", {"categories": categories})
-    return render(request, "portal/pages/categories.html", {"profile": profile, "categories": categories})
+    return render(request, "portal/pages/categories.html", {"profile": profile, "categories": categories, "active_tab": "categories"})
 
 
 @login_required
@@ -337,7 +337,7 @@ def users_view(request: HttpRequest) -> HttpResponse:
     users = PortalUser.objects.select_related("user").order_by("-created_at")[:200]
     if _is_htmx(request):
         return render(request, "portal/partials/users.html", {"users": users})
-    return render(request, "portal/pages/users.html", {"profile": profile, "users": users})
+    return render(request, "portal/pages/users.html", {"profile": profile, "users": users, "active_tab": "users"})
 
 
 # ------- Portal users -------

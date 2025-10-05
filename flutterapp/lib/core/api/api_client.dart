@@ -52,7 +52,8 @@ class ApiClient {
     try {
       return await _dio.get<T>(path, queryParameters: queryParameters);
     } on DioException catch (error) {
-      throw AppException('GET $path failed', cause: error);
+      final code = error.response?.statusCode;
+      throw AppException('GET $path failed${code != null ? ' ($code)' : ''}', cause: error);
     }
   }
 
@@ -61,7 +62,8 @@ class ApiClient {
       final response = await _dio.get<List<int>>(path, queryParameters: queryParameters, options: Options(responseType: ResponseType.bytes));
       return response.data ?? <int>[];
     } on DioException catch (error) {
-      throw AppException('GET(bytes) $path failed', cause: error);
+      final code = error.response?.statusCode;
+      throw AppException('GET(bytes) $path failed${code != null ? ' ($code)' : ''}', cause: error);
     }
   }
 
@@ -69,7 +71,8 @@ class ApiClient {
     try {
       return await _dio.post<T>(path, data: data, queryParameters: queryParameters);
     } on DioException catch (error) {
-      throw AppException('POST $path failed', cause: error);
+      final code = error.response?.statusCode;
+      throw AppException('POST $path failed${code != null ? ' ($code)' : ''}', cause: error);
     }
   }
 
@@ -77,7 +80,8 @@ class ApiClient {
     try {
       return await _dio.put<T>(path, data: data);
     } on DioException catch (error) {
-      throw AppException('PUT $path failed', cause: error);
+      final code = error.response?.statusCode;
+      throw AppException('PUT $path failed${code != null ? ' ($code)' : ''}', cause: error);
     }
   }
 
@@ -85,7 +89,8 @@ class ApiClient {
     try {
       return await _dio.patch<T>(path, data: data);
     } on DioException catch (error) {
-      throw AppException('PATCH $path failed', cause: error);
+      final code = error.response?.statusCode;
+      throw AppException('PATCH $path failed${code != null ? ' ($code)' : ''}', cause: error);
     }
   }
 
@@ -93,7 +98,8 @@ class ApiClient {
     try {
       return await _dio.delete<T>(path, data: data);
     } on DioException catch (error) {
-      throw AppException('DELETE $path failed', cause: error);
+      final code = error.response?.statusCode;
+      throw AppException('DELETE $path failed${code != null ? ' ($code)' : ''}', cause: error);
     }
   }
 }

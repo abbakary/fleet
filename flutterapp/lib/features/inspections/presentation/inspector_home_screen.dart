@@ -381,11 +381,14 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
     if (!context.mounted) return;
 
     final messenger = ScaffoldMessenger.of(context);
+    final message = result.isSubmitted
+        ? context.l10n.inspectionSubmitted
+        : result.isQueued
+            ? context.l10n.inspectionSavedOffline
+            : (result.error?.message ?? 'Failed to submit inspection.');
     messenger.showSnackBar(
       SnackBar(
-        content: Text(
-          result.isSubmitted ? context.l10n.inspectionSubmitted : context.l10n.inspectionSavedOffline,
-        ),
+        content: Text(message),
       ),
     );
   }

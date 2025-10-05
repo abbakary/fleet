@@ -12,7 +12,7 @@ import '../../../core/exceptions/app_exception.dart';
 import '../../../core/storage/offline_queue.dart';
 import 'models.dart';
 
-enum InspectionSubmissionStatus { submitted, queued }
+enum InspectionSubmissionStatus { submitted, queued, failed }
 
 class InspectionSubmissionResult {
   const InspectionSubmissionResult({required this.status, this.error});
@@ -151,8 +151,19 @@ class InspectionsRepository {
       }
       return const InspectionSubmissionResult(status: InspectionSubmissionStatus.submitted);
     } on AppException catch (error) {
-      await _offlineQueueService.enqueueInspection(payload);
-      return InspectionSubmissionResult(status: InspectionSubmissionStatus.queued, error: error);
+      final cause = error.cause;
+      if (cause is DioException) {
+        final status = cause.response?.statusCode;
+        final isConnectivity = cause.type == DioExceptionType.connectionError ||
+            cause.type == DioExceptionType.connectionTimeout ||
+            cause.type == DioExceptionType.unknown && cause.response == null;
+        if (isConnectivity || status == null) {
+          await _offlineQueueService.enqueueInspection(payload);
+          return InspectionSubmissionResult(status: InspectionSubmissionStatus.queued, error: error);
+        }
+        return InspectionSubmissionResult(status: InspectionSubmissionStatus.failed, error: error);
+      }
+      return InspectionSubmissionResult(status: InspectionSubmissionStatus.failed, error: error);
     }
   }
 

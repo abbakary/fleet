@@ -360,8 +360,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
           const SizedBox(height: 24),
           _buildStepNotesField(step, hintText: l10n.captureBaselinePhoto),
         ],
-      ),
-    );
+      );
   }
 
   Widget _buildChecklistStep(_GuidedStep step) {
@@ -431,8 +430,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
             _buildStepNotesField(step, hintText: l10n.optionalAttachReferencePhotos),
           ],
         ],
-      ),
-    );
+      );
   }
 
   Widget _buildOperationalStep(_GuidedStep step) {
@@ -490,8 +488,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 
   Widget _buildGeneralPhotoSection(_GuidedStep step, {bool requiresPhoto = false, String? helperText}) {

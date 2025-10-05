@@ -70,41 +70,43 @@ class AppRoot extends StatelessWidget {
           create: (context) => SessionController(context.read<AuthRepository>()),
         ),
       ],
-      child: MaterialApp(
-        onGenerateTitle: (context) => context.l10n.appTitle,
-        locale: context.watch<LocaleController>().locale,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF2B5876),
-            brightness: Brightness.light,
-          ),
-          scaffoldBackgroundColor: const Color(0xFFF6F9FC),
-          appBarTheme: const AppBarTheme(
-            centerTitle: false,
-            elevation: 0,
-          ),
-          filledButtonTheme: FilledButtonThemeData(
-            style: FilledButton.styleFrom(
+      child: Builder(
+        builder: (context) => MaterialApp(
+          onGenerateTitle: (context) => context.l10n.appTitle,
+          locale: context.watch<LocaleController>().locale,
+          theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF2B5876),
+              brightness: Brightness.light,
+            ),
+            scaffoldBackgroundColor: const Color(0xFFF6F9FC),
+            appBarTheme: const AppBarTheme(
+              centerTitle: false,
+              elevation: 0,
+            ),
+            filledButtonTheme: FilledButtonThemeData(
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              ),
+            ),
+            outlinedButtonTheme: OutlinedButtonThemeData(
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                side: const BorderSide(width: 1.2),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+            ),
+            cardTheme: CardThemeData(
+              color: Colors.white,
+              elevation: 0,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              margin: EdgeInsets.zero,
             ),
           ),
-          outlinedButtonTheme: OutlinedButtonThemeData(
-            style: OutlinedButton.styleFrom(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              side: const BorderSide(width: 1.2),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-          ),
-          cardTheme: CardThemeData(
-            color: Colors.white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            margin: EdgeInsets.zero,
-          ),
+          home: const _RootNavigator(),
         ),
-        home: const _RootNavigator(),
       ),
     );
   }

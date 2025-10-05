@@ -42,10 +42,38 @@ class AppStrings {
   String get discardTooltip => 'Discard';
   String stepProgress(int current, int total) => 'Step $current of $total';
 
+  // Dashboard sections
+  String get checklistGuideTitle => 'Checklist Guide';
+  String get recentInspectionsTitle => 'Recent inspections';
+  String get noInspectionsSubmitted => 'No inspections submitted yet.';
+
   // Navigation labels
   String get backLabel => 'Back';
   String get submitInspectionLabel => 'Submit inspection';
   String get nextStepLabel => 'Next step';
+
+  // Pre-check labels and fields
+  String get vehicleLabel => 'Vehicle';
+  String get scanVin => 'Scan VIN';
+  String get scanPlate => 'Scan plate';
+  String get vinLabel => 'VIN';
+  String get vinCaptureRequired => 'Please capture or enter the VIN.';
+  String get vinIncomplete => 'VIN appears incomplete.';
+  String get licensePlateLabel => 'License plate';
+  String get enterLicensePlate => 'Enter the license plate.';
+  String get odometerLabel => 'Odometer';
+  String get odometerRequired => 'Enter odometer reading.';
+  String get odometerInvalid => 'Enter a valid odometer reading.';
+  String get generalVehicleConditionLabel => 'General vehicle condition';
+  String get generalVehicleConditionHint => 'Describe visible condition and baseline notes.';
+  String get generalVehicleConditionRequired => 'Provide the general vehicle condition.';
+  String get identificationNotesLabel => 'Identification notes';
+  String get identificationNotesHint => 'Optional notes about VIN/plate verification.';
+  String get identificationVerifiedTitle => 'Identification verified';
+  String get identificationVerifiedSubtitle => 'VIN and license plate verified against vehicle.';
+  String get stepNoChecklistItems => 'No checklist items for this step.';
+  String get trailerNotAttached => 'Trailer not attached';
+  String get trailerNotAttachedSubtitle => 'Skip coupling checks when no trailer is attached.';
 
   // Pre-check validations/messages
   String get selectVehicleBeforeContinuing => 'Select a vehicle before continuing.';
@@ -102,6 +130,13 @@ class AppStrings {
   String guidedActionsProgress(int completed, int total) => '$completed of $total completed';
   String get stepMarkedNotApplicable => 'Step marked as not applicable for this inspection.';
   String get photoRequiredLabel => 'Photo required';
+
+  // Evidence/log sections
+  String get stepEvidenceTitle => 'Step evidence';
+  String get photoEvidenceLogTitle => 'Photo evidence log';
+  String get photoEvidenceSectionStep => 'Step';
+  String photoCountLabel(int count) => '$count photo(s)';
+  String get addButtonLabel => 'Add photo';
 
   // Segmented control
   String get segmentedPass => 'Pass';

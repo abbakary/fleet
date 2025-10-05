@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:inspection_tracker/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -74,8 +73,6 @@ class AppRoot extends StatelessWidget {
       child: MaterialApp(
         onGenerateTitle: (context) => context.l10n.appTitle,
         locale: context.watch<LocaleController>().locale,
-        supportedLocales: AppLocalizations.supportedLocales,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(

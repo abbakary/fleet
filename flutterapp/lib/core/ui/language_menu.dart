@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:inspection_tracker/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../config/locale_controller.dart';
 import '../utils/localization_extensions.dart';
+import '../utils/app_strings.dart';
 
 class LanguageMenu extends StatelessWidget {
   const LanguageMenu({this.iconColor, super.key});
@@ -23,10 +23,13 @@ class LanguageMenu extends StatelessWidget {
         switch (selection) {
           case _LanguageSelection.system:
             await localeController.useSystemLocale();
+            AppStrings.setLanguageCode(null);
           case _LanguageSelection.english:
             await localeController.setLocale(const Locale('en'));
+            AppStrings.setLanguageCode('en');
           case _LanguageSelection.swahili:
             await localeController.setLocale(const Locale('sw'));
+            AppStrings.setLanguageCode('sw');
         }
       },
       itemBuilder: (context) => <PopupMenuEntry<_LanguageSelection>>[

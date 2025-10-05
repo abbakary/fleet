@@ -763,6 +763,18 @@
                   </a>
                 </li>
 
+                <li class="sidebar-list{% if active_tab == 'catalog' %} active{% endif %}">
+                  <a
+                    class="sidebar-link link-nav{% if active_tab == 'catalog' %} active{% endif %}"
+                    href="{% url 'portal-vehicle-catalog' %}"
+                    data-portal-tab-target="catalog"
+                    data-portal-label="Vehicle Catalog"
+                  >
+                    <i class="sidebar-icon fas fa-cogs"></i>
+                    <span>Vehicle Catalog</span>
+                  </a>
+                </li>
+
                 <li class="sidebar-list{% if active_tab == 'assignments' %} active{% endif %}">
                   <a
                     class="sidebar-link link-nav{% if active_tab == 'assignments' %} active{% endif %}"

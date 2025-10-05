@@ -3,6 +3,51 @@
 
 {% block title %}Dashboard — Fleet Manager{% endblock %}
 
+{% block extra_head %}
+<style>
+  .dashboard-shell { display:flex; flex-direction:column; gap:24px; }
+  .dashboard-hero { display:flex; flex-wrap:wrap; gap:22px; align-items:stretch; background: linear-gradient(120deg,#1d4ed8 0%,#7c3aed 50%,#0ea5e9 100%); color:#fff; border-radius:22px; padding:26px; box-shadow:0 24px 48px rgba(2,6,23,.25); }
+  .dashboard-hero-content { flex:1 1 440px; display:flex; flex-direction:column; gap:12px; }
+  .dashboard-hero-badge { display:inline-flex; align-items:center; gap:8px; background: rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.25); color:#fff; padding:6px 10px; border-radius:999px; font-weight:600; font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
+  .dashboard-hero h1 { margin:0; font-size:28px; font-weight:800; line-height:1.2; }
+  .dashboard-hero p { margin:0; color: rgba(255,255,255,.9); }
+  .dashboard-hero-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:6px; }
+  .hero-action { display:inline-flex; align-items:center; gap:10px; padding:12px 16px; border-radius:14px; font-weight:700; }
+  .hero-action.primary { background:#111827; color:#fff; box-shadow:0 14px 30px rgba(0,0,0,.25); }
+  .hero-action.ghost { background: rgba(255,255,255,.16); color:#fff; border:1px solid rgba(255,255,255,.35); }
+  .dashboard-hero-metrics { flex:1 1 320px; display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); }
+  .hero-stat { background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.35); border-radius:16px; padding:14px; display:flex; flex-direction:column; gap:4px; }
+  .hero-stat-label { font-size:12px; opacity:.9; }
+  .hero-stat-value { font-size:28px; font-weight:800; }
+  .hero-stat-caption { font-size:12px; opacity:.9; }
+
+  .dashboard-kpi-grid { display:grid; gap:16px; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); }
+  .kpi-card { border-radius:18px; background:#fff; box-shadow:0 18px 32px rgba(15,23,42,.12); padding:18px; transition:transform .2s ease, box-shadow .2s ease; }
+  .kpi-card:hover { transform: translateY(-3px); box-shadow:0 24px 40px rgba(15,23,42,.16); }
+  .kpi-content { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .kpi-text { display:flex; flex-direction:column; gap:6px; }
+  .kpi-label { color:#475569; font-weight:600; font-size:13px; letter-spacing:.06em; text-transform:uppercase; }
+  .kpi-value { font-size:30px; font-weight:800; color:#0f172a; }
+  .kpi-chip { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:600; }
+  .kpi-chip.neutral { background:rgba(148,163,184,.18); color:#334155; }
+  .kpi-chip.positive { background:rgba(16,185,129,.15); color:#065f46; }
+  .kpi-chip.attention { background:rgba(245,158,11,.15); color:#92400e; }
+  .kpi-icon { font-size:28px; color:#64748b; }
+  .kpi-card.primary .kpi-icon { color:#1d4ed8; }
+  .kpi-card.secondary .kpi-icon { color:#0ea5e9; }
+  .kpi-card.success .kpi-icon { color:#10b981; }
+  .kpi-card.warning .kpi-icon { color:#f59e0b; }
+
+  .dashboard-panel-grid { display:grid; gap:18px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .snapshot-list { display:flex; flex-direction:column; gap:10px; margin:0; padding:0; }
+  .snapshot-item { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid rgba(148,163,184,.25); }
+  .snapshot-item:last-child { border-bottom:none; }
+  .snapshot-meta { display:flex; flex-direction:column; }
+  .snapshot-label { font-weight:600; }
+  .snapshot-caption { color:#64748b; font-size:13px; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="dashboard-shell">
   <section class="dashboard-hero">
@@ -80,8 +125,8 @@
       <div class="card-header">
         <h5>Inspection Overview</h5>
       </div>
-      <div class="card-body">
-        <canvas id="inspectionOverviewChart" height="180" aria-label="Inspection overview chart" role="img"></canvas>
+      <div class="card-body" style="height:240px">
+        <canvas id="inspectionOverviewChart" aria-label="Inspection overview chart" role="img" style="width:100%;height:100%"></canvas>
       </div>
     </div>
 

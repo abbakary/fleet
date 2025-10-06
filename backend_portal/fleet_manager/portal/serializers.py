@@ -366,19 +366,19 @@ class InspectionSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         request = self.context.get("request")
-        if attrs.get("inspector") is None and request is not None:
+        if request is not None:
             try:
                 portal = getattr(request.user, "portal_profile", None)
                 inferred = getattr(portal, "inspector_profile", None)
             except Exception:
                 inferred = None
             if inferred is not None:
+                # Always bind to the authenticated inspector to avoid mismatches
                 attrs["inspector"] = inferred
         vehicle = attrs.get("vehicle")
         inspector = attrs.get("inspector")
         assignment = attrs.get("assignment")
-        
-        # More detailed error messages
+
         if assignment and assignment.vehicle != vehicle:
             raise serializers.ValidationError({
                 "assignment": "Assignment vehicle does not match the selected vehicle.",

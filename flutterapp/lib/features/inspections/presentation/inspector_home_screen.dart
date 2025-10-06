@@ -6,7 +6,6 @@ import '../../../core/ui/animated_background.dart';
 import '../../../core/ui/language_menu.dart';
 import '../../../core/utils/localization_extensions.dart';
 import '../../auth/presentation/session_controller.dart';
-import '../data/checklist_blueprint.dart';
 import '../data/inspections_repository.dart';
 import '../data/models.dart';
 import 'controllers/inspector_dashboard_controller.dart';
@@ -122,16 +121,15 @@ class _InspectorHomeViewState extends State<_InspectorHomeView> {
             ),
           ),
                             ..._buildAssignmentSections(context, controller),
-                            if (controller.checklistGuide.isNotEmpty) ...[
-                              Text(
-                                l10n.checklistGuideTitle,
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              const SizedBox(height: 12),
-                              _ChecklistGuide(entries: controller.checklistGuide),
-                              const SizedBox(height: 32),
-                            ] else
-                              const SizedBox(height: 24),
+                            _HeroHeader(name: widget.profile.fullName),
+                            const SizedBox(height: 16),
+                            _MetricsRow(
+                              today: controller.assignmentsToday.length,
+                              upcoming: controller.upcomingAssignments.length,
+                              overdue: controller.overdueAssignments.length,
+                              recent: controller.recentInspections.length,
+                            ),
+                            const SizedBox(height: 24),
                             Text(
                               l10n.recentInspectionsTitle,
                               style: Theme.of(context).textTheme.titleLarge,
@@ -609,145 +607,112 @@ class _MiniFab extends StatelessWidget {
   }
 }
 
-class _ChecklistGuide extends StatelessWidget {
-  const _ChecklistGuide({required this.entries});
+class _HeroHeader extends StatelessWidget {
+  const _HeroHeader({required this.name});
 
-  final List<ChecklistGuideEntry> entries;
-
-  @override
-  Widget build(BuildContext context) {
-    if (entries.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    return Column(
-      children: entries.map((entry) => _ChecklistGuideTile(entry: entry)).toList(),
-    );
-  }
-}
-
-class _ChecklistGuideTile extends StatelessWidget {
-  const _ChecklistGuideTile({required this.entry});
-
-  final ChecklistGuideEntry entry;
+  final String name;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final subtitle = entry.summary.trim();
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ExpansionTile(
-        title: Text(entry.title, style: theme.textTheme.titleMedium),
-        subtitle: subtitle.isEmpty ? null : Text(subtitle),
-        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        children: [
-          if (entry.steps.isNotEmpty)
-            _GuideSection(
-              title: 'Key steps',
-              children: entry.steps.map((step) => _GuideBullet(text: step)).toList(),
-            ),
-          if (entry.points.isNotEmpty)
-            _GuideSection(
-              title: 'Inspection points',
-              children: entry.points.map((point) => _GuidePointRow(point: point)).toList(),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GuideSection extends StatelessWidget {
-  const _GuideSection({required this.title, required this.children});
-
-  final String title;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 12, bottom: 8),
-          child: Text(title, style: theme.textTheme.titleSmall),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0EA5E9), Color(0xFF6366F1), Color(0xFF8B5CF6)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        ...children,
-      ],
-    );
-  }
-}
-
-class _GuideBullet extends StatelessWidget {
-  const _GuideBullet({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('• '),
-          Expanded(
-            child: Text(
-              text,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ),
-        ],
+        boxShadow: const [BoxShadow(color: Color(0x26000000), blurRadius: 14, offset: Offset(0, 8))],
       ),
-    );
-  }
-}
-
-class _GuidePointRow extends StatelessWidget {
-  const _GuidePointRow({required this.point});
-
-  final ChecklistGuidePoint point;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final icon = point.requiresPhoto ? Icons.camera_alt_outlined : Icons.check_circle_outline;
-    final iconColor = point.requiresPhoto ? theme.colorScheme.primary : theme.colorScheme.secondary;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(20),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: iconColor),
-          const SizedBox(width: 8),
+          const Icon(Icons.assignment_turned_in, color: Colors.white, size: 32),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(point.label, style: theme.textTheme.bodyMedium),
-                if (point.description.trim().isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      point.description,
-                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                    ),
-                  ),
-                if (point.requiresPhoto)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      'Photo evidence required',
-                      style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.primary),
-                    ),
-                  ),
+                Text('Welcome, $name', style: theme.textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 6),
+                Text(
+                  'Start a new inspection, review assignments, and sync offline submissions when you have connectivity.',
+                  style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white.withOpacity(0.95)),
+                ),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+class _MetricsRow extends StatelessWidget {
+  const _MetricsRow({required this.today, required this.upcoming, required this.overdue, required this.recent});
+
+  final int today;
+  final int upcoming;
+  final int overdue;
+  final int recent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: [
+        _MetricCard(label: "Today's", value: today, color: const Color(0xFF22C55E)),
+        _MetricCard(label: 'Upcoming', value: upcoming, color: const Color(0xFFF59E0B)),
+        _MetricCard(label: 'Overdue', value: overdue, color: const Color(0xFFEF4444)),
+        _MetricCard(label: 'Recent', value: recent, color: const Color(0xFF06B6D4)),
+      ],
+    );
+  }
+}
+
+class _MetricCard extends StatelessWidget {
+  const _MetricCard({required this.label, required this.value, required this.color});
+
+  final String label;
+  final int value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: 160,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.5)),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(backgroundColor: color, radius: 12, child: const Icon(Icons.insights, size: 14, color: Colors.white)),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: theme.textTheme.labelMedium?.copyWith(color: color.darken())),
+              Text('$value', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+extension on Color {
+  Color darken([double amount = .2]) {
+    final hsl = HSLColor.fromColor(this);
+    final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+    return hslDark.toColor();
   }
 }
 

@@ -140,8 +140,9 @@ class InspectionsRepository {
   }
 
   Future<InspectionSubmissionResult> submitInspection(InspectionDraftModel draft) async {
-    final payload = draft.toOfflinePayload();
-    final formData = await _formDataFromPayload(payload);
+    final raw = draft.toOfflinePayload();
+    final cleaned = Map<String, dynamic>.from(raw)..remove('inspector');
+    final formData = await _formDataFromPayload(cleaned);
     try {
       final response = await _apiClient.post<dynamic>(ApiEndpoints.inspections, data: formData);
       final data = response.data;
@@ -158,7 +159,7 @@ class InspectionsRepository {
             cause.type == DioExceptionType.connectionTimeout ||
             cause.type == DioExceptionType.unknown && cause.response == null;
         if (isConnectivity || status == null) {
-          await _offlineQueueService.enqueueInspection(payload);
+          await _offlineQueueService.enqueueInspection(raw);
           return InspectionSubmissionResult(status: InspectionSubmissionStatus.queued, error: error);
         }
         return InspectionSubmissionResult(status: InspectionSubmissionStatus.failed, error: error);
@@ -172,7 +173,8 @@ class InspectionsRepository {
     var processed = 0;
     for (final payload in pending) {
       try {
-        final formData = await _formDataFromPayload(payload);
+        final cleaned = Map<String, dynamic>.from(payload)..remove('inspector');
+        final formData = await _formDataFromPayload(cleaned);
         final response = await _apiClient.post<dynamic>(ApiEndpoints.inspections, data: formData);
         final data = response.data;
         if (data is Map<String, dynamic> && data['id'] is int) {

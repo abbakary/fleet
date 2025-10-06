@@ -1,0 +1,27 @@
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>Vehicle</th><th>Inspector</th><th>Date</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {% for a in assignments %}
+            <tr>
+              <td>{{ a.vehicle.license_plate }} · {{ a.vehicle.customer.legal_name }}</td>
+              <td><a href="{% url 'portal-inspector-detail' a.inspector.id %}">{{ a.inspector.profile.user.get_full_name|default:a.inspector.profile.user.username }}</a></td>
+              <td>{{ a.scheduled_for }}</td>
+              <td><span class="badge bg-light text-dark">{{ a.get_status_display }}</span></td>
+              <td class="text-end table-actions">
+                <a href="{% url 'portal-assignments-edit' a.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                <form method="post" action="{% url 'portal-assignments-delete' a.id %}" class="d-inline">{% csrf_token %}
+                  <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this assignment?')">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="text-center text-muted">No assignments found</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

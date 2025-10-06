@@ -293,7 +293,17 @@ class InspectionItemResponseSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         photos_data = validated_data.pop("photos", [])
         response = InspectionItemResponse.objects.create(**validated_data)
+        
+        # Process photo data more flexibly
+        processed_photos = []
         for photo_data in photos_data:
+            if isinstance(photo_data, dict):
+                processed_photos.append(photo_data)
+            elif isinstance(photo_data, str):
+                # Handle string photo data (likely file paths)
+                processed_photos.append({"image": photo_data})
+        
+        for photo_data in processed_photos:
             InspectionPhoto.objects.create(response=response, **photo_data)
         return response
 
@@ -304,7 +314,17 @@ class InspectionItemResponseSerializer(serializers.ModelSerializer):
         instance.save()
         if photos_data is not None:
             instance.photos.all().delete()
+            
+            # Process photo data more flexibly
+            processed_photos = []
             for photo_data in photos_data:
+                if isinstance(photo_data, dict):
+                    processed_photos.append(photo_data)
+                elif isinstance(photo_data, str):
+                    # Handle string photo data (likely file paths)
+                    processed_photos.append({"image": photo_data})
+            
+            for photo_data in processed_photos:
                 InspectionPhoto.objects.create(response=instance, **photo_data)
         return instance
 
@@ -357,10 +377,18 @@ class InspectionSerializer(serializers.ModelSerializer):
         vehicle = attrs.get("vehicle")
         inspector = attrs.get("inspector")
         assignment = attrs.get("assignment")
+        
+        # More detailed error messages
         if assignment and assignment.vehicle != vehicle:
-            raise serializers.ValidationError("Assignment vehicle does not match the selected vehicle.")
+            raise serializers.ValidationError({
+                "assignment": "Assignment vehicle does not match the selected vehicle.",
+                "vehicle": f"Expected vehicle {assignment.vehicle.id}, but got {vehicle.id if vehicle else 'None'}."
+            })
         if assignment and assignment.inspector != inspector:
-            raise serializers.ValidationError("Assignment inspector does not match the selected inspector.")
+            raise serializers.ValidationError({
+                "assignment": "Assignment inspector does not match the selected inspector.",
+                "inspector": f"Expected inspector {assignment.inspector.id}, but got {inspector.id if inspector else 'None'}."
+            })
         return attrs
 
     @transaction.atomic
@@ -385,7 +413,13 @@ class InspectionSerializer(serializers.ModelSerializer):
             instance.item_responses.all().delete()
             for response_data in responses_data:
                 response_serializer = InspectionItemResponseSerializer(data=response_data)
-                response_serializer.is_valid(raise_exception=True)
+                # Provide better error messages for response validation
+                try:
+                    response_serializer.is_valid(raise_exception=True)
+                except serializers.ValidationError as e:
+                    raise serializers.ValidationError({
+                        "item_responses": f"Error in item response: {str(e)}"
+                    })
                 response_serializer.save(inspection=instance)
         return instance
 

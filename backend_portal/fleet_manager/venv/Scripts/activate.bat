@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\abbak\Desktop\CUSTOMER\portalsssqsssq\backend_portal\fleet_manager\venv
+set VIRTUAL_ENV=C:\Users\abbak\portaal123\backend_portal\fleet_manager\venv
 
 if not defined PROMPT set PROMPT=$P$G
 

@@ -70,6 +70,8 @@ urlpatterns = [
     path('app/inspections/<int:pk>/edit/', views_web.inspection_edit, name='portal-inspections-edit'),
     path('app/inspections/<int:pk>/delete/', views_web.inspection_delete, name='portal-inspections-delete'),
 
+    path('app/reports/', views_extra.reports_view, name='portal-reports'),
+
     path('app/categories/', views_web.categories_view, name='portal-categories'),
     path('app/categories/new/', views_web.category_create, name='portal-categories-new'),
     path('app/categories/<int:pk>/edit/', views_web.category_edit, name='portal-categories-edit'),

@@ -14,7 +14,7 @@ from .views import (
     VehicleMakeViewSet,
     VehicleModelNameViewSet,
 )
-from . import views_web
+from . import views_web, views_extra
 
 router = DefaultRouter()
 router.register(r'customers', CustomerViewSet, basename='customer')
@@ -32,6 +32,7 @@ urlpatterns = [
     path('app/', views_web.app_shell, name='portal-app'),
     path('app/customers/', views_web.customers_view, name='portal-customers'),
     path('app/customers/new/', views_web.customer_create, name='portal-customers-new'),
+    path('app/customers/<int:pk>/', views_extra.customer_detail, name='portal-customer-detail'),
     path('app/customers/<int:pk>/edit/', views_web.customer_edit, name='portal-customers-edit'),
     path('app/customers/<int:pk>/delete/', views_web.customer_delete, name='portal-customers-delete'),
 
@@ -55,6 +56,7 @@ urlpatterns = [
 
     path('app/inspectors/', views_web.inspectors_view, name='portal-inspectors'),
     path('app/inspectors/new/', views_web.inspector_create, name='portal-inspectors-new'),
+    path('app/inspectors/<int:pk>/', views_extra.inspector_detail, name='portal-inspector-detail'),
     path('app/inspectors/<int:pk>/edit/', views_web.inspector_edit, name='portal-inspectors-edit'),
     path('app/inspectors/<int:pk>/delete/', views_web.inspector_delete, name='portal-inspectors-delete'),
 
@@ -67,6 +69,8 @@ urlpatterns = [
     path('app/inspections/new/', views_web.inspection_create, name='portal-inspections-new'),
     path('app/inspections/<int:pk>/edit/', views_web.inspection_edit, name='portal-inspections-edit'),
     path('app/inspections/<int:pk>/delete/', views_web.inspection_delete, name='portal-inspections-delete'),
+
+    path('app/reports/', views_extra.reports_view, name='portal-reports'),
 
     path('app/categories/', views_web.categories_view, name='portal-categories'),
     path('app/categories/new/', views_web.category_create, name='portal-categories-new'),

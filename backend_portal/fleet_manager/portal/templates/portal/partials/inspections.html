@@ -1,0 +1,29 @@
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>Ref</th><th>Vehicle</th><th>Inspector</th><th>Status</th><th>Created</th><th></th></tr></thead>
+        <tbody>
+          {% for i in inspections %}
+            <tr>
+              <td><code>{{ i.reference|slice:':8' }}</code></td>
+              <td>{{ i.vehicle.license_plate }} · {{ i.vehicle.customer.legal_name }}</td>
+              <td><a href="{% url 'portal-inspector-detail' i.inspector.id %}">{{ i.inspector.profile.user.get_full_name|default:i.inspector.profile.user.username }}</a></td>
+              <td><span class="badge bg-light text-dark">{{ i.get_status_display }}</span></td>
+              <td>{{ i.created_at|date:'Y-m-d H:i' }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'inspection-report' i.id %}">View Report</a>
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal-inspections-edit' i.id %}">Edit</a>
+                <form method="post" action="{% url 'portal-inspections-delete' i.id %}" class="d-inline">{% csrf_token %}
+                  <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this inspection?')">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="text-center text-muted">No inspections found</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

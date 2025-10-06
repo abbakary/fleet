@@ -1,0 +1,9 @@
+{% extends 'portal/base.html' %}
+{% block title %}Assignments · Fleet Manager{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Assignments</h4>
+  <a href="{% url 'portal-assignments-new' %}" class="btn btn-primary">Create Assignment</a>
+</div>
+{% include 'portal/partials/assignments.html' with assignments=assignments %}
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends 'portal/base.html' %}
+{% block title %}Inspections · Fleet Manager{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Inspections</h4>
+  <a href="{% url 'portal-inspections-new' %}" class="btn btn-primary">Log Inspection</a>
+</div>
+{% include 'portal/partials/inspections.html' with inspections=inspections %}
+{% endblock %}

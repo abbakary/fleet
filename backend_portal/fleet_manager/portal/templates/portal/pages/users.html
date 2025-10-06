@@ -1,0 +1,9 @@
+{% extends 'portal/base.html' %}
+{% block title %}Users · Fleet Manager{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Users</h4>
+  <a href="{% url 'portal-users-new' %}" class="btn btn-primary">Create User</a>
+</div>
+{% include 'portal/partials/users.html' with users=users %}
+{% endblock %}

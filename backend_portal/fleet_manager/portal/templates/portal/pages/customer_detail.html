@@ -1,0 +1,84 @@
+{% extends 'portal/base.html' %}
+{% block title %}Customer · {{ customer.legal_name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">{{ customer.legal_name }}</h4>
+  <div>
+    <a href="{% url 'portal-customers-edit' customer.id %}" class="btn btn-outline-secondary">Edit</a>
+    <a href="{% url 'portal-customers' %}" class="btn btn-primary">Back</a>
+  </div>
+</div>
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header"><h6 class="mb-0">Details</h6></div>
+      <div class="card-body">
+        <div><strong>Email:</strong> {{ customer.contact_email }}</div>
+        {% if customer.contact_phone %}<div><strong>Phone:</strong> {{ customer.contact_phone }}</div>{% endif %}
+        <div class="mt-2"><strong>Address:</strong><br>
+          {{ customer.address_line1 }}<br>
+          {% if customer.address_line2 %}{{ customer.address_line2 }}<br>{% endif %}
+          {{ customer.city }} {{ customer.state }} {{ customer.postal_code }}<br>
+          {{ customer.country }}
+        </div>
+        {% if customer.notes %}<div class="mt-2"><strong>Notes:</strong><br>{{ customer.notes }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">Vehicles</h6>
+        <a href="{% url 'portal-vehicles-new' %}" class="btn btn-sm btn-primary">Add Vehicle</a>
+      </div>
+      <div class="card-body p-0">
+        <table class="table mb-0">
+          <thead><tr><th>Plate</th><th>VIN</th><th>Make/Model</th><th>Year</th></tr></thead>
+          <tbody>
+            {% for v in vehicles %}
+              <tr><td>{{ v.license_plate }}</td><td><small>{{ v.vin }}</small></td><td>{{ v.make }} {{ v.model }}</td><td>{{ v.year }}</td></tr>
+            {% empty %}<tr><td colspan="4" class="text-muted text-center">No vehicles</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card mb-3">
+      <div class="card-header"><h6 class="mb-0">Recent Inspections</h6></div>
+      <div class="card-body p-0">
+        <table class="table mb-0">
+          <thead><tr><th>Ref</th><th>Vehicle</th><th>Inspector</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {% for i in inspections %}
+              <tr>
+                <td><code>{{ i.reference|slice:':8' }}</code></td>
+                <td>{{ i.vehicle.license_plate }}</td>
+                <td>{{ i.inspector.profile.user.get_full_name|default:i.inspector.profile.user.username }}</td>
+                <td>{{ i.get_status_display }}</td>
+                <td class="text-end"><a target="_blank" href="/api/inspections/{{ i.id }}/report_pdf/" class="btn btn-sm btn-outline-primary">Report</a></td>
+              </tr>
+            {% empty %}<tr><td colspan="5" class="text-muted text-center">No inspections</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h6 class="mb-0">Assignments</h6></div>
+      <div class="card-body p-0">
+        <table class="table mb-0">
+          <thead><tr><th>Vehicle</th><th>Inspector</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for a in assignments %}
+              <tr>
+                <td>{{ a.vehicle.license_plate }}</td>
+                <td>{{ a.inspector.profile.user.get_full_name|default:a.inspector.profile.user.username }}</td>
+                <td>{{ a.scheduled_for }}</td>
+                <td>{{ a.get_status_display }}</td>
+              </tr>
+            {% empty %}<tr><td colspan="4" class="text-muted text-center">No assignments</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

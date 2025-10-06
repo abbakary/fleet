@@ -1,0 +1,9 @@
+{% extends 'portal/base.html' %}
+{% block title %}Checklist · Fleet Manager{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Checklist</h4>
+  <a href="{% url 'portal-categories-new' %}" class="btn btn-primary">Add Category</a>
+</div>
+{% include 'portal/partials/categories.html' with categories=categories %}
+{% endblock %}

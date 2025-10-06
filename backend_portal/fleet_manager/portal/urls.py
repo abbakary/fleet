@@ -14,7 +14,7 @@ from .views import (
     VehicleMakeViewSet,
     VehicleModelNameViewSet,
 )
-from . import views_web
+from . import views_web, views_extra
 
 router = DefaultRouter()
 router.register(r'customers', CustomerViewSet, basename='customer')

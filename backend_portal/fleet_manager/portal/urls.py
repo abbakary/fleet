@@ -56,6 +56,7 @@ urlpatterns = [
 
     path('app/inspectors/', views_web.inspectors_view, name='portal-inspectors'),
     path('app/inspectors/new/', views_web.inspector_create, name='portal-inspectors-new'),
+    path('app/inspectors/<int:pk>/', views_extra.inspector_detail, name='portal-inspector-detail'),
     path('app/inspectors/<int:pk>/edit/', views_web.inspector_edit, name='portal-inspectors-edit'),
     path('app/inspectors/<int:pk>/delete/', views_web.inspector_delete, name='portal-inspectors-delete'),
 

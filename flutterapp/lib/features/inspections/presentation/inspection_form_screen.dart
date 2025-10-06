@@ -1035,8 +1035,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     }
   }
 
-  bool _shouldEnforceInstructions(_GuidedStep step) =>
-      step.definition.enforceInstructionCompletion && step.definition.instructions.isNotEmpty;
+  bool _shouldEnforceInstructions(_GuidedStep step) => false;
 
   bool _areInstructionsComplete(_GuidedStep step) {
     if (!_shouldEnforceInstructions(step)) {

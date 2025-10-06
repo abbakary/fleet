@@ -1,1 +1,77 @@
-{% extends 'portal/reports/report_full.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="{% static 'assets/css/vendors/bootstrap.css' %}">
+  <style>
+    body{font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:20px}
+    .title{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+    .badge{padding:.35rem .5rem;border:1px solid #ddd;border-radius:.25rem}
+    .table{width:100%;border-collapse:collapse}
+    .table th,.table td{border:1px solid #e9ecef;padding:.5rem}
+    .photo-gallery{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+    .photo-item{max-width:150px}
+    .photo-item img{width:100%;height:auto;border:1px solid #ddd;border-radius:4px}
+  </style>
+</head>
+<body>
+  <div class="title">
+    <h3>Vehicle Inspection Report</h3>
+    <span class="badge">Ref: {{ inspection.reference }}</span>
+  </div>
+  <p><strong>Customer:</strong> {{ inspection.customer.legal_name }}<br>
+     <strong>Vehicle:</strong> {{ inspection.vehicle.license_plate }} · {{ inspection.vehicle.make }} {{ inspection.vehicle.model }} ({{ inspection.vehicle.year }})<br>
+     <strong>Inspection Date:</strong> {{ inspection.created_at|date:'Y-m-d H:i' }}<br>
+     <strong>Odometer:</strong> {{ inspection.odometer_reading }} miles
+  </p>
+  <hr>
+  {% if inspection.customer_report %}
+  <h5>Summary</h5>
+  <p style="white-space:pre-line">{{ inspection.customer_report.summary }}</p>
+  {% if inspection.customer_report.recommended_actions %}
+    <h6>Recommended Actions</h6>
+    <p style="white-space:pre-line">{{ inspection.customer_report.recommended_actions }}</p>
+  {% endif %}
+  {% endif %}
+  
+  <hr>
+  <h5>Detailed Findings</h5>
+  <table class="table">
+    <thead><tr><th>Category</th><th>Item</th><th>Result</th><th>Notes</th><th>Photos</th></tr></thead>
+    <tbody>
+      {% for r in responses %}
+        {% if r.result != 'pass' %}
+        <tr>
+          <td>{{ r.checklist_item.category.name }}</td>
+          <td>{{ r.checklist_item.title }}</td>
+          <td>
+            {% if r.result == 'fail' %}
+            <span style="color:red">Needs Attention</span>
+            {% else %}
+            <span style="color:gray">N/A</span>
+            {% endif %}
+          </td>
+          <td>{{ r.notes }}</td>
+          <td>
+            {% if r.photos.all %}
+            <div class="photo-gallery">
+              {% for photo in r.photos.all %}
+              <div class="photo-item">
+                <a href="{{ photo.image.url }}" target="_blank">
+                  <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Inspection photo' }}">
+                </a>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% endif %}
+      {% empty %}
+        <tr><td colspan="5">No issues found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

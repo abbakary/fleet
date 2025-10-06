@@ -10,6 +10,9 @@
     .badge{padding:.35rem .5rem;border:1px solid #ddd;border-radius:.25rem}
     .table{width:100%;border-collapse:collapse}
     .table th,.table td{border:1px solid #e9ecef;padding:.5rem}
+    .photo-gallery{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+    .photo-item{max-width:150px}
+    .photo-item img{width:100%;height:auto;border:1px solid #ddd;border-radius:4px}
   </style>
 </head>
 <body>
@@ -20,26 +23,53 @@
   <p><strong>Customer:</strong> {{ inspection.customer.legal_name }}<br>
      <strong>Vehicle:</strong> {{ inspection.vehicle.license_plate }} · {{ inspection.vehicle.make }} {{ inspection.vehicle.model }} ({{ inspection.vehicle.year }})<br>
      <strong>Inspector:</strong> {{ inspection.inspector.profile.user.get_full_name|default:inspection.inspector.profile.user.username }}<br>
-     <strong>Status:</strong> {{ inspection.get_status_display }}
+     <strong>Status:</strong> {{ inspection.get_status_display }}<br>
+     <strong>Odometer:</strong> {{ inspection.odometer_reading }} miles
   </p>
   <hr>
   <h5>Findings</h5>
   <table class="table">
-    <thead><tr><th>Category</th><th>Item</th><th>Result</th><th>Severity</th><th>Notes</th></tr></thead>
+    <thead><tr><th>Category</th><th>Item</th><th>Result</th><th>Severity</th><th>Notes</th><th>Photos</th></tr></thead>
     <tbody>
       {% for r in responses %}
         <tr>
           <td>{{ r.checklist_item.category.name }}</td>
           <td>{{ r.checklist_item.title }}</td>
-          <td>{{ r.get_result_display }}</td>
+          <td>
+            {% if r.result == 'pass' %}
+            <span style="color:green">Pass</span>
+            {% elif r.result == 'fail' %}
+            <span style="color:red">Fail</span>
+            {% else %}
+            <span style="color:gray">N/A</span>
+            {% endif %}
+          </td>
           <td>{{ r.severity }}</td>
           <td>{{ r.notes }}</td>
+          <td>
+            {% if r.photos.all %}
+            <div class="photo-gallery">
+              {% for photo in r.photos.all %}
+              <div class="photo-item">
+                <a href="{{ photo.image.url }}" target="_blank">
+                  <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Inspection photo' }}">
+                </a>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </td>
         </tr>
       {% empty %}
-        <tr><td colspan="5">No findings recorded.</td></tr>
+        <tr><td colspan="6">No findings recorded.</td></tr>
       {% endfor %}
     </tbody>
   </table>
+  {% if inspection.general_notes %}
+  <hr>
+  <h5>General Notes</h5>
+  <p style="white-space:pre-line">{{ inspection.general_notes }}</p>
+  {% endif %}
   {% if inspection.customer_report %}
     <hr>
     <h5>Summary</h5>

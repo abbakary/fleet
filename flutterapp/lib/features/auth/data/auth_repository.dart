@@ -17,7 +17,7 @@ class AuthRepository {
   Future<PortalProfile> login({required String username, required String password}) async {
     final response = await _apiClient.post<dynamic>(
       ApiEndpoints.login,
-      data: jsonEncode({'username': username, 'password': password}),
+      data: {'username': username, 'password': password},
     );
     final data = response.data as Map<String, dynamic>?;
     if (data == null || data['token'] == null) {

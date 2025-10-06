@@ -14,6 +14,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import (
     ChecklistItem,
@@ -41,6 +42,7 @@ from .serializers import (
     VehicleSerializer,
     VehicleMakeSerializer,
     VehicleModelNameSerializer,
+    LoginSerializer,
 )
 from .services import generate_customer_report
 
@@ -123,8 +125,10 @@ def _normalize_inspection_payload(data: Any) -> dict[str, Any]:
             except json.JSONDecodeError:
                 base_payload[key] = []
             continue
+        # Handle case where values might be a single item list
         base_payload[key] = values[0] if len(values) == 1 else values
 
+    # Ensure item_responses is properly structured
     if "item_responses" not in base_payload:
         if nested_items:
             base_payload["item_responses"] = [nested_items[index] for index in sorted(nested_items)]
@@ -138,13 +142,52 @@ def _normalize_inspection_payload(data: Any) -> dict[str, Any]:
             except json.JSONDecodeError:
                 base_payload["item_responses"] = []
         elif isinstance(responses, list):
-            base_payload["item_responses"] = [item for item in responses if isinstance(item, dict)]
+            # Filter out non-dict items and ensure proper structure
+            filtered_responses = []
+            for item in responses:
+                if isinstance(item, dict):
+                    filtered_responses.append(item)
+                elif isinstance(item, str):
+                    try:
+                        # Try to parse string items as JSON
+                        parsed = json.loads(item)
+                        if isinstance(parsed, dict):
+                            filtered_responses.append(parsed)
+                    except json.JSONDecodeError:
+                        # Skip invalid items
+                        pass
+            base_payload["item_responses"] = filtered_responses
 
-    return base_payload
+    # Remove any unexpected fields that might cause validation errors
+    allowed_fields = {
+        "assignment", "vehicle", "inspector", "status", "started_at", 
+        "completed_at", "odometer_reading", "general_notes", "item_responses"
+    }
+    
+    # Only keep allowed fields in the base payload
+    cleaned_payload = {k: v for k, v in base_payload.items() if k in allowed_fields}
+    
+    # Also clean nested item responses
+    if "item_responses" in cleaned_payload and isinstance(cleaned_payload["item_responses"], list):
+        allowed_response_fields = {
+            "checklist_item", "result", "severity", "notes", "photos"
+        }
+        cleaned_responses = []
+        for response in cleaned_payload["item_responses"]:
+            if isinstance(response, dict):
+                # Preserve all allowed fields including photos
+                cleaned_response = {k: v for k, v in response.items() if k in allowed_response_fields}
+                # Ensure checklist_item is present
+                if "checklist_item" in cleaned_response:
+                    cleaned_responses.append(cleaned_response)
+        cleaned_payload["item_responses"] = cleaned_responses
+
+    return cleaned_payload
 
 
 class AuthTokenView(ObtainAuthToken):
     permission_classes = [AllowAny]
+    serializer_class = LoginSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, context={"request": request})
@@ -313,11 +356,35 @@ class InspectionViewSet(viewsets.ModelViewSet):
         return _normalize_inspection_payload(request.data)
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=self._prepare_payload(request))
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        try:
+            # Log incoming data for debugging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"Received inspection data: {request.data}")
+            
+            prepared_data = self._prepare_payload(request)
+            logger.info(f"Prepared inspection data: {prepared_data}")
+            
+            serializer = self.get_serializer(data=prepared_data)
+            if not serializer.is_valid():
+                logger.error(f"Serializer validation errors: {serializer.errors}")
+                return Response({"error": "Validation failed", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        except serializers.ValidationError as e:
+            # Log validation errors for debugging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Inspection validation error: {e.detail}")
+            return Response({"error": "Validation failed", "details": e.detail}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            # Log unexpected errors for debugging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Unexpected error during inspection creation: {str(e)}", exc_info=True)
+            return Response({"error": "Failed to create inspection", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -334,7 +401,10 @@ class InspectionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         profile = get_portal_profile(self.request.user)
         inspector_profile = getattr(profile, "inspector_profile", None) if profile else None
-        if inspector_profile:
+        
+        # If serializer doesn't have inspector set, use the authenticated user's inspector profile
+        if inspector_profile and (not serializer.validated_data.get("inspector") or 
+                                  serializer.validated_data.get("inspector") is None):
             serializer.save(inspector=inspector_profile)
         else:
             serializer.save()
@@ -369,7 +439,10 @@ class InspectionViewSet(viewsets.ModelViewSet):
             template = "portal/reports/report_customer.html"
         context = {
             "inspection": inspection,
-            "responses": inspection.item_responses.all(),
+            "responses": inspection.item_responses.select_related(
+                "checklist_item", 
+                "checklist_item__category"
+            ).prefetch_related("photos").all(),
         }
         html = render_to_string(template, context)
         return Response({"reference": str(inspection.reference), "role_view": "customer" if role == PortalUser.ROLE_CUSTOMER else "full", "html": html})
@@ -402,6 +475,70 @@ class InspectionCategoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = InspectionCategorySerializer
     permission_classes = [AllowAny]
     pagination_class = None
+
+
+class NotificationsSummaryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profile = get_portal_profile(request.user)
+        if not profile:
+            return Response({"unread_count": 0, "items": []})
+
+        items: list[dict[str, object]] = []
+        unread = 0
+
+        if profile.role == PortalUser.ROLE_ADMIN:
+            pending_submissions = Inspection.objects.filter(status=Inspection.STATUS_SUBMITTED).count()
+            active_assignments = VehicleAssignment.objects.filter(
+                status__in=[VehicleAssignment.STATUS_ASSIGNED, VehicleAssignment.STATUS_IN_PROGRESS]
+            ).count()
+            if pending_submissions:
+                items.append({
+                    "type": "pending_submissions",
+                    "count": pending_submissions,
+                    "message": f"{pending_submissions} inspections awaiting approval",
+                })
+            if active_assignments:
+                items.append({
+                    "type": "active_assignments",
+                    "count": active_assignments,
+                    "message": f"{active_assignments} active assignments",
+                })
+            unread = len(items)
+        elif getattr(profile, "inspector_profile", None):
+            insp = profile.inspector_profile
+            my_assignments = VehicleAssignment.objects.filter(
+                inspector=insp, status__in=[VehicleAssignment.STATUS_ASSIGNED, VehicleAssignment.STATUS_IN_PROGRESS]
+            ).count()
+            drafts = Inspection.objects.filter(
+                inspector=insp, status__in=[Inspection.STATUS_DRAFT, Inspection.STATUS_IN_PROGRESS]
+            ).count()
+            if my_assignments:
+                items.append({
+                    "type": "my_assignments",
+                    "count": my_assignments,
+                    "message": f"{my_assignments} assignments",
+                })
+            if drafts:
+                items.append({
+                    "type": "incomplete_inspections",
+                    "count": drafts,
+                    "message": f"{drafts} inspections to complete",
+                })
+            unread = len(items)
+        elif getattr(profile, "customer_profile", None):
+            cust = profile.customer_profile
+            recent_reports = cust.inspections.filter(customer_report__isnull=False).count()
+            if recent_reports:
+                items.append({
+                    "type": "recent_reports",
+                    "count": recent_reports,
+                    "message": f"{recent_reports} reports available",
+                })
+            unread = len(items)
+
+        return Response({"unread_count": unread, "items": items})
 
 
 class ChecklistItemViewSet(viewsets.ReadOnlyModelViewSet):

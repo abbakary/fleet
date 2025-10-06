@@ -13,6 +13,7 @@ from .views import (
     VehicleViewSet,
     VehicleMakeViewSet,
     VehicleModelNameViewSet,
+    NotificationsSummaryView,
 )
 from . import views_web, views_extra
 
@@ -74,6 +75,7 @@ urlpatterns = [
     path('app/inspections/new/', views_web.inspection_create, name='portal-inspections-new'),
     path('app/inspections/<int:pk>/edit/', views_web.inspection_edit, name='portal-inspections-edit'),
     path('app/inspections/<int:pk>/delete/', views_web.inspection_delete, name='portal-inspections-delete'),
+    path('app/inspections/<int:pk>/', views_extra.inspection_detail, name='portal-inspection-detail'),
 
     path('app/reports/', views_extra.reports_view, name='portal-reports'),
 
@@ -88,5 +90,6 @@ urlpatterns = [
 
     # API
     path('auth/token/', AuthTokenView.as_view(), name='auth-token'),
+    path('notifications/summary/', NotificationsSummaryView.as_view(), name='notifications-summary'),
     path('', include(router.urls)),
 ]

@@ -12,6 +12,7 @@
               <td><span class="badge bg-light text-dark">{{ i.get_status_display }}</span></td>
               <td>{{ i.created_at|date:'Y-m-d H:i' }}</td>
               <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'portal-inspection-detail' i.id %}">View Detail</a>
                 <a class="btn btn-sm btn-outline-primary" href="{% url 'inspection-report' i.id %}">View Report</a>
                 <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal-inspections-edit' i.id %}">Edit</a>
                 <form method="post" action="{% url 'portal-inspections-delete' i.id %}" class="d-inline">{% csrf_token %}

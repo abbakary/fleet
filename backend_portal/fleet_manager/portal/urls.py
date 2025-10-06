@@ -30,6 +30,11 @@ router.register(r'vehicle-models', VehicleModelNameViewSet, basename='vehicle-mo
 urlpatterns = [
     # Web admin shell and partials (HTMX)
     path('app/', views_web.app_shell, name='portal-app'),
+    # Friendly named entry for templates and redirects
+    path('admin/', views_web.app_shell, name='portal-admin'),
+    # Partial endpoint for recent inspections search (page still works without HTMX)
+    path('app/recent-inspections/', views_web.recent_inspections_partial, name='portal-recent-inspections-partial'),
+
     path('app/customers/', views_web.customers_view, name='portal-customers'),
     path('app/customers/new/', views_web.customer_create, name='portal-customers-new'),
     path('app/customers/<int:pk>/', views_extra.customer_detail, name='portal-customer-detail'),

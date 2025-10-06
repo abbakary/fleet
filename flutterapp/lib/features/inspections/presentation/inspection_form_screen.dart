@@ -158,17 +158,52 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
     final progress = (_currentStepIndex + 1) / _steps.length;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(l10n.stepProgress(_currentStepIndex + 1, _steps.length), style: theme.textTheme.bodyMedium),
-          const SizedBox(height: 4),
-          Text(_stepTitle(context, step.definition.code), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 6),
-          Text(_stepSummary(context, step.definition.code), style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-          const SizedBox(height: 12),
-          LinearProgressIndicator(value: progress, minHeight: 6, borderRadius: BorderRadius.circular(8)),
-        ],
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF0EA5E9), Color(0xFF6366F1)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: const [BoxShadow(color: Color(0x1A000000), blurRadius: 10, offset: Offset(0, 6))],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.route, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(l10n.stepProgress(_currentStepIndex + 1, _steps.length), style: theme.textTheme.labelLarge?.copyWith(color: Colors.white70)),
+                const Spacer(),
+                SizedBox(
+                  width: 110,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 6,
+                      backgroundColor: Colors.white24,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _stepTitle(context, step.definition.code),
+              style: theme.textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _stepSummary(context, step.definition.code),
+              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white.withOpacity(0.9)),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -469,21 +504,11 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
           _buildGeneralPhotoSection(step, helperText: l10n.optionalAttachReferencePhotos),
           const SizedBox(height: 24),
           TextFormField(
-            controller: _operationalNotesController,
-            minLines: 3,
-            maxLines: 6,
-            decoration: InputDecoration(
-              labelText: l10n.notesFieldLabel,
-              hintText: l10n.optionalAttachReferencePhotos,
-            ),
-          ),
-          const SizedBox(height: 24),
-          TextFormField(
             controller: _generalNotesController,
             minLines: 3,
             maxLines: 8,
             decoration: InputDecoration(
-              labelText: l10n.submitInspectionLabel,
+              labelText: l10n.notesFieldLabel,
               hintText: l10n.optionalAttachReferencePhotos,
             ),
           ),
@@ -1315,45 +1340,55 @@ class _StepIntroCard extends StatelessWidget {
     final completedCount = completedIndices.length.clamp(0, instructions.length).toInt();
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      color: theme.colorScheme.surfaceVariant,
+      color: theme.colorScheme.surface,
       child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(_stepTitle(context, step.definition.code), style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 8),
-            Text(_stepSummary(context, step.definition.code), style: theme.textTheme.bodyMedium),
-            if (instructions.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Text(context.l10n.guidedActionsLabel, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-                  const Spacer(),
-                  Text(context.l10n.guidedActionsProgress(completedCount, instructions.length), style: theme.textTheme.labelMedium),
-                ],
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        child: ExpansionTile(
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+          collapsedShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          title: Row(
+            children: [
+              const Icon(Icons.lightbulb_outline),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(_stepTitle(context, step.definition.code), style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 2),
+                    Text(_stepSummary(context, step.definition.code), style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
-              ...List.generate(
-                instructions.length,
-                (index) => CheckboxListTile(
-                  value: completedIndices.contains(index),
-                  onChanged: enabled
-  ? (value) => onToggle(index, value ?? false)
-  : null,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(instructions[index], style: theme.textTheme.bodyMedium),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  context.l10n.guidedActionsProgress(completedCount, instructions.length),
+                  style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary),
                 ),
               ),
             ],
-            if (!enabled) ...[
-              const SizedBox(height: 12),
-              Text(context.l10n.stepMarkedNotApplicable,
-                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-            ],
-          ],
+          ),
+          children: instructions.isEmpty
+              ? []
+              : List.generate(
+                  instructions.length,
+                  (index) => CheckboxListTile(
+                    value: completedIndices.contains(index),
+                    onChanged: enabled ? (value) => onToggle(index, value ?? false) : null,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(instructions[index], style: theme.textTheme.bodyMedium),
+                  ),
+                ),
         ),
       ),
     );

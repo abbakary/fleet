@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="{% static 'assets/images/favicon.png' %}" type="image/png" />
+    <title>{% block title %}Fleet Manager Admin{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'assets/css/vendors/bootstrap.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/css/vendors/feather-icon.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/css/font-awesome.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}" />
+    <link id="color" rel="stylesheet" href="{% static 'assets/css/color-1.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/css/responsive.css' %}" />
+    {% block head_extra %}{% endblock %}
+    <style>
+      .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+      .content-wrapper{padding:20px}
+      .table-actions a{margin-right:.5rem}
+      .card-hover:hover{box-shadow:0 0.5rem 1rem rgba(0,0,0,.1)}
+      .form-card{max-width:900px;margin:0 auto}
+    </style>
+  </head>
+  <body>
+    <div class="page-wrapper compact-wrapper" id="pageWrapper">
+      <div class="page-header">
+        <div class="header-wrapper row m-0">
+          <div class="logo-wrapper col-auto p-2">
+            <a href="{% url 'portal-admin' %}">
+              <img class="img-fluid for-dark" src="{% static 'assets/images/logo/logo.png' %}" alt="logo" />
+              <img class="img-fluid for-light" src="{% static 'assets/images/logo/logo_dark.png' %}" alt="logo" />
+            </a>
+          </div>
+          <div class="col d-flex align-items-center">
+            <h5 class="mb-0">Fleet Manager Admin</h5>
+          </div>
+          <div class="col-auto p-2">
+            <a class="btn btn-outline-primary" href="{% url 'logout' %}">Sign out</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-body-wrapper">
+        <div class="sidebar-wrapper">
+          <div>
+            <div class="logo-wrapper"><a href="{% url 'portal-admin' %}"><img class="img-fluid for-dark" src="{% static 'assets/images/logo/logo.png' %}" alt="" /></a></div>
+            <nav class="sidebar-main">
+              <ul class="sidebar-links" id="simple-bar">
+                <li class="sidebar-list"><a class="sidebar-link" href="{% url 'portal-admin' %}"><i data-feather="home"></i><span>Overview</span></a></li>
+                <li class="sidebar-list"><a class="sidebar-link" href="{% url 'portal-customers' %}"><i data-feather="users"></i><span>Customers</span></a></li>
+                <li class="sidebar-list"><a class="sidebar-link" href="{% url 'portal-vehicles' %}"><i data-feather="truck"></i><span>Vehicles</span></a></li>
+                <li class="sidebar-list"><a class="sidebar-link" href="{% url 'portal-inspectors' %}"><i data-feather="user-check"></i><span>Inspectors</span></a></li>
+                <li class="sidebar-list"><a class="sidebar-link" href="{% url 'portal-assignments' %}"><i data-feather="calendar"></i><span>Assignments</span></a></li>
+                <li class="sidebar-list"><a class="sidebar-link" href="{% url 'portal-inspections' %}"><i data-feather="clipboard"></i><span>Inspections</span></a></li>
+                <li class="sidebar-list"><a class="sidebar-link" href="{% url 'portal-vehicle-catalog' %}"><i data-feather="layers"></i><span>Vehicle Catalog</span></a></li>
+                <li class="sidebar-list"><a class="sidebar-link" href="{% url 'portal-categories' %}"><i data-feather="list"></i><span>Checklist</span></a></li>
+                <li class="sidebar-list"><a class="sidebar-link" href="{% url 'portal-users' %}"><i data-feather="shield"></i><span>Users</span></a></li>
+                <li class="sidebar-list"><a class="sidebar-link" href="{% url 'portal-reports' %}"><i data-feather="bar-chart-2"></i><span>Reports</span></a></li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+
+        <div class="page-body">
+          <div class="container-fluid content-wrapper">
+            {% block content %}{% endblock %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="{% static 'assets/js/jquery.min.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'assets/js/icons/feather-icon/feather.min.js' %}"></script>
+    <script src="{% static 'assets/js/icons/feather-icon/feather-icon.js' %}"></script>
+    <script src="{% static 'assets/js/script.js' %}"></script>
+    {% block body_extra %}{% endblock %}
+  </body>
+</html>

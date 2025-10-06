@@ -32,6 +32,7 @@ urlpatterns = [
     path('app/', views_web.app_shell, name='portal-app'),
     path('app/customers/', views_web.customers_view, name='portal-customers'),
     path('app/customers/new/', views_web.customer_create, name='portal-customers-new'),
+    path('app/customers/<int:pk>/', views_extra.customer_detail, name='portal-customer-detail'),
     path('app/customers/<int:pk>/edit/', views_web.customer_edit, name='portal-customers-edit'),
     path('app/customers/<int:pk>/delete/', views_web.customer_delete, name='portal-customers-delete'),
 

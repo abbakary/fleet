@@ -1,0 +1,108 @@
+{% extends 'portal/base.html' %}
+{% block title %}Dashboard · Fleet Manager{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-12"><h3>Overview</h3></div>
+  <div class="col-md-3">
+    <div class="card card-hover">
+      <div class="card-body">
+        <h6 class="mb-1">Customers</h6>
+        <h3 class="mb-0">{{ kpi_customers }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card card-hover">
+      <div class="card-body">
+        <h6 class="mb-1">Vehicles</h6>
+        <h3 class="mb-0">{{ kpi_vehicles }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card card-hover">
+      <div class="card-body">
+        <h6 class="mb-1">Inspectors</h6>
+        <h3 class="mb-0">{{ kpi_inspectors }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card card-hover">
+      <div class="card-body">
+        <h6 class="mb-1">Inspections</h6>
+        <h3 class="mb-0">{{ kpi_inspections }}</h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-2">
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="mb-0">Recent Inspections</h5>
+        <a href="{% url 'portal-inspections' %}" class="btn btn-sm btn-outline-primary">View all</a>
+      </div>
+      <div class="card-body pt-0">
+        <div class="input-group my-3">
+          <span class="input-group-text"><i data-feather="search"></i></span>
+          <input id="recentSearch" class="form-control" type="search" placeholder="Search by license plate" />
+        </div>
+        <div id="recentInspections">
+          {% include 'portal/partials/recent_inspections_table.html' with recent_inspections=recent_inspections %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header"><h5 class="mb-0">Upcoming Assignments</h5></div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          {% for a in upcoming_assignments %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <div class="fw-semibold">{{ a.vehicle.license_plate }} · {{ a.vehicle.customer.legal_name }}</div>
+                <small class="text-muted">{{ a.inspector.profile.user.get_full_name|default:a.inspector.profile.user.username }}</small>
+              </div>
+              <span class="badge bg-primary">{{ a.scheduled_for }}</span>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-center text-muted">No upcoming assignments</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h5 class="mb-0">New Customers</h5></div>
+      <ul class="list-group list-group-flush">
+        {% for c in recent_customers %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a href="{% url 'portal-customer-detail' c.id %}">{{ c.legal_name }}</a>
+            <small class="text-muted">{{ c.city }}</small>
+          </li>
+        {% empty %}
+          <li class="list-group-item text-center text-muted">No recent customers</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block body_extra %}
+<script>
+(function(){
+  const input = document.getElementById('recentSearch');
+  if(!input) return;
+  let t; input.addEventListener('input', function(){
+    clearTimeout(t);
+    t = setTimeout(() => {
+      const q = encodeURIComponent(input.value || '');
+      fetch('{% url 'portal-recent-inspections-partial' %}?q=' + q, {headers: {'X-Requested-With':'XMLHttpRequest','HX-Request':'true'}})
+        .then(r => r.text()).then(html => { document.getElementById('recentInspections').innerHTML = html; });
+    }, 250);
+  });
+})();
+</script>
+{% endblock %}

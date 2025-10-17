@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../data/models.dart';
+import 'photo_gallery_widget.dart';
 
 /// Organized inspection summary card showing key details
 class InspectionSummaryCard extends StatelessWidget {

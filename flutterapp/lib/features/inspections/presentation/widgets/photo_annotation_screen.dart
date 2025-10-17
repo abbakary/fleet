@@ -6,6 +6,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:path/path.dart' as p;
 import '../../../../core/utils/localization_extensions.dart';
 
 class PhotoAnnotationScreen extends StatefulWidget {
@@ -308,10 +310,11 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
     if (!photoDirectory.existsSync()) {
       photoDirectory.createSync(recursive: true);
     }
-    final filePath = '${photoDirectory.path}/${DateTime.now().millisecondsSinceEpoch}_annotated.png';
+    final filePath = '${photoDirectory.path}${Platform.pathSeparator}${DateTime.now().millisecondsSinceEpoch}_annotated.png';
     final file = File(filePath);
     await file.writeAsBytes(bytes);
-    return file.path;
+    // Return the file path with the file:// scheme for consistency
+    return 'file://$filePath';
   }
 }
 

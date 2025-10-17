@@ -197,45 +197,84 @@ class InspectionsRepository {
     final rawResponses = (payload['item_responses'] as List<dynamic>? ?? <dynamic>[])
         .whereType<Map<String, dynamic>>()
         .toList();
+    
+    // Collect all photos to be sent as separate multipart files
+    final List<MultipartFile> photoFiles = [];
     final transformed = <Map<String, dynamic>>[];
-    for (final response in rawResponses) {
+    
+    for (int i = 0; i < rawResponses.length; i++) {
+      final response = rawResponses[i];
       final responseCopy = Map<String, dynamic>.from(response);
       final photos = responseCopy.remove('photos');
+      
       if (photos is List) {
-        final uploads = <Map<String, dynamic>>[];
+        final photoRefs = <Map<String, dynamic>>[];
         for (final entry in photos) {
           if (entry is! String || entry.isEmpty) {
             continue;
           }
+          
           if (kIsWeb) {
             if (entry.startsWith('data:image')) {
               final base64Part = entry.split(',').last;
               try {
                 final bytes = base64Decode(base64Part);
-                final multipart = MultipartFile.fromBytes(bytes, filename: 'photo_${DateTime.now().millisecondsSinceEpoch}.png');
-                uploads.add({'image': multipart});
+                final multipart = MultipartFile.fromBytes(bytes, filename: 'photo_${DateTime.now().millisecondsSinceEpoch}_${photoFiles.length}.png');
+                photoFiles.add(multipart);
+                // Add reference to this photo
+                photoRefs.add({'is_local_file': true});
               } catch (_) {
                 continue;
               }
             }
             continue;
           }
-          final filePath = entry.startsWith('file://') ? entry.substring(7) : entry;
+          
+          // Handle file paths consistently
+          String filePath;
+          if (entry.startsWith('file://')) {
+            filePath = entry.substring(7); // Remove the file:// prefix
+          } else {
+            filePath = entry; // Assume it's already a valid path
+          }
           final file = File(filePath);
           if (!await file.exists()) {
             continue;
           }
           final multipart = await MultipartFile.fromFile(file.path, filename: p.basename(file.path));
-          uploads.add({'image': multipart});
+          photoFiles.add(multipart);
+          // Add reference to this photo
+          photoRefs.add({'is_local_file': true});
         }
-        if (uploads.isNotEmpty) {
-          responseCopy['photos'] = uploads;
+        
+        if (photoRefs.isNotEmpty) {
+          responseCopy['photos'] = photoRefs;
         }
       }
       transformed.add(responseCopy);
     }
+    
     body['item_responses'] = transformed;
-    return FormData.fromMap(body);
+    
+    // Create FormData with both fields and files
+    final formData = FormData();
+    
+    // Add all fields
+    body.forEach((key, value) {
+      if (key != 'item_responses') {
+        formData.fields.add(MapEntry(key, value.toString()));
+      }
+    });
+    
+    // Add item_responses as JSON string
+    formData.fields.add(MapEntry('item_responses', jsonEncode(transformed)));
+    
+    // Add all photo files
+    for (int i = 0; i < photoFiles.length; i++) {
+      formData.files.add(MapEntry('photos', photoFiles[i]));
+    }
+    
+    return formData;
   }
 
   List<Map<String, dynamic>> _extractList(dynamic data) {

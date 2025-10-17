@@ -9,7 +9,7 @@ class DevCorsMiddleware(MiddlewareMixin):
     """Lightweight CORS for development only.
 
     - Applies only when settings.DEBUG is True
-    - Applies only to paths starting with /api/
+    - Applies only to paths starting with /api/ or /media/
     - Adds Access-Control-Allow-* headers
     - Responds to OPTIONS preflight with 204
     """
@@ -17,7 +17,7 @@ class DevCorsMiddleware(MiddlewareMixin):
     def process_request(self, request: HttpRequest):
         if not settings.DEBUG:
             return None
-        if not request.path.startswith("/api/"):
+        if not (request.path.startswith("/api/") or request.path.startswith("/media/")):
             return None
         if request.method == "OPTIONS":
             response = HttpResponse(status=204)
@@ -28,7 +28,7 @@ class DevCorsMiddleware(MiddlewareMixin):
     def process_response(self, request: HttpRequest, response: HttpResponse):
         if not settings.DEBUG:
             return response
-        if request.path.startswith("/api/"):
+        if request.path.startswith("/api/") or request.path.startswith("/media/"):
             self._apply_headers(response)
         return response
 

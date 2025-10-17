@@ -270,6 +270,18 @@ class InspectionPhotoSerializer(serializers.ModelSerializer):
         fields = ["id", "image", "caption", "created_at"]
         read_only_fields = ["id", "created_at"]
 
+    def to_representation(self, instance):
+        # Ensure the image URL is properly formatted for the frontend
+        representation = super().to_representation(instance)
+        if instance.image:
+            # Get the full URL for the image
+            request = self.context.get('request')
+            if request:
+                representation['image'] = request.build_absolute_uri(instance.image.url)
+            else:
+                representation['image'] = instance.image.url
+        return representation
+
     def validate_image(self, value):
         # Handle case where value might be a string (file path or base64)
         if isinstance(value, str):
@@ -281,8 +293,14 @@ class InspectionPhotoSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Handle file uploads properly
         image_data = validated_data.get('image')
+        
+        # Handle multipart file uploads (from Flutter app)
+        if hasattr(image_data, 'name') and hasattr(image_data, 'read'):
+            # This is already a file object, use it directly
+            return super().create(validated_data)
+        
+        # Handle base64 encoded images
         if isinstance(image_data, str) and image_data.startswith('data:image'):
-            # Handle base64 encoded image
             from django.core.files.base import ContentFile
             import base64
             import uuid
@@ -294,14 +312,28 @@ class InspectionPhotoSerializer(serializers.ModelSerializer):
             # Create a file-like object
             image_file = ContentFile(base64.b64decode(imgstr), name=f"photo_{uuid.uuid4()}.{ext}")
             validated_data['image'] = image_file
+            return super().create(validated_data)
+        
+        # Handle string paths/URLs
+        if isinstance(image_data, str):
+            # For now, we'll just pass it through
+            return super().create(validated_data)
         
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
         # Handle file uploads properly
         image_data = validated_data.get('image')
+        
+        # Handle multipart file uploads (from Flutter app)
+        if hasattr(image_data, 'name') and hasattr(image_data, 'read'):
+            # This is already a file object, use it directly
+            instance.image = image_data
+            instance.save()
+            return instance
+        
+        # Handle base64 encoded images
         if isinstance(image_data, str) and image_data.startswith('data:image'):
-            # Handle base64 encoded image
             from django.core.files.base import ContentFile
             import base64
             import uuid
@@ -313,6 +345,12 @@ class InspectionPhotoSerializer(serializers.ModelSerializer):
             # Create a file-like object
             image_file = ContentFile(base64.b64decode(imgstr), name=f"photo_{uuid.uuid4()}.{ext}")
             validated_data['image'] = image_file
+            return super().update(instance, validated_data)
+        
+        # Handle string paths/URLs
+        if isinstance(image_data, str):
+            # For now, we'll just pass it through
+            return super().update(instance, validated_data)
         
         return super().update(instance, validated_data)
 
@@ -414,48 +452,60 @@ class InspectionItemResponseSerializer(serializers.ModelSerializer):
         photos_data = validated_data.pop("photos", [])
         response = InspectionItemResponse.objects.create(**validated_data)
         
-        # Process photo data more robustly to handle various data formats
-        processed_photos = []
-        if isinstance(photos_data, list):
-            for photo_data in photos_data:
-                if isinstance(photo_data, dict):
-                    # Handle dict with image data
-                    if "image" in photo_data:
-                        processed_photos.append(photo_data)
-                    # Handle MultipartFile objects directly
-                    elif "file" in photo_data:
-                        processed_photos.append({"image": photo_data["file"]})
-                elif isinstance(photo_data, str):
-                    # Handle string photo data (likely file paths or base64)
-                    processed_photos.append({"image": photo_data})
-        elif isinstance(photos_data, dict):
-            # Handle single photo object
-            if "image" in photos_data:
-                processed_photos.append(photos_data)
-            elif "file" in photos_data:
-                processed_photos.append({"image": photos_data["file"]})
+        # Handle file uploads from Flutter multipart form
+        request = self.context.get('request')
         
-        for photo_data in processed_photos:
-            # Skip if image field is missing
-            if "image" in photo_data:
-                try:
-                    InspectionPhoto.objects.create(response=response, **photo_data)
-                except Exception as e:
-                    # Log error but continue processing other photos
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.error(f"Error creating photo: {str(e)}")
-        return response
-
-    def update(self, instance, validated_data):
-        photos_data = validated_data.pop("photos", None)
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-        if photos_data is not None:
-            instance.photos.all().delete()
+        # Check if this is a multipart form request with files
+        if request and hasattr(request, 'FILES'):
+            # Get all files sent under the 'photos' field (can contain multiple)
+            # Fallback to all FILES values if the specific key isn't used
+            uploaded_files = request.FILES.getlist('photos') or list(request.FILES.values())
+            file_index = 0
             
-            # Process photo data more robustly to handle various data formats
+            for photo_data in photos_data:
+                if isinstance(photo_data, dict) and photo_data.get('is_local_file'):
+                    # This corresponds to a file uploaded via multipart
+                    if file_index < len(uploaded_files):
+                        photo_file = uploaded_files[file_index]
+                        try:
+                            photo_serializer = InspectionPhotoSerializer(
+                                data={'image': photo_file}, 
+                                context=self.context
+                            )
+                            if photo_serializer.is_valid():
+                                photo_serializer.save(response=response)
+                            else:
+                                # Log validation errors but continue
+                                import logging
+                                logger = logging.getLogger(__name__)
+                                logger.error(f"Photo validation error: {photo_serializer.errors}")
+                            file_index += 1
+                        except Exception as e:
+                            # Log error but continue processing other photos
+                            import logging
+                            logger = logging.getLogger(__name__)
+                            logger.error(f"Error creating photo: {str(e)}")
+                else:
+                    # Handle other photo data formats (URLs, base64, etc.)
+                    try:
+                        photo_serializer = InspectionPhotoSerializer(
+                            data=photo_data, 
+                            context=self.context
+                        )
+                        if photo_serializer.is_valid():
+                            photo_serializer.save(response=response)
+                        else:
+                            # Log validation errors but continue
+                            import logging
+                            logger = logging.getLogger(__name__)
+                            logger.error(f"Photo validation error: {photo_serializer.errors}")
+                    except Exception as e:
+                        # Log error but continue processing other photos
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.error(f"Error creating photo: {str(e)}")
+        else:
+            # Handle photo data that might be in different formats
             processed_photos = []
             if isinstance(photos_data, list):
                 for photo_data in photos_data:
@@ -466,26 +516,158 @@ class InspectionItemResponseSerializer(serializers.ModelSerializer):
                         # Handle MultipartFile objects directly
                         elif "file" in photo_data:
                             processed_photos.append({"image": photo_data["file"]})
+                        # Handle inspection photo objects directly
+                        elif hasattr(photo_data, 'image'):
+                            processed_photos.append({"image": photo_data.image})
                     elif isinstance(photo_data, str):
                         # Handle string photo data (likely file paths or base64)
                         processed_photos.append({"image": photo_data})
+                    elif hasattr(photo_data, 'image'):
+                        # Handle inspection photo objects directly
+                        processed_photos.append({"image": photo_data.image})
             elif isinstance(photos_data, dict):
                 # Handle single photo object
                 if "image" in photos_data:
                     processed_photos.append(photos_data)
                 elif "file" in photos_data:
                     processed_photos.append({"image": photos_data["file"]})
+                elif hasattr(photos_data, 'image'):
+                    processed_photos.append({"image": photos_data.image})
+            elif isinstance(photos_data, str):
+                # Handle single string photo data
+                processed_photos.append({"image": photos_data})
             
             for photo_data in processed_photos:
                 # Skip if image field is missing
                 if "image" in photo_data:
                     try:
-                        InspectionPhoto.objects.create(response=instance, **photo_data)
+                        photo_serializer = InspectionPhotoSerializer(data=photo_data, context=self.context)
+                        if photo_serializer.is_valid():
+                            photo_serializer.save(response=response)
+                        else:
+                            # Log validation errors but continue
+                            import logging
+                            logger = logging.getLogger(__name__)
+                            logger.error(f"Photo validation error: {photo_serializer.errors}")
                     except Exception as e:
                         # Log error but continue processing other photos
                         import logging
                         logger = logging.getLogger(__name__)
                         logger.error(f"Error creating photo: {str(e)}")
+        
+        return response
+
+    def update(self, instance, validated_data):
+        photos_data = validated_data.pop("photos", None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        if photos_data is not None:
+            instance.photos.all().delete()
+            
+            # Handle file uploads from Flutter multipart form
+            request = self.context.get('request')
+            
+            # Check if this is a multipart form request with files
+            if request and hasattr(request, 'FILES'):
+                # Get all files sent under the 'photos' field (can contain multiple)
+                # Fallback to all FILES values if the specific key isn't used
+                uploaded_files = request.FILES.getlist('photos') or list(request.FILES.values())
+                file_index = 0
+                
+                for photo_data in photos_data:
+                    if isinstance(photo_data, dict) and photo_data.get('is_local_file'):
+                        # This corresponds to a file uploaded via multipart
+                        if file_index < len(uploaded_files):
+                            photo_file = uploaded_files[file_index]
+                            try:
+                                photo_serializer = InspectionPhotoSerializer(
+                                    data={'image': photo_file}, 
+                                    context=self.context
+                                )
+                                if photo_serializer.is_valid():
+                                    photo_serializer.save(response=instance)
+                                else:
+                                    # Log validation errors but continue
+                                    import logging
+                                    logger = logging.getLogger(__name__)
+                                    logger.error(f"Photo validation error: {photo_serializer.errors}")
+                                file_index += 1
+                            except Exception as e:
+                                # Log error but continue processing other photos
+                                import logging
+                                logger = logging.getLogger(__name__)
+                                logger.error(f"Error creating photo: {str(e)}")
+                    else:
+                        # Handle other photo data formats (URLs, base64, etc.)
+                        try:
+                            photo_serializer = InspectionPhotoSerializer(
+                                data=photo_data, 
+                                context=self.context
+                            )
+                            if photo_serializer.is_valid():
+                                photo_serializer.save(response=instance)
+                            else:
+                                # Log validation errors but continue
+                                import logging
+                                logger = logging.getLogger(__name__)
+                                logger.error(f"Photo validation error: {photo_serializer.errors}")
+                        except Exception as e:
+                            # Log error but continue processing other photos
+                            import logging
+                            logger = logging.getLogger(__name__)
+                            logger.error(f"Error creating photo: {str(e)}")
+            else:
+                # Handle photo data that might be in different formats
+                processed_photos = []
+                if isinstance(photos_data, list):
+                    for photo_data in photos_data:
+                        if isinstance(photo_data, dict):
+                            # Handle dict with image data
+                            if "image" in photo_data:
+                                processed_photos.append(photo_data)
+                            # Handle MultipartFile objects directly
+                            elif "file" in photo_data:
+                                processed_photos.append({"image": photo_data["file"]})
+                            # Handle inspection photo objects directly
+                            elif hasattr(photo_data, 'image'):
+                                processed_photos.append({"image": photo_data.image})
+                        elif isinstance(photo_data, str):
+                            # Handle string photo data (likely file paths or base64)
+                            processed_photos.append({"image": photo_data})
+                        elif hasattr(photo_data, 'image'):
+                            # Handle inspection photo objects directly
+                            processed_photos.append({"image": photo_data.image})
+                elif isinstance(photos_data, dict):
+                    # Handle single photo object
+                    if "image" in photos_data:
+                        processed_photos.append(photos_data)
+                    elif "file" in photos_data:
+                        processed_photos.append({"image": photos_data["file"]})
+                    elif hasattr(photos_data, 'image'):
+                        processed_photos.append({"image": photos_data.image})
+                elif isinstance(photos_data, str):
+                    # Handle single string photo data
+                    processed_photos.append({"image": photos_data})
+                
+                for photo_data in processed_photos:
+                    # Skip if image field is missing
+                    if "image" in photo_data:
+                        try:
+                            photo_serializer = InspectionPhotoSerializer(data=photo_data, context=self.context)
+                            if photo_serializer.is_valid():
+                                photo_serializer.save(response=instance)
+                            else:
+                                # Log validation errors but continue
+                                import logging
+                                logger = logging.getLogger(__name__)
+                                logger.error(f"Photo validation error: {photo_serializer.errors}")
+                        except Exception as e:
+                            # Log error but continue processing other photos
+                            import logging
+                            logger = logging.getLogger(__name__)
+                            logger.error(f"Error creating photo: {str(e)}")
+        
         return instance
 
 
@@ -635,7 +817,9 @@ class InspectionSerializer(serializers.ModelSerializer):
                 
                 response_data["photos"] = processed_photos
             
-            response_serializer = InspectionItemResponseSerializer(data=response_data)
+            # Pass the request context to ensure proper URL generation for photos
+            context = getattr(self, 'context', {})
+            response_serializer = InspectionItemResponseSerializer(data=response_data, context=context)
             if response_serializer.is_valid():
                 response_serializer.save(inspection=inspection)
             else:
@@ -675,7 +859,9 @@ class InspectionSerializer(serializers.ModelSerializer):
                     
                     response_data["photos"] = processed_photos
                 
-                response_serializer = InspectionItemResponseSerializer(data=response_data)
+                # Pass the request context to ensure proper URL generation for photos
+                context = getattr(self, 'context', {})
+                response_serializer = InspectionItemResponseSerializer(data=response_data, context=context)
                 # Provide better error messages for response validation
                 if response_serializer.is_valid():
                     response_serializer.save(inspection=instance)

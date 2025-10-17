@@ -1,7 +1,5 @@
 import 'dart:collection';
 
-import 'dart:collection';
-
 class PortalProfile {
   const PortalProfile({
     required this.id,
@@ -248,8 +246,19 @@ class InspectionItemModel {
 
   Map<String, dynamic> toOfflineJson() => <String, dynamic>{
         ...toJson(),
-        'photos': photoUris.toList(),
+        'photos': photoUris.map((uri) => _photoUriToMap(uri)).toList(),
       };
+
+  static Map<String, dynamic> _photoUriToMap(String uri) {
+    if (uri.startsWith('http')) {
+      // Already uploaded photo - just send the path
+      return {'image': uri};
+    } else {
+      // Local file - this needs to be handled as multipart form data
+      // For now, we'll indicate it's a file path that needs processing
+      return {'image': uri, 'is_local_file': true};
+    }
+  }
 
   InspectionItemModel copyWith({String? result, int? severity, String? notes, List<String>? photoUris}) {
     return InspectionItemModel(

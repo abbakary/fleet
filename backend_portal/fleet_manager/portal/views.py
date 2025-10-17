@@ -179,6 +179,35 @@ def _normalize_inspection_payload(data: Any) -> dict[str, Any]:
                 cleaned_response = {k: v for k, v in response.items() if k in allowed_response_fields}
                 # Ensure checklist_item is present
                 if "checklist_item" in cleaned_response:
+                    # Process photos field to ensure it's in the correct format
+                    if "photos" in cleaned_response and isinstance(cleaned_response["photos"], list):
+                        processed_photos = []
+                        for photo in cleaned_response["photos"]:
+                            if isinstance(photo, dict):
+                                # Already in correct format
+                                processed_photos.append(photo)
+                            elif isinstance(photo, str):
+                                # Convert string to dict format
+                                processed_photos.append({"image": photo})
+                            elif hasattr(photo, 'image'):
+                                # Handle photo objects
+                                processed_photos.append({"image": photo.image})
+                        cleaned_response["photos"] = processed_photos
+                    elif "photos" in cleaned_response and isinstance(cleaned_response["photos"], str):
+                        # If photos is a string, try to parse it as JSON
+                        try:
+                            photos_list = json.loads(cleaned_response["photos"])
+                            if isinstance(photos_list, list):
+                                processed_photos = []
+                                for photo in photos_list:
+                                    if isinstance(photo, dict):
+                                        processed_photos.append(photo)
+                                    elif isinstance(photo, str):
+                                        processed_photos.append({"image": photo})
+                                cleaned_response["photos"] = processed_photos
+                        except json.JSONDecodeError:
+                            # If parsing fails, treat as single photo string
+                            cleaned_response["photos"] = [{"image": cleaned_response["photos"]}]
                     cleaned_responses.append(cleaned_response)
         cleaned_payload["item_responses"] = cleaned_responses
 
@@ -356,16 +385,27 @@ class InspectionViewSet(viewsets.ModelViewSet):
         return _normalize_inspection_payload(request.data)
 
     def create(self, request, *args, **kwargs):
+        # Debug logging
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"Request content type: {request.content_type}")
+        logger.info(f"Request POST data: {dict(request.POST)}")
+        logger.info(f"Request FILES: {dict(request.FILES)}")
+        logger.info(f"Request data: {request.data}")
+        
+        # Check if files are being received
+        if request.FILES:
+            logger.info(f"Number of files received: {len(request.FILES)}")
+            for key, file in request.FILES.items():
+                logger.info(f"File {key}: {file.name}, size: {file.size}")
+        
         try:
-            # Log incoming data for debugging
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.info(f"Received inspection data: {request.data}")
-            
             prepared_data = self._prepare_payload(request)
             logger.info(f"Prepared inspection data: {prepared_data}")
             
-            serializer = self.get_serializer(data=prepared_data)
+            # Pass the request context to ensure proper URL generation for photos
+            serializer = self.get_serializer(data=prepared_data, context={'request': request})
             if not serializer.is_valid():
                 logger.error(f"Serializer validation errors: {serializer.errors}")
                 return Response({"error": "Validation failed", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -389,7 +429,8 @@ class InspectionViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=self._prepare_payload(request), partial=partial)
+        # Pass the request context to ensure proper URL generation for photos
+        serializer = self.get_serializer(instance, data=self._prepare_payload(request), partial=partial, context={'request': request})
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
@@ -477,6 +518,13 @@ class InspectionCategoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     pagination_class = None
 
 
+class ChecklistItemViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ChecklistItem.objects.filter(is_active=True).select_related("category")
+    serializer_class = ChecklistItemSerializer
+    permission_classes = [AllowAny]
+    pagination_class = None
+
+
 class NotificationsSummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -506,43 +554,5 @@ class NotificationsSummaryView(APIView):
                     "message": f"{active_assignments} active assignments",
                 })
             unread = len(items)
-        elif getattr(profile, "inspector_profile", None):
-            insp = profile.inspector_profile
-            my_assignments = VehicleAssignment.objects.filter(
-                inspector=insp, status__in=[VehicleAssignment.STATUS_ASSIGNED, VehicleAssignment.STATUS_IN_PROGRESS]
-            ).count()
-            drafts = Inspection.objects.filter(
-                inspector=insp, status__in=[Inspection.STATUS_DRAFT, Inspection.STATUS_IN_PROGRESS]
-            ).count()
-            if my_assignments:
-                items.append({
-                    "type": "my_assignments",
-                    "count": my_assignments,
-                    "message": f"{my_assignments} assignments",
-                })
-            if drafts:
-                items.append({
-                    "type": "incomplete_inspections",
-                    "count": drafts,
-                    "message": f"{drafts} inspections to complete",
-                })
-            unread = len(items)
-        elif getattr(profile, "customer_profile", None):
-            cust = profile.customer_profile
-            recent_reports = cust.inspections.filter(customer_report__isnull=False).count()
-            if recent_reports:
-                items.append({
-                    "type": "recent_reports",
-                    "count": recent_reports,
-                    "message": f"{recent_reports} reports available",
-                })
-            unread = len(items)
 
         return Response({"unread_count": unread, "items": items})
-
-
-class ChecklistItemViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = ChecklistItem.objects.filter(is_active=True).select_related("category")
-    serializer_class = ChecklistItemSerializer
-    permission_classes = [AllowAny]
-    pagination_class = None

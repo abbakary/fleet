@@ -1,9 +1,0 @@
-{% extends 'portal/base.html' %}
-{% block title %}Customers · Fleet Manager{% endblock %}
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h4 class="mb-0">Customers</h4>
-  <a href="{% url 'portal-customers-new' %}" class="btn btn-primary">Add Customer</a>
-</div>
-{% include 'portal/partials/customers.html' with customers=customers %}
-{% endblock %}

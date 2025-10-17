@@ -83,7 +83,21 @@ class InspectionsRepository {
   Future<InspectionDetailModel> fetchInspectionDetail(int id) async {
     final response = await _apiClient.get<dynamic>('${ApiEndpoints.inspections}$id/');
     final json = _extractMap(response.data);
-    return InspectionDetailModel.fromJson(json);
+    final detail = InspectionDetailModel.fromJson(json);
+
+    // Validate and clean the inspection data
+    final cleaned = InspectionDataValidator.cleanInspectionData(detail);
+    final validation = InspectionDataValidator.validateInspectionDetail(cleaned);
+
+    // Log validation results (in production, might send to analytics)
+    if (!validation.isValid) {
+      // Log errors but still return the data
+      for (final error in validation.errors) {
+        // You can log this error to your analytics service
+      }
+    }
+
+    return cleaned;
   }
 
   Future<String> fetchReportHtml(int id) async {

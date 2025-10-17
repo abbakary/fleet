@@ -161,42 +161,133 @@ class _DetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final repo = context.read<InspectionsRepository>();
+    final profile = context.read<SessionController>().currentProfile;
+
+    // Determine if current user is inspector or customer
+    final isInspector = profile.isInspector;
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // Header with key inspection info
-        InspectionHeaderCard(
+        // Improved Summary Card
+        InspectionSummaryCard(
           reference: detail.reference,
           vehicle: detail.vehicle,
           customer: detail.customer,
           status: detail.status,
           createdAt: detail.createdAt,
-          odometerReading: detail.odometerReading,
+          inspector: detail.inspectorId != null
+              ? InspectorProfileModel(
+                  id: detail.inspectorId ?? 0,
+                  badgeId: '',
+                  certifications: '',
+                  isActive: true,
+                  maxDailyInspections: 0,
+                  profile: PortalProfile(
+                    id: detail.inspectorId ?? 0,
+                    role: PortalProfile.roleInspector,
+                    fullName: 'Inspector',
+                    organization: '',
+                  ),
+                )
+              : null,
         ),
         const SizedBox(height: 20),
 
-        // Statistics summary
-        InspectionStatisticsSection(responses: detail.responses),
+        // Progress & Statistics Section
+        InspectionProgressSection(responses: detail.responses),
         const SizedBox(height: 20),
 
-        // Customer report if available
-        if (detail.customerReport != null) ...[
-          CustomerReportSection(report: detail.customerReport!),
+        // Organized Findings by Category
+        InspectionFindingsByCategorySection(
+          responses: detail.responses,
+          resolveMediaUrl: repo.resolveMediaUrl,
+        ),
+        const SizedBox(height: 20),
+
+        // General notes if available
+        if (detail.generalNotes.isNotEmpty) ...[
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.note_outlined),
+                      const SizedBox(width: 8),
+                      Text(
+                        'General Notes',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(detail.generalNotes, style: Theme.of(context).textTheme.bodyMedium),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: 20),
         ],
 
-        // General notes if available
-        if (detail.generalNotes.isNotEmpty)
-          GeneralNotesSection(notes: detail.generalNotes),
-        if (detail.generalNotes.isNotEmpty) const SizedBox(height: 20),
+        // Customer report if available
+        if (detail.customerReport != null) ...[
+          Card(
+            color: Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.3),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.assessment, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Customer Report Summary',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(detail.customerReport!.summary, style: Theme.of(context).textTheme.bodyMedium),
+                  if (detail.customerReport!.recommendedActions.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text('Recommended Actions:', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    Text(detail.customerReport!.recommendedActions, style: Theme.of(context).textTheme.bodySmall),
+                  ],
+                  if (detail.customerReport!.publishedAt != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      'Published: ${DateFormat.yMMMd().add_jm().format(detail.customerReport!.publishedAt!)}',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
 
-        // Detailed responses/findings
-        InspectionResponsesSection(
-          responses: detail.responses,
-          resolveMediaUrl: repo.resolveMediaUrl,
-          showFindings: true,
-        ),
+        // Comments section for customer view
+        if (!isInspector) ...[
+          CommentsSection(
+            inspectorName: 'Inspector',
+            comments: [
+              {
+                'author': 'Inspector',
+                'date': DateFormat.yMMMd().add_jm().format(detail.createdAt),
+                'text': 'Inspection in progress. You will receive updates as sections are completed.',
+              },
+            ],
+          ),
+          const SizedBox(height: 20),
+        ],
+
         const SizedBox(height: 24),
       ],
     );

@@ -19,58 +19,99 @@ class _InspectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final statusColor = _statusColor(inspection.status);
+    final statusIcon = _statusIcon(inspection.status);
     final vehicleDisplay = inspection.vehicle.licensePlate.isNotEmpty
         ? '${inspection.vehicle.licensePlate} • ${inspection.vehicle.make} ${inspection.vehicle.model}'
         : inspection.vehicle.vin;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(vehicleDisplay, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 4),
-                      Text(inspection.statusDisplay, style: theme.textTheme.bodySmall?.copyWith(color: statusColor)),
-                      const SizedBox(height: 4),
-                      Text(DateFormat.yMMMd().format(inspection.createdAt), style: theme.textTheme.labelSmall),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    inspection.status.replaceAll('_', ' ').toUpperCase(),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: statusColor,
-                      fontWeight: FontWeight.w600,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with vehicle and status
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          vehicleDisplay,
+                          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Inspection ID: ${inspection.reference}',
+                          style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: onTap,
-                icon: const Icon(Icons.description_outlined),
-                label: const Text('View Report'),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(statusIcon, color: statusColor, size: 20),
+                  ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+
+              // Status and date info
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Status', style: theme.textTheme.labelSmall),
+                      const SizedBox(height: 4),
+                      Text(
+                        inspection.statusDisplay,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: statusColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('Created', style: theme.textTheme.labelSmall),
+                      const SizedBox(height: 4),
+                      Text(
+                        DateFormat.yMMMd().format(inspection.createdAt),
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Action button
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: onTap,
+                  icon: const Icon(Icons.description_outlined, size: 18),
+                  label: const Text('View Report'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -83,6 +124,16 @@ class _InspectionCard extends StatelessWidget {
       'rejected' => Colors.red,
       'in_progress' => Colors.blue,
       _ => Colors.grey,
+    };
+  }
+
+  IconData _statusIcon(String status) {
+    return switch (status) {
+      'submitted' => Icons.check_circle_outline,
+      'approved' => Icons.verified,
+      'rejected' => Icons.cancel_outlined,
+      'in_progress' => Icons.hourglass_bottom,
+      _ => Icons.info_outline,
     };
   }
 }

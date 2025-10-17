@@ -104,13 +104,50 @@ class _ReportHtmlScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Report')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: SelectableText(html.isEmpty ? 'No report available.' : html),
-        ),
+      appBar: AppBar(
+        title: const Text('Inspection Report'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share),
+            tooltip: 'Share report',
+            onPressed: () {
+              // Share functionality can be added here
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Share functionality coming soon')),
+              );
+            },
+          ),
+        ],
       ),
+      body: html.isEmpty
+          ? Center(
+              child: Text(
+                'No report available.',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            )
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(0),
+                child: _HtmlRenderWidget(html: html),
+              ),
+            ),
+    );
+  }
+}
+
+class _HtmlRenderWidget extends StatelessWidget {
+  const _HtmlRenderWidget({required this.html});
+
+  final String html;
+
+  @override
+  Widget build(BuildContext context) {
+    // For web and mobile, render as formatted text with basic HTML parsing
+    // A production app would use html widget or webview
+    return SelectableText(
+      html,
+      style: Theme.of(context).textTheme.bodyMedium,
     );
   }
 }

@@ -85,16 +85,22 @@ class InspectionsRepository {
   }
 
   Future<String> fetchReportHtml(int id) async {
-    final response = await _apiClient.get<dynamic>('${ApiEndpoints.inspections}$id/report/');
-    final data = response.data;
-    if (data is Map<String, dynamic>) {
-      final html = data['html'];
-      if (html is String) return html;
+    try {
+      final detail = await fetchInspectionDetail(id);
+      return ReportGenerator.generateHtmlReport(detail);
+    } catch (_) {
+      // Fallback to API if generation fails
+      final response = await _apiClient.get<dynamic>('${ApiEndpoints.inspections}$id/report/');
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final html = data['html'];
+        if (html is String) return html;
+      }
+      if (data is String) {
+        return data;
+      }
+      return '';
     }
-    if (data is String) {
-      return data;
-    }
-    return '';
   }
 
   Future<String?> downloadReportPdf(int id) async {

@@ -77,7 +77,19 @@ class InspectionsRepository {
   Future<List<InspectionSummaryModel>> fetchInspections() async {
     final response = await _apiClient.get<dynamic>(ApiEndpoints.inspections);
     final list = _extractList(response.data);
-    return list.map(InspectionSummaryModel.fromJson).toList();
+    return list
+        .map(InspectionSummaryModel.fromJson)
+        .map((summary) => InspectionSummaryModel(
+              id: summary.id,
+              reference: InspectionDataValidator.sanitizeText(summary.reference),
+              vehicle: InspectionDataValidator.cleanVehicleData(summary.vehicle),
+              status: summary.status.toLowerCase(),
+              statusDisplay: summary.statusDisplay,
+              createdAt: summary.createdAt,
+              customer: summary.customer != null ? InspectionDataValidator.cleanCustomerData(summary.customer!) : null,
+              inspector: summary.inspector,
+            ))
+        .toList();
   }
 
   Future<InspectionDetailModel> fetchInspectionDetail(int id) async {

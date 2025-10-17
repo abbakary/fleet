@@ -11,6 +11,7 @@ import '../../../core/api/endpoints.dart';
 import '../../../core/exceptions/app_exception.dart';
 import '../../../core/storage/offline_queue.dart';
 import 'models.dart';
+import 'report_generator.dart';
 
 enum InspectionSubmissionStatus { submitted, queued, failed }
 

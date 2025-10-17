@@ -809,28 +809,66 @@ class _InspectionListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = _statusColor(context, inspection.status);
+    final theme = Theme.of(context);
+    final statusColor = _statusColor(inspection.status);
+    final vehicleDisplay = inspection.vehicle.licensePlate.isNotEmpty
+        ? '${inspection.vehicle.licensePlate} • ${inspection.vehicle.make} ${inspection.vehicle.model}'
+        : inspection.vehicle.vin;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        title: Text(
-          inspection.vehicle.licensePlate.isNotEmpty
-              ? '${inspection.vehicle.licensePlate} • ${inspection.vehicle.make} ${inspection.vehicle.model}'
-              : inspection.vehicle.vin,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(vehicleDisplay, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    Text(inspection.statusDisplay, style: theme.textTheme.bodySmall?.copyWith(color: statusColor)),
+                    const SizedBox(height: 4),
+                    Text(
+                      DateFormat.yMMMd().format(inspection.createdAt),
+                      style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  inspection.status.replaceAll('_', ' ').toUpperCase(),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: statusColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        subtitle: Text('${inspection.statusDisplay} • ${DateFormat.yMMMd().format(inspection.createdAt)}'),
-        trailing: Icon(Icons.chevron_right, color: statusColor),
-        onTap: onTap,
       ),
     );
   }
 
-  Color _statusColor(BuildContext context, String status) {
+  Color _statusColor(String status) {
     return switch (status) {
       'submitted' => Colors.deepOrange,
       'approved' => Colors.green,
+      'rejected' => Colors.red,
       'in_progress' => Colors.blue,
-      _ => Theme.of(context).colorScheme.onSurfaceVariant,
+      _ => Colors.grey,
     };
   }
 }

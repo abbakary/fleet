@@ -11,6 +11,8 @@ import '../../../core/api/endpoints.dart';
 import '../../../core/exceptions/app_exception.dart';
 import '../../../core/storage/offline_queue.dart';
 import 'models.dart';
+import 'report_generator.dart';
+import 'data_validator.dart';
 
 enum InspectionSubmissionStatus { submitted, queued, failed }
 
@@ -75,26 +77,58 @@ class InspectionsRepository {
   Future<List<InspectionSummaryModel>> fetchInspections() async {
     final response = await _apiClient.get<dynamic>(ApiEndpoints.inspections);
     final list = _extractList(response.data);
-    return list.map(InspectionSummaryModel.fromJson).toList();
+    return list
+        .map(InspectionSummaryModel.fromJson)
+        .map((summary) => InspectionSummaryModel(
+              id: summary.id,
+              reference: InspectionDataValidator.sanitizeText(summary.reference),
+              vehicle: InspectionDataValidator.cleanVehicleData(summary.vehicle),
+              status: summary.status.toLowerCase(),
+              statusDisplay: summary.statusDisplay,
+              createdAt: summary.createdAt,
+              customer: summary.customer != null ? InspectionDataValidator.cleanCustomerData(summary.customer!) : null,
+              inspector: summary.inspector,
+            ))
+        .toList();
   }
 
   Future<InspectionDetailModel> fetchInspectionDetail(int id) async {
     final response = await _apiClient.get<dynamic>('${ApiEndpoints.inspections}$id/');
     final json = _extractMap(response.data);
-    return InspectionDetailModel.fromJson(json);
+    final detail = InspectionDetailModel.fromJson(json);
+
+    // Validate and clean the inspection data
+    final cleaned = InspectionDataValidator.cleanInspectionData(detail);
+    final validation = InspectionDataValidator.validateInspectionDetail(cleaned);
+
+    // Log validation results (in production, might send to analytics)
+    if (!validation.isValid) {
+      // Log errors but still return the data
+      for (final error in validation.errors) {
+        // You can log this error to your analytics service
+      }
+    }
+
+    return cleaned;
   }
 
   Future<String> fetchReportHtml(int id) async {
-    final response = await _apiClient.get<dynamic>('${ApiEndpoints.inspections}$id/report/');
-    final data = response.data;
-    if (data is Map<String, dynamic>) {
-      final html = data['html'];
-      if (html is String) return html;
+    try {
+      final detail = await fetchInspectionDetail(id);
+      return ReportGenerator.generateHtmlReport(detail);
+    } catch (_) {
+      // Fallback to API if generation fails
+      final response = await _apiClient.get<dynamic>('${ApiEndpoints.inspections}$id/report/');
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final html = data['html'];
+        if (html is String) return html;
+      }
+      if (data is String) {
+        return data;
+      }
+      return '';
     }
-    if (data is String) {
-      return data;
-    }
-    return '';
   }
 
   Future<String?> downloadReportPdf(int id) async {

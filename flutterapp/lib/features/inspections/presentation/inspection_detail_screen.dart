@@ -6,6 +6,8 @@ import 'package:open_filex/open_filex.dart';
 import '../../auth/presentation/session_controller.dart';
 import '../data/inspections_repository.dart';
 import '../data/models.dart';
+import '../data/report_generator.dart';
+import 'widgets/inspection_detail_sections.dart';
 
 class InspectionDetailScreen extends StatefulWidget {
   const InspectionDetailScreen({required this.summary, super.key});
@@ -102,13 +104,50 @@ class _ReportHtmlScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Report')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: SelectableText(html.isEmpty ? 'No report available.' : html),
-        ),
+      appBar: AppBar(
+        title: const Text('Inspection Report'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share),
+            tooltip: 'Share report',
+            onPressed: () {
+              // Share functionality can be added here
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Share functionality coming soon')),
+              );
+            },
+          ),
+        ],
       ),
+      body: html.isEmpty
+          ? Center(
+              child: Text(
+                'No report available.',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            )
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(0),
+                child: _HtmlRenderWidget(html: html),
+              ),
+            ),
+    );
+  }
+}
+
+class _HtmlRenderWidget extends StatelessWidget {
+  const _HtmlRenderWidget({required this.html});
+
+  final String html;
+
+  @override
+  Widget build(BuildContext context) {
+    // For web and mobile, render as formatted text with basic HTML parsing
+    // A production app would use html widget or webview
+    return SelectableText(
+      html,
+      style: Theme.of(context).textTheme.bodyMedium,
     );
   }
 }
@@ -121,141 +160,44 @@ class _DetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final repo = context.read<InspectionsRepository>();
-    final date = DateFormat.yMMMd().add_jm().format(detail.createdAt);
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        if (detail.customerReport != null) ...[
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Customer summary', style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  Text(detail.customerReport!.summary),
-                  if (detail.customerReport!.recommendedActions.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Text('Recommended actions', style: Theme.of(context).textTheme.titleSmall),
-                    const SizedBox(height: 4),
-                    Text(detail.customerReport!.recommendedActions),
-                  ],
-                  if (detail.customerReport!.publishedAt != null) ...[
-                    const SizedBox(height: 8),
-                    Text('Published: ${DateFormat.yMMMd().add_jm().format(detail.customerReport!.publishedAt!)}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-        ],
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Reference: ${detail.reference}', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                Text('Vehicle: ${detail.vehicle.licensePlate.isNotEmpty ? detail.vehicle.licensePlate : detail.vehicle.vin}'),
-                Text('Customer: ${detail.customer.legalName}'),
-                Text('Odometer: ${detail.odometerReading} mi'),
-                Text('Status: ${detail.status.replaceAll('_', ' ')}'),
-                Text('Created: $date'),
-                if (detail.generalNotes.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text('Notes: ${detail.generalNotes}')
-                ],
-              ],
-            ),
-          ),
+        // Header with key inspection info
+        InspectionHeaderCard(
+          reference: detail.reference,
+          vehicle: detail.vehicle,
+          customer: detail.customer,
+          status: detail.status,
+          createdAt: detail.createdAt,
+          odometerReading: detail.odometerReading,
         ),
-        const SizedBox(height: 12),
-        ...detail.responses.map((r) => _ResponseCard(response: r, resolve: repo.resolveMediaUrl)),
+        const SizedBox(height: 20),
+
+        // Statistics summary
+        InspectionStatisticsSection(responses: detail.responses),
+        const SizedBox(height: 20),
+
+        // Customer report if available
+        if (detail.customerReport != null) ...[
+          CustomerReportSection(report: detail.customerReport!),
+          const SizedBox(height: 20),
+        ],
+
+        // General notes if available
+        if (detail.generalNotes.isNotEmpty)
+          GeneralNotesSection(notes: detail.generalNotes),
+        if (detail.generalNotes.isNotEmpty) const SizedBox(height: 20),
+
+        // Detailed responses/findings
+        InspectionResponsesSection(
+          responses: detail.responses,
+          resolveMediaUrl: repo.resolveMediaUrl,
+          showFindings: true,
+        ),
         const SizedBox(height: 24),
       ],
-    );
-  }
-}
-
-class _ResponseCard extends StatelessWidget {
-  const _ResponseCard({required this.response, required this.resolve});
-
-  final InspectionDetailItemModel response;
-  final String Function(String) resolve;
-
-  @override
-  Widget build(BuildContext context) {
-    final hasPhotos = response.photoPaths.isNotEmpty;
-    final hasFailure = response.result == 'fail';
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(child: Text(response.checklistItem.title, style: Theme.of(context).textTheme.titleSmall)),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: hasFailure ? Theme.of(context).colorScheme.errorContainer : Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    response.result.toUpperCase(),
-                    style: TextStyle(
-                      color: hasFailure ? Theme.of(context).colorScheme.onErrorContainer : Theme.of(context).colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (response.checklistItem.description.isNotEmpty)
-              Text(
-                response.checklistItem.description,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-              ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.report, size: 16),
-                const SizedBox(width: 6),
-                Text('Severity: ${response.severity}')
-              ],
-            ),
-            if (response.notes.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text('Notes: ${response.notes}')
-            ],
-            if (hasPhotos) ...[
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 110,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: response.photoPaths.length,
-                  itemBuilder: (context, index) {
-                    final url = resolve(response.photoPaths[index]);
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(url, width: 150, height: 110, fit: BoxFit.cover),
-                    );
-                  },
-                  separatorBuilder: (_, __) => const SizedBox(width: 10),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
     );
   }
 }

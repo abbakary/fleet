@@ -102,21 +102,11 @@ class _CustomerHomeView extends StatelessWidget {
                               )
                             else
                               ...controller.inspections.map(
-                                (inspection) => Card(
-                                  child: ListTile(
-                                    title: Text(
-                                      inspection.vehicle.licensePlate.isNotEmpty
-                                          ? '${inspection.vehicle.licensePlate} • ${inspection.vehicle.make} ${inspection.vehicle.model}'
-                                          : inspection.vehicle.vin,
-                                    ),
-                                    subtitle: Text(
-                                      '${inspection.statusDisplay} • ${DateFormat.yMMMd().format(inspection.createdAt)}',
-                                    ),
-                                    trailing: const Icon(Icons.chevron_right),
-                                    onTap: () => Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => InspectionDetailScreen(summary: inspection),
-                                      ),
+                                (inspection) => _InspectionCard(
+                                  inspection: inspection,
+                                  onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => InspectionDetailScreen(summary: inspection),
                                     ),
                                   ),
                                 ),

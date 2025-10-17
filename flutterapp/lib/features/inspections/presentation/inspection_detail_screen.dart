@@ -8,6 +8,7 @@ import '../data/inspections_repository.dart';
 import '../data/models.dart';
 import '../data/report_generator.dart';
 import 'widgets/inspection_detail_sections.dart';
+import 'widgets/inspection_detail_organized.dart';
 
 class InspectionDetailScreen extends StatefulWidget {
   const InspectionDetailScreen({required this.summary, super.key});

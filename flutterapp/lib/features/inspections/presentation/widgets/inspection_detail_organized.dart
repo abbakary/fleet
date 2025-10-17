@@ -503,33 +503,16 @@ class _FindingItem extends StatelessWidget {
             ],
             if (hasPhotos) ...[
               const SizedBox(height: 8),
-              Text('Evidence Photos (${response.photoPaths.length})', style: theme.textTheme.labelSmall),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 90,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: response.photoPaths.length,
-                  itemBuilder: (context, index) {
-                    final url = resolveMediaUrl(response.photoPaths[index]);
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: Image.network(
-                        url,
-                        width: 120,
-                        height: 90,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          width: 120,
-                          height: 90,
-                          color: theme.colorScheme.surfaceVariant,
-                          child: const Icon(Icons.image_not_supported),
-                        ),
-                      ),
-                    );
-                  },
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                ),
+              PhotoGallery(
+                photoUrls: response.photoPaths.map(resolveMediaUrl).toList(),
+                maxCrossAxisCount: 3,
+                onImageTap: (index, url) {
+                  PhotoViewerDialog.show(
+                    context,
+                    photoUrls: response.photoPaths.map(resolveMediaUrl).toList(),
+                    initialIndex: index,
+                  );
+                },
               ),
             ],
           ],
